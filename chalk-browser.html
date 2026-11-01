@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Chalk Browser</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* the same three looks as Notebook, picked from Notebook's settings */
+  :root {
+    --paper: #fbfbf7;
+    --paper-2: #f3f3ec;
+    --card: #ffffff;
+    --ink: #1f2d44;
+    --pencil: #66708a;
+    --rule-line: #dde6f2;
+    --margin-line: #ecb3ad;
+    --edge: #d9dde4;
+    --accent: #2c5fb8;
+    --accent-ink: #ffffff;
+    --highlight: #ffe680;
+    --danger: #c0473a;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --rule: 28px;
+    --radius: 10px;
+    --hand: 'Kalam', 'Segoe Print', 'Comic Sans MS', cursive;
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  /* Basic: soft and dark, in Night (blue-grey, below) or Mono */
+  body[data-theme="basic"] {
+    --paper: #16181d;
+    --paper-2: #1f232a;
+    --card: #1c1f26;
+    --ink: #d9d5cc;
+    --pencil: #8b909a;
+    --rule-line: transparent;
+    --margin-line: transparent;
+    --edge: #2b3039;
+    --accent: #8fb3d9;
+    --accent-ink: #16181d;
+    --highlight: #2f4157;
+    --danger: #d98b7f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.18);
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+
+  /* Mono: the same Basic layout in plain black and white */
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --accent-ink: #0b0b0b; --highlight: #3a3a3a; --danger: #e6e6e6;
+  }
+
+  /* Space: soft see-through panels over a dim starry sky (matches Notebook) */
+  body[data-theme="space"] {
+    --paper: #0b0f1c;
+    --paper-2: rgba(46, 54, 80, 0.92);
+    --card: rgba(24, 30, 48, 0.92);
+    --ink: #e6e9f2;
+    --pencil: #a4adc4;
+    --rule-line: rgba(200, 212, 255, 0.08);
+    --margin-line: transparent;
+    --edge: rgba(200, 212, 255, 0.15);
+    --accent: #dbe3f6;
+    --accent-ink: #0e1328;
+    --highlight: rgba(200, 212, 255, 0.16);
+    --danger: #f2a3a3;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --radius: 16px;
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  /* on its own the page draws the sky; inside Notebook, Notebook's sky shows through */
+  html:not(.in-notebook) body[data-theme="space"] { background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c; }
+  /* the frame is dark; saying "light" here would make the browser paint a solid sheet over that sky */
+  html.in-notebook { color-scheme: dark; }
+  html.in-notebook body[data-theme="space"] { background: transparent; }
+  body[data-theme="space"] #overlay { background: rgba(6, 9, 18, 0.88); }
+  body[data-theme="space"] .btn { background: var(--accent); color: var(--accent-ink); }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .btn {
+    flex: none; height: 46px; padding: 0 22px; border: none; border-radius: 999px;
+    background: var(--accent); color: var(--accent-ink); font-weight: 700;
+  }
+
+  /* ---- the key ---- */
+  #overlay {
+    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: var(--paper);
+  }
+  #prompt-box {
+    width: 100%; max-width: 380px; padding: 32px; text-align: center;
+    background: var(--card); border: 1px solid var(--edge); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  #prompt-box h2 { margin: 0; font: 700 2rem/1.1 var(--hand); }
+  #prompt-box h2 span { color: var(--accent); }
+  #prompt-box p { margin: 6px 0 16px; color: var(--pencil); }
+  #key-input {
+    display: block; width: 100%; height: 42px; padding: 0 14px; margin-bottom: 12px;
+    background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius);
+  }
+  #key-input:focus { outline: none; border-color: var(--accent); }
+  #submit-btn { width: 100%; height: 42px; border-radius: var(--radius); }
+  #submit-btn:disabled { opacity: 0.6; cursor: default; }
+  #status { margin-top: 12px; min-height: 20px; font-size: 0.88rem; color: var(--danger); }
+  #hint, #no-key { margin-top: 8px; font-size: 0.8rem; color: var(--pencil); }
+  .or { margin: 14px 0 10px; color: var(--pencil); font-size: 0.85rem; }
+  #public-btn { width: 100%; height: 42px; border-radius: var(--radius); background: transparent; color: var(--ink); border: 1px solid var(--edge); }
+  /* public servers: Tide fills the page, with a small way back to the key */
+  #tide-full { position: fixed; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
+  #key-switch {
+    position: fixed; right: 10px; bottom: 10px; z-index: 900; padding: 5px 10px; border: 1px solid var(--edge);
+    border-radius: var(--radius); background: var(--card); color: var(--pencil); font-size: 0.75rem; opacity: 0.55;
+  }
+  #key-switch:hover, #key-switch:focus { opacity: 1; color: var(--ink); }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 1001;
+    max-width: calc(100% - 32px); padding: 10px 14px; border-radius: var(--radius);
+    background: var(--ink); color: var(--paper); font-size: 0.85rem;
+    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  /* inside Notebook, asked once: keep Chalk Browser open while you're on other tabs? */
+  #keep-box {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 1002; width: calc(100% - 32px); max-width: 400px;
+    padding: 16px 18px; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  #keep-box b { display: block; margin-bottom: 4px; }
+  #keep-box p { margin: 0 0 12px; color: var(--pencil); font-size: 0.85rem; }
+  #keep-box .row { display: flex; gap: 8px; }
+  #keep-box button { flex: 1; height: 36px; border-radius: var(--radius); }
+  #keep-no { background: transparent; color: var(--ink); border: 1px solid var(--edge); }
+</style>
+</head>
+<body data-theme="basic" data-basic="mono">
+<div id="toast"></div>
+<div id="keep-box" hidden>
+  <b>Remember Chalk Browser when you switch tabs?</b>
+  <p>It stays open, right where you left it, while you're in Games or anywhere else. Turning this off saves memory.</p>
+  <div class="row"><button class="btn" id="keep-yes" type="button">Yes, remember it</button><button id="keep-no" type="button">No, save memory</button></div>
+</div>
+<script>
+/* Chalk Browser is the public Tide (github.com/Guernica4u/Tide), with its own tabs and address bar. ?url=<site> opens that site first. */
+/* the public Tide lives on workers.dev, which loads more reliably in class */
+const TIDE_PAGE = "https://tide.guernica4u.workers.dev/";
+const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
+const MODE_STORE = "chalk-browser.mode";          /* "key" or "public" */
+/* "1": Notebook keeps Chalk Browser open on other tabs; "0": it closes it to save memory */
+const KEEP_STORE = "chalk-browser.keep";
+
+const $ = id => document.getElementById(id);
+const toastEl = $("toast");
+
+/* ---- the look follows Notebook, live ---- */
+const THEME_NAMES = { basic: 1, space: 1 };   /* anything else, Terminal included, shows as Basic Night */
+const BASIC_COLORS = { night: 1, mono: 1 };
+/* inside Notebook's Chalk TV tab the page lets Notebook's own sky show through */
+try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
+function applyLook() {
+  let nb = {};
+  try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
+  let theme = nb.theme === "glass" ? "space" : nb.theme;   // Glass is called Space now
+  let basic = nb.basic == null ? "mono" : BASIC_COLORS[nb.basic] ? nb.basic : "night";   // Basic Mono is the default, like Notebook
+  if (nb.plain || theme === "night") { theme = "basic"; basic = "night"; }   // Night is a Basic color now
+  if (!THEME_NAMES[theme]) { if (theme) basic = "night"; theme = "basic"; }   // a saved old theme (Terminal) shows as Night
+  document.body.dataset.theme = theme;
+  if (theme === "basic") document.body.dataset.basic = basic;
+  else delete document.body.dataset.basic;
+  /* Tide wears the same look: "space", or the Basic color ("night" or "mono") */
+  tideLook = theme === "space" ? "space" : basic === "mono" ? "mono" : "night";
+}
+var tideLook = "mono";
+applyLook();
+window.addEventListener("storage", e => {
+  if (e.key !== SETTINGS_STORE && e.key !== null) return;
+  applyLook();
+  const f = document.getElementById("tide-full");
+  if (f && f.contentWindow) f.contentWindow.postMessage({ tide: "look", look: tideLook }, new URL(f.src).origin);
+});
+
+function saveMode(m) {
+  try { if (m) localStorage.setItem(MODE_STORE, m); else localStorage.removeItem(MODE_STORE); } catch (e) {}
+}
+/* Chalk Browser's old settings and tabs are gone */
+try { localStorage.removeItem("chalk-browser.settings"); localStorage.removeItem("chalk-tv.tide.enc"); } catch (e) {}
+
+/* ---- a site to open first: ?url=<site> ---- */
+function startUrl() {
+  let raw = String(new URLSearchParams(location.search).get("url") || "").trim();
+  if (!raw) return null;
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(raw)) raw = "https://" + raw;
+  try { const u = new URL(raw); return /^https?:$/.test(u.protocol) ? u.href : null; } catch (e) { return null; }
+}
+
+
+function toast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add("show");
+  setTimeout(() => toastEl.classList.remove("show"), 8000);
+}
+
+/* ---- Tide fills the page ---- */
+function openTide(mode, key) {
+  saveMode(mode);
+  const f = document.createElement("iframe");
+  f.id = "tide-full";
+  f.title = "Chalk Browser";
+  f.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write";
+  f.allowFullscreen = true;
+  /* a site can't take over the whole tab or open real tabs (Tide opens them as its own tabs) */
+  f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-presentation allow-orientation-lock allow-downloads");
+  const cfg = { look: tideLook };
+  const start = startUrl();
+  if (start) cfg.open = start;
+  f.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify(cfg));
+  document.body.appendChild(f);
+}
+
+openTide("public");
+
+/* ---- inside Notebook: remember Chalk Browser between tabs? Asked once ---- */
+function answerKeep(v) {
+  try { localStorage.setItem(KEEP_STORE, v); } catch (e) {}
+  $("keep-box").hidden = true;
+}
+$("keep-yes").onclick = () => answerKeep("1");
+$("keep-no").onclick = () => answerKeep("0");
+try { if (document.documentElement.classList.contains("in-notebook") && localStorage.getItem(KEEP_STORE) === null) $("keep-box").hidden = false; } catch (e) {}
+</script>
+</body>
+</html>

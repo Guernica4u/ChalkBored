@@ -1,0 +1,5 @@
+vercel.json
+wrangler.jsonc
+.vercelignore
+.git
+node_modules

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library — ChalkBored</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #171717;
+    --muted: #8a8580;
+    --line: #d9d5cf;
+    --accent: #3d4f4a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 2rem 1.75rem 0;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .back-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .back-link:hover { color: var(--ink); border-color: var(--ink); }
+  main {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 5rem 1.75rem 12rem;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.15;
+    margin: 0 0 1.75rem;
+  }
+  .rule {
+    width: 48px;
+    height: 1px;
+    background: var(--accent);
+    margin-bottom: 2.5rem;
+  }
+  .intro {
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    line-height: 1.75;
+    color: #3a3a3a;
+    max-width: 62ch;
+    margin: 0 0 1.25rem;
+  }
+  .shelf { margin-top: 4.5rem; }
+  .shelf h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+    margin: 0 0 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .books {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .book {
+    display: block;
+    padding: 1.15rem 1.3rem 1.3rem;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .book strong {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 1.12rem;
+    margin-bottom: 0.4rem;
+  }
+  .book span {
+    display: block;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #5a5a5a;
+    transition: color 0.2s ease;
+  }
+  .book:hover,
+  .book:focus-visible {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .book:hover span,
+  .book:focus-visible span { color: #e5e5e5; }
+  .fineprint {
+    margin-top: 4rem;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    margin: 0 1.75rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <a class="back-link" href="index.html">&larr; Back to ChalkBored</a>
+  </header>
+  <main>
+    <div class="rule"></div>
+    <h1>Library</h1>
+    <p class="intro">Full books, textbooks, and PDFs — free to read and legal to download. Every link opens in a new tab.</p>
+
+    <section class="shelf">
+      <h2>Textbooks</h2>
+      <div class="books">
+        <a class="book" href="https://openstax.org/subjects" target="_blank" rel="noopener">
+          <strong>OpenStax</strong>
+          <span>Peer-reviewed textbooks for high school and college: math, science, history, economics. Free PDFs.</span>
+        </a>
+        <a class="book" href="https://libretexts.org" target="_blank" rel="noopener">
+          <strong>LibreTexts</strong>
+          <span>Huge open textbook library across chemistry, biology, physics, math, and more.</span>
+        </a>
+        <a class="book" href="https://open.umn.edu/opentextbooks" target="_blank" rel="noopener">
+          <strong>Open Textbook Library</strong>
+          <span>Hundreds of openly licensed textbooks, reviewed by faculty.</span>
+        </a>
+        <a class="book" href="https://www.ck12.org/browse/" target="_blank" rel="noopener">
+          <strong>CK-12</strong>
+          <span>K–12 textbooks and practice across math and science.</span>
+        </a>
+        <a class="book" href="https://en.wikibooks.org" target="_blank" rel="noopener">
+          <strong>Wikibooks</strong>
+          <span>Community-written textbooks and how-tos on almost anything.</span>
+        </a>
+        <a class="book" href="https://ocw.mit.edu" target="_blank" rel="noopener">
+          <strong>MIT OpenCourseWare</strong>
+          <span>Lecture notes, readings, and problem sets from real MIT courses.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="shelf">
+      <h2>Classics &amp; Novels</h2>
+      <div class="books">
+        <a class="book" href="https://www.gutenberg.org" target="_blank" rel="noopener">
+          <strong>Project Gutenberg</strong>
+          <span>70,000+ public-domain books. Shakespeare, Austen, Dickens, Twain — in EPUB, Kindle, and plain text.</span>
+        </a>
+        <a class="book" href="https://standardebooks.org" target="_blank" rel="noopener">
+          <strong>Standard Ebooks</strong>
+          <span>Public-domain classics, carefully cleaned up and beautifully formatted.</span>
+        </a>
+        <a class="book" href="https://openlibrary.org" target="_blank" rel="noopener">
+          <strong>Open Library</strong>
+          <span>Borrow digital copies of millions of books with a free account.</span>
+        </a>
+        <a class="book" href="https://www.loc.gov/free-to-use/" target="_blank" rel="noopener">
+          <strong>Library of Congress</strong>
+          <span>Free-to-use books, historical documents, and primary sources.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="shelf">
+      <h2>PDFs &amp; Archives</h2>
+      <div class="books">
+        <a class="book" href="https://archive.org/details/texts" target="_blank" rel="noopener">
+          <strong>Internet Archive — Texts</strong>
+          <span>Millions of scanned books, magazines, and papers, many downloadable as PDF.</span>
+        </a>
+        <a class="book" href="https://www.doabooks.org" target="_blank" rel="noopener">
+          <strong>Directory of Open Access Books</strong>
+          <span>Academic books released free by their publishers.</span>
+        </a>
+        <a class="book" href="https://www.feedbooks.com/publicdomain" target="_blank" rel="noopener">
+          <strong>Feedbooks Public Domain</strong>
+          <span>Classic fiction and non-fiction ready for e-readers.</span>
+        </a>
+        <a class="book" href="https://www.hathitrust.org" target="_blank" rel="noopener">
+          <strong>HathiTrust</strong>
+          <span>Digitized collections from research libraries; public-domain titles are fully readable.</span>
+        </a>
+      </div>
+    </section>
+
+    <p class="fineprint">Everything here is public domain, openly licensed, or offered free by its publisher. Know a good one we're missing? Tell us.</p>
+  </main>
+  <footer>
+    ChalkBored &middot; built for students, kept free
+  </footer>
+</body>
+</html>

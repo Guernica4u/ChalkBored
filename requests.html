@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* same themes as Notebook (Basic, Space); Notebook tells us which one */
+  :root {
+    --paper: #fbfbf7; --paper-2: #f3f3ec; --card: #ffffff; --ink: #1f2d44; --pencil: #66708a;
+    --rule-line: #dde6f2; --edge: #d9dde4; --accent: #2c5fb8; --highlight: #ffe680; --highlight-ink: #1f2d44;
+    --danger: #c0473a; --good: #2f7d4f;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --hand: var(--body);
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    --radius: 3px;
+    color-scheme: light;
+  }
+  body[data-theme="basic"] {
+    --paper: #16181d; --paper-2: #1f232a; --card: #1c1f26; --ink: #d9d5cc; --pencil: #8b909a;
+    --rule-line: #2b3039; --edge: #2b3039; --accent: #8fb3d9; --highlight: #2f4157; --highlight-ink: #e8e4db;
+    --danger: #d98b7f; --good: #8fcfa6;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.18);
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+
+  /* Space: Notebook draws the sky behind this page, so it stays see-through */
+  body[data-theme="space"] {
+    --paper: rgba(200, 212, 255, 0.06); --paper-2: rgba(200, 212, 255, 0.1); --card: rgba(24, 30, 48, 0.9);
+    --ink: #e6e9f2; --pencil: #a4adc4;
+    --rule-line: rgba(200, 212, 255, 0.08); --edge: rgba(200, 212, 255, 0.15); --accent: #dbe3f6;
+    --highlight: rgba(200, 212, 255, 0.2); --highlight-ink: #ffffff;
+    --danger: #f2a3a3; --good: #9fe6bd;
+    --hand: var(--body);
+    --shadow: none;
+    color-scheme: dark;
+    background: transparent;
+  }
+  body[data-theme="space"] .btn.primary { background: var(--accent); border-color: transparent; color: #0e1328; }
+  /* Notebook's OS look: square, see-through dark panels over its picture */
+  body.os {
+    --radius: 0; --shadow: none;
+    --card: rgba(14, 16, 21, 0.74); --paper: rgba(255, 255, 255, 0.04); --paper-2: rgba(255, 255, 255, 0.06);
+    --edge: rgba(255, 255, 255, 0.1); --rule-line: rgba(255, 255, 255, 0.06);
+    background: transparent;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; }
+  body { min-height: 100vh; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap { max-width: 820px; padding: 0.4rem 0.2rem 2rem; display: flex; flex-direction: column; gap: 1.3rem; }
+
+  .intro {
+    padding: 1.1rem 1.25rem; background: var(--card); border: 1px solid var(--edge);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .round {
+    display: inline-block; margin-bottom: 0.45rem; padding: 0.1rem 0.6rem;
+    border: 1px solid var(--edge); border-radius: var(--radius);
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pencil);
+  }
+  .intro h2 { margin: 0; font-family: var(--hand); font-size: 1.75rem; line-height: 1.2; }
+  .intro p { margin: 0.3rem 0 0; color: var(--pencil); max-width: 60ch; }
+  .chip.leading { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+  .box { padding: 1rem 1.1rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .box h3 { margin: 0 0 0.6rem; font-family: var(--hand); font-size: 1.15rem; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .field {
+    flex: 1 1 200px;
+    padding: 0.55rem 0.75rem;
+    background: var(--paper);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    outline: none;
+  }
+  .field:focus { border-color: var(--accent); }
+  select.field { flex: 0 0 auto; }
+  .btn { padding: 0.55rem 1.1rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius); cursor: pointer; white-space: nowrap; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 700; }
+  body[data-theme="basic"] .btn.primary { color: var(--paper); }
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --rule-line: #2e2e2e; --edge: #2e2e2e; --accent: #f2f2f2; --highlight: #3a3a3a; --highlight-ink: #0b0b0b;
+    --danger: #e6e6e6; --good: #d0d0d0;
+  }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .msg { min-height: 1.3em; margin: 0.5rem 0 0; font-size: 0.88rem; color: var(--danger); }
+  .msg.ok { color: var(--good); }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: inherit; }
+  .small { font-size: 0.85rem; color: var(--pencil); }
+
+  /* "Make account!" mode: the notebook sends ?signup=1 when you're signed out */
+  .box.signup { border-color: var(--edge); }
+  .box.signup h3 { font-size: 1.5rem; }
+  .box.signup .lead { margin: -0.2rem 0 0.9rem; color: var(--pencil); max-width: 52ch; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .tabs button { padding: 0.35rem 0.8rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius); font-size: 0.85rem; cursor: pointer; }
+  .tabs button.on { background: var(--highlight); border-color: var(--highlight); color: var(--highlight-ink); font-weight: 700; }
+
+  .list { display: flex; flex-direction: column; gap: 0.7rem; }
+  .req {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+    gap: 0.9rem;
+    padding: 0.8rem 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .req.is-hidden { opacity: 0.5; }
+  .vote {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem;
+    height: 3.4rem;
+    background: var(--paper-2);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+  }
+  .vote:hover { border-color: var(--accent); }
+  .vote:active { transform: scale(0.94); }
+  .vote svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .vote b { font-size: 1rem; line-height: 1; }
+  .vote.on { background: var(--highlight); border-color: var(--highlight); color: var(--highlight-ink); }
+  .req-title { font-weight: 700; overflow-wrap: anywhere; }
+  .req-reason { margin: 0.15rem 0 0; color: var(--pencil); font-size: 0.9rem; overflow-wrap: anywhere; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.7rem; margin-top: 0.4rem; font-size: 0.8rem; color: var(--pencil); }
+  .chip { padding: 0.05rem 0.5rem; border: 1px solid var(--edge); border-radius: var(--radius); font-size: 0.75rem; }
+  .chip.planned { border-color: var(--accent); color: var(--accent); }
+  .chip.added { border-color: var(--good); color: var(--good); }
+  .chip.declined { border-color: var(--danger); color: var(--danger); }
+  .mod { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-left: auto; }
+  .mod select, .mod button { padding: 0.15rem 0.45rem; font-size: 0.78rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: 4px; cursor: pointer; }
+  .empty { font-family: var(--hand); font-size: 1.1rem; color: var(--pencil); }
+
+  /* ---------------- the poll ---------------- */
+  .poll { display: flex; flex-direction: column; gap: 0.7rem; }
+  .opt-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
+  .opt {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.3rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    padding: 0.95rem 1.05rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt:active { transform: scale(0.995); }
+  .opt:disabled { cursor: default; }
+  .opt > * { position: relative; z-index: 1; }
+  .opt .bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 0;
+    width: 0;
+    background: var(--highlight);
+    opacity: 0.35;
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .opt.on { border-color: var(--accent); }
+  .opt.on .bar { opacity: 0.55; }
+  .radio { width: 1.15rem; height: 1.15rem; border: 2px solid var(--edge); border-radius: 50%; }
+  .opt.on .radio { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 42%, transparent 46%); }
+  .opt-title { font-weight: 700; overflow-wrap: anywhere; }
+  .opt-reason { display: block; margin-top: 0.1rem; color: var(--pencil); font-size: 0.88rem; font-weight: 400; overflow-wrap: anywhere; }
+  .opt-count { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .opt-count b { display: block; font-size: 1.05rem; }
+  .opt-count span { color: var(--pencil); font-size: 0.78rem; }
+  .opt-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
+  .opt-tags .chip { font-weight: 400; }
+  .mod-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; padding-left: 0.2rem; font-size: 0.78rem; color: var(--pencil); }
+  .mod-row select, .mod-row button { padding: 0.15rem 0.45rem; font-size: 0.78rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: 4px; cursor: pointer; }
+  .poll-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; color: var(--pencil); font-size: 0.85rem; }
+  .sub { margin: 0.4rem 0 0.5rem; font-family: var(--hand); font-size: 1.15rem; color: var(--pencil); font-weight: 400; }
+  .done { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .done .chip { padding: 0.2rem 0.65rem; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="intro">
+    <span class="round" id="round"></span>
+    <h2>What should we add next?</h2>
+    <p>Pick one. You can change your pick any time, and the most-voted option gets looked at first.</p>
+  </header>
+
+
+  <!-- the poll -->
+  <section class="poll" id="poll" aria-label="Poll options"><p class="empty">Loading…</p></section>
+  <p class="msg" id="poll-msg" role="status"></p>
+  <div class="poll-foot" id="poll-foot" hidden>
+    <span id="poll-total"></span>
+  </div>
+
+  <section id="done-wrap" hidden>
+    <h3 class="sub">Already added thanks to votes</h3>
+    <div class="done" id="done"></div>
+  </section>
+
+</div>
+
+<!-- the Supabase library lives in this site (vendor/), checked by its fingerprint -->
+<script src="vendor/supabase-js-2.117.1.js" integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz"></script>
+<script type="module">
+const { createClient } = window.supabase;
+
+const SUPABASE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_0NGQlBRZ08bdTFpT4aRw6Q_T_DBsAby';
+let DEVICE = ''; try { DEVICE = localStorage.getItem('chalk-device') || ''; if (!DEVICE) localStorage.setItem('chalk-device', DEVICE = crypto.randomUUID()); } catch (e) { DEVICE = crypto.randomUUID(); }
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const $ = (id) => document.getElementById(id);
+const state = { me: null, rows: [], mine: new Set() };
+
+// which round of options the poll is on (bump it when a new round goes in)
+const ROUND = 4;
+$('round').textContent = 'Round ' + ROUND;
+
+// ---- theme: from the address first, then live updates from the notebook ----
+function applyLook(theme, basic, shell) {
+  document.body.classList.toggle('os', shell === 'os');
+  if (theme === 'glass') theme = 'space';   // Glass is called Space now
+  if (theme === 'night' || theme === 'terminal') { theme = 'basic'; basic = 'night'; }   // Night is a Basic color now; Terminal is retired
+  if (!['basic', 'space'].includes(theme)) theme = 'basic';   // anything else, Terminal included, is Basic
+  document.body.dataset.theme = theme;
+  if (theme === 'basic') document.body.dataset.basic = basic === 'night' ? 'night' : 'mono';
+  else delete document.body.dataset.basic;
+  /* Notebook's frame says "dark page". If this page said "light", the browser
+     would paint a solid white sheet behind it - so say the same thing. */
+  document.documentElement.style.colorScheme = getComputedStyle(document.body).colorScheme;
+}
+const q = new URLSearchParams(location.search);
+applyLook(q.get('theme'), q.get('basic'), q.get('shell'));
+
+window.addEventListener('message', (e) => {
+  if (e.origin !== location.origin || !e.data || e.data.type !== 'look') return;
+  applyLook(e.data.theme, e.data.basic, e.data.shell);
+});
+
+
+const SETUP_HINT = 'The poll isn\u2019t set up yet. Run SCRIPTS/supabase-setup.sql in Supabase.';
+
+
+// ---- the poll ----
+async function load() {
+  const [{ data, error }, votes] = await Promise.all([
+    db.from('requests')
+      .select('id, title, reason, kind, status, hidden, votes, created_at')
+      .order('created_at', { ascending: true })
+      .limit(200),
+    db.rpc('my_votes', { p_device: DEVICE }),
+  ]);
+  if (error) {
+    $('poll').innerHTML = '<p class="empty"></p>';
+    $('poll').firstChild.textContent = /requests|schema/.test(error.message) ? SETUP_HINT : error.message;
+    return;
+  }
+  state.rows = data || [];
+  state.mine = new Set((votes.data || []).map((v) => v.request_id));
+  paint();
+}
+
+async function pick(r) {
+  const msg = $('poll-msg');
+  msg.className = 'msg';
+  msg.textContent = '';
+  const { data: why, error } = await db.rpc('vote_for', { p_request: r.id, p_device: DEVICE });
+  if (error || why) {
+    msg.textContent = error ? (/vote_for/.test(error.message) ? SETUP_HINT : error.message) : why;
+    return;
+  }
+  await load();
+}
+
+function paint() {
+  const open = state.rows.filter((r) => (r.status === 'open' || r.status === 'planned') && (!r.hidden || state.me.is_mod));
+  const total = open.reduce((n, r) => n + (r.hidden ? 0 : r.votes), 0);
+  const top = Math.max(0, ...open.filter((r) => !r.hidden).map((r) => r.votes));
+
+  const poll = $('poll');
+  poll.innerHTML = '';
+  if (!open.length) {
+    poll.innerHTML = '<p class="empty"></p>';
+    poll.firstChild.textContent = state.me.is_mod
+      ? 'No options yet. Add some below.'
+      : 'No options to vote on yet. Check back soon.';
+  }
+
+  open.forEach((r) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'opt-wrap';
+    const mine = state.mine.has(r.id);
+    const pct = total ? Math.round((r.votes / total) * 100) : 0;
+
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (mine ? ' on' : '');
+    b.setAttribute('aria-pressed', String(mine));
+    b.innerHTML = '<span class="bar"></span><span class="radio" aria-hidden="true"></span>' +
+      '<span><span class="opt-title"></span><span class="opt-reason"></span><span class="opt-tags"></span></span>' +
+      '<span class="opt-count"><b></b><span></span></span>';
+    b.querySelector('.opt-title').textContent = r.title;
+    const reason = b.querySelector('.opt-reason');
+    if (r.reason) reason.textContent = r.reason; else reason.remove();
+    const tags = b.querySelector('.opt-tags');
+    const addTag = (text, cls) => { const t = document.createElement('span'); t.className = 'chip' + (cls ? ' ' + cls : ''); t.textContent = text; tags.appendChild(t); };
+    addTag(r.kind);
+    if (top > 0 && r.votes === top && !r.hidden) addTag('leading', 'leading');
+    if (r.status === 'planned') addTag('planned', 'planned');
+    if (r.hidden) addTag('hidden');
+    if (mine) addTag('your pick', 'added');
+    b.querySelector('.opt-count b').textContent = pct + '%';
+    b.querySelector('.opt-count span').textContent = r.votes + (r.votes === 1 ? ' vote' : ' votes');
+    b.setAttribute('aria-label', r.title + ', ' + r.votes + ' votes' + (mine ? ', your pick. Click to take your vote back.' : '. Click to vote.'));
+    b.onclick = () => pick(r);
+    wrap.appendChild(b);
+    // grow the bar after it's on screen so it animates
+    requestAnimationFrame(() => { b.querySelector('.bar').style.width = pct + '%'; });
+
+    if (state.me.is_mod) wrap.appendChild(modRow(r));
+    poll.appendChild(wrap);
+  });
+
+  $('poll-total').textContent = total + (total === 1 ? ' vote so far' : ' votes so far') +
+    (state.mine.size ? '' : ' · pick one to vote');
+  // once you've voted, Notebook puts Requests away until there's a new option (mods keep it)
+  if (parent !== window) {
+    const voted = state.mine.size && !state.me.is_mod ? open.filter((r) => !r.hidden).map((r) => r.id) : null;
+    try { parent.postMessage({ type: 'requests-voted', open: voted }, location.origin); } catch (e) {}
+  }
+  $('poll-foot').hidden = false;
+
+  const done = state.rows.filter((r) => r.status === 'added' && !r.hidden);
+  $('done-wrap').hidden = !done.length;
+  $('done').innerHTML = '';
+  done.forEach((r) => {
+    const c = document.createElement('span');
+    c.className = 'chip added';
+    c.textContent = r.title;
+    $('done').appendChild(c);
+  });
+}
+
+// site mods: set status, hide/unhide
+function modRow(r) {
+  const row = document.createElement('div');
+  row.className = 'mod-row';
+  row.append('mod: ');
+  const sel = document.createElement('select');
+  sel.setAttribute('aria-label', 'Status of ' + r.title);
+  ['open', 'planned', 'added', 'declined'].forEach((st) => {
+    const o = document.createElement('option');
+    o.value = st; o.textContent = st; o.selected = st === r.status;
+    sel.appendChild(o);
+  });
+  sel.onchange = async () => { await db.rpc('set_request_status', { p_request: r.id, p_status: sel.value, p_hidden: null }); load(); };
+  const hide = document.createElement('button');
+  hide.type = 'button';
+  hide.textContent = r.hidden ? 'unhide' : 'hide';
+  hide.onclick = async () => { await db.rpc('set_request_status', { p_request: r.id, p_status: null, p_hidden: !r.hidden }); load(); };
+  row.append(sel, hide);
+  return row;
+}
+
+// ---- go ----
+async function start() {
+  state.me = { is_mod: false };
+  await load();
+
+  // new options and vote counts show up live
+  db.channel('requests')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => load())
+    .subscribe();
+}
+
+start();
+</script>
+</body>
+</html>

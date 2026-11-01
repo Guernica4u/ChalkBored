@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Chalk Music</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* the same three looks as Notebook, picked from Notebook's settings (copied from chalk-tv.html) */
+  :root {
+    --paper: #fbfbf7;
+    --paper-2: #f3f3ec;
+    --card: #ffffff;
+    --ink: #1f2d44;
+    --pencil: #66708a;
+    --rule-line: #dde6f2;
+    --margin-line: #ecb3ad;
+    --edge: #d9dde4;
+    --accent: #2c5fb8;
+    --accent-ink: #ffffff;
+    --highlight: #ffe680;
+    --danger: #c0473a;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --rule: 28px;
+    --radius: 10px;
+    --hand: var(--body);
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  /* Basic: soft and dark, in Night (blue-grey, below) or Mono (plain black and white) */
+  body[data-theme="basic"] {
+    --paper: #16181d;
+    --paper-2: #1f232a;
+    --card: #1c1f26;
+    --ink: #d9d5cc;
+    --pencil: #8b909a;
+    --rule-line: transparent;
+    --margin-line: transparent;
+    --edge: #2b3039;
+    --accent: #8fb3d9;
+    --accent-ink: #16181d;
+    --highlight: #2f4157;
+    --danger: #d98b7f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.18);
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  body[data-theme="basic"] .mono { background: transparent !important; color: var(--accent); border: 1px solid var(--edge); }
+
+  /* Mono: the same Basic layout in plain black and white */
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --accent-ink: #0b0b0b; --highlight: #3a3a3a; --danger: #e6e6e6;
+  }
+
+  /* Space: soft see-through panels over a dim starry sky (matches Notebook) */
+  body[data-theme="space"] {
+    --paper: #0b0f1c;
+    --paper-2: rgba(46, 54, 80, 0.72);
+    --card: rgba(24, 30, 48, 0.8);
+    --ink: #e6e9f2;
+    --pencil: #a4adc4;
+    --rule-line: rgba(200, 212, 255, 0.08);
+    --margin-line: transparent;
+    --edge: rgba(200, 212, 255, 0.15);
+    --accent: #dbe3f6;
+    --accent-ink: #0e1328;
+    --highlight: rgba(200, 212, 255, 0.16);
+    --danger: #f2a3a3;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --radius: 16px;
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  /* on its own the page draws the sky; inside Notebook, Notebook's sky shows through */
+  html:not(.in-notebook) body[data-theme="space"] {
+    background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c;
+  }
+  /* solid on purpose: text on these has to stay readable over the sky */
+  body[data-theme="space"] #queue { background: rgba(14, 18, 32, 0.94); }
+  body[data-theme="space"] #menu, body[data-theme="space"] .box { background: rgba(20, 25, 42, 0.96); }
+  body[data-theme="space"] .veil { background: rgba(6, 9, 18, 0.75); }
+  /* the frame is dark; saying "light" here would make the browser paint a solid sheet over that sky */
+  html.in-notebook { color-scheme: dark; }
+  html.in-notebook body[data-theme="space"] { background: transparent; }
+  /* Basic lets a little of Notebook's wallpaper show through too */
+  html.in-notebook body[data-theme="basic"] { background: color-mix(in srgb, var(--paper) 90%, transparent); }
+
+  /* ---- the page ---- */
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  #app { position: relative; display: flex; height: 100%; overflow: hidden; }
+
+  /* ---- the player, on the left ---- */
+  #main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #corner { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; gap: 6px; }
+  .tool {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; min-width: 32px; padding: 0 9px;
+    border-radius: var(--radius); border: 1px solid var(--edge); background: var(--card); color: var(--ink); font-size: 0.9rem; white-space: nowrap;
+  }
+  .tool:hover { border-color: var(--accent); }
+  .tool svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* one song at a time, the cover turning (the MP3 Player from CHALK OS) */
+  #stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px 16px 4px; }
+  #card { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
+  #discwrap { position: relative; width: min(56%, 40vh, 280px); aspect-ratio: 1; flex: 0 0 auto; margin: 4% 0 3%; }
+  #vis { position: absolute; left: -18%; top: -18%; width: 136%; height: 136%; pointer-events: none; }
+  #disc {
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; cursor: pointer;
+    background: var(--paper-2); box-shadow: var(--shadow), 0 0 0 1px var(--edge) inset;
+    animation: spin 16s linear infinite; animation-play-state: paused;
+  }
+  body.playing #disc { animation-play-state: running; }
+  #art { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; }
+  #art.letter { display: flex; align-items: center; justify-content: center; font: 700 clamp(44px, 16vh, 84px)/1 var(--hand); color: var(--accent-ink); background: var(--accent); }
+  #hole {
+    position: absolute; left: 50%; top: 50%; width: 17%; height: 17%; margin: -8.5% 0 0 -8.5%; border-radius: 50%;
+    background: var(--paper); box-shadow: 0 0 0 1px var(--edge), 0 0 0 7px rgba(0, 0, 0, 0.12);
+  }
+  #art.letter ~ #hole, body.no-hole #hole { display: none; }
+  /* YouTube's player plays the sound from here, out of sight */
+  #screen { position: absolute; left: 0; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
+  #screen iframe { width: 100%; height: 100%; border: 0; }
+  #words { width: 100%; min-width: 0; }
+  #title { font-size: 1.2rem; font-weight: 700; line-height: 1.3; max-width: 94%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #sub { font-size: 0.85rem; color: var(--pencil); max-width: 94%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  #seekbar { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 560px; margin: 0 auto; padding: 4px 18px 0; }
+  #seek, #vol { width: 100%; accent-color: var(--accent); }
+  #times { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--pencil); font-variant-numeric: tabular-nums; }
+  #controls { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 6px 16px 2px; }
+  #controls button {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--edge); background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #controls button:hover { border-color: var(--accent); }
+  #controls button.on { color: var(--accent); border-color: var(--accent); }
+  #controls #play { width: 54px; height: 54px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  #controls svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  #controls #play svg { fill: currentColor; stroke: none; }
+  #volrow { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 560px; margin: 0 auto; padding: 2px 18px 4px; color: var(--pencil); font-size: 0.8rem; }
+
+  /* a wide arrow along the bottom; it slides up the list of what plays next */
+  #handle { display: flex; justify-content: center; width: 100%; padding: 4px 0 8px; border: 0; background: transparent; color: var(--pencil); }
+  #handle:hover { color: var(--ink); }
+  #handle svg { width: 60px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s ease; }
+  body.queued #handle svg { transform: rotate(180deg); }
+
+  #queue {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; height: 74%; display: flex; flex-direction: column;
+    background: var(--paper); border-top: 1px solid var(--edge); border-radius: 12px 12px 0 0;
+    box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.22); transform: translateY(101%); visibility: hidden;
+    transition: transform 0.32s cubic-bezier(.2, .8, .3, 1), visibility 0s linear 0.32s;
+  }
+  body.queued #queue { transform: none; visibility: visible; transition: transform 0.32s cubic-bezier(.2, .8, .3, 1); }
+  .head { display: flex; align-items: center; gap: 6px; padding: 9px 10px; border-bottom: 1px solid var(--edge); }
+  .head .t { flex: 1; min-width: 0; font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list { flex: 1; min-height: 0; overflow: auto; padding: 6px; }
+
+  /* ---- the bar on the right: search, playlists, songs ---- */
+  #side { flex: 0 0 340px; width: 340px; min-width: 0; overflow: hidden; transition: flex-basis 0.25s ease, width 0.25s ease; display: flex; flex-direction: column; min-height: 0; background: var(--paper-2); border-left: 1px solid var(--edge); }
+  #search { display: flex; gap: 6px; padding: 10px; }
+  #search label {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 10px;
+    border-radius: 999px; border: 1px solid var(--edge); background: var(--card); color: var(--pencil);
+  }
+  #search label:focus-within { border-color: var(--accent); }
+  #search svg { flex: none; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+  #q { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--ink); }
+  #add-btn, #opts { flex: none; width: 36px; height: 36px; border-radius: 50%; padding: 0; font-size: 1.35rem; line-height: 1; }
+  /* wide: the bar can be folded away with the button in the corner */
+  body.side-shut #side { flex-basis: 0; width: 0; border-left-width: 0; visibility: hidden; transition: flex-basis 0.25s ease, width 0.25s ease, visibility 0s linear 0.25s; }
+  .sec { display: flex; align-items: center; gap: 6px; padding: 8px 14px 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pencil); }
+  .sec .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sec button { border: 0; background: none; color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0; text-transform: none; padding: 2px 4px; }
+  #pls { flex: 0 1 auto; max-height: 38%; overflow: auto; padding: 0 6px 6px; border-bottom: 1px solid var(--edge); }
+  .pl { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 8px; font-size: 0.88rem; }
+  .pl:hover { background: var(--card); }
+  .pl.on { background: var(--highlight); }
+  .pl .pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; }
+  .pl .ic { flex: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--edge); font-size: 0.8rem; color: var(--accent); }
+  .pl .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pl .c { flex: none; color: var(--pencil); font-size: 0.75rem; }
+  .pl .from { flex: none; font-size: 0.65rem; padding: 0 5px; border-radius: 4px; border: 1px solid var(--edge); color: var(--pencil); }
+  #songs-head .x { color: var(--pencil); }
+
+  .row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; border-radius: 8px; font-size: 0.85rem; }
+  .row:hover { background: var(--card); }
+  #queue .row:hover { background: var(--paper-2); }
+  .row.on { background: var(--highlight); }
+  .row .pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; }
+  .row .g { flex: none; width: 18px; text-align: center; color: var(--pencil); font-size: 0.75rem; }
+  .row .pic { flex: none; width: 40px; height: 30px; border-radius: 5px; background: var(--paper-2) center/cover; }
+  .row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .n small { display: block; color: var(--pencil); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; }
+  .row .d { flex: none; color: var(--pencil); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+  .mini { flex: none; width: 26px; height: 26px; border-radius: 6px; border: 1px solid transparent; background: none; color: var(--pencil); }
+  .mini:hover { border-color: var(--edge); color: var(--ink); background: var(--card); }
+  .none { padding: 22px 12px; text-align: center; color: var(--pencil); line-height: 1.6; font-size: 0.85rem; }
+
+  /* small menus and boxes */
+  #menu {
+    position: fixed; z-index: 20; min-width: 190px; max-width: 280px; padding: 5px; border-radius: var(--radius);
+    background: var(--card); border: 1px solid var(--edge); box-shadow: var(--shadow); max-height: 60vh; overflow: auto;
+  }
+  #menu button { display: block; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px; background: none; text-align: left; font-size: 0.85rem; }
+  #menu button:hover { background: var(--paper-2); }
+  #menu .sep { height: 1px; margin: 4px 2px; background: var(--edge); }
+  .veil { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.45); }
+  .box { width: 100%; max-width: 430px; padding: 18px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--edge); box-shadow: var(--shadow); }
+  .box h2 { margin: 0 0 6px; font: 700 1.15rem/1.3 var(--hand); }
+  .box p { margin: 0 0 12px; color: var(--pencil); font-size: 0.88rem; }
+  .box input { width: 100%; height: 38px; padding: 0 10px; border-radius: var(--radius); border: 1px solid var(--edge); background: var(--paper); }
+  .box .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .btn { height: 34px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .btn.plain { background: none; color: var(--ink); border-color: var(--edge); font-weight: 400; }
+  #toast {
+    position: absolute; left: 50%; bottom: 40px; z-index: 30; transform: translateX(-50%); max-width: 90%;
+    padding: 8px 14px; border-radius: var(--radius); background: var(--ink); color: var(--paper); font-size: 0.85rem;
+    box-shadow: var(--shadow); pointer-events: none;
+  }
+
+  /* the cover turns the other way round from a record */
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(-360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    #disc { animation: none; }
+    #queue, #side { transition: none; }
+  }
+  /* narrow: the bar on the right slides in over the player */
+  @media (max-width: 720px) {
+    #side, body.side-shut #side {
+      position: absolute; top: 0; right: 0; bottom: 0; z-index: 5; width: min(320px, 88%);
+      flex-basis: auto; border-left-width: 1px;
+      transform: translateX(101%); visibility: hidden; box-shadow: -14px 0 34px rgba(0, 0, 0, 0.3);
+      transition: transform 0.28s ease, visibility 0s linear 0.28s;
+    }
+    body.siding #side { transform: none; visibility: visible; transition: transform 0.28s ease; }
+  }
+</style>
+</head>
+<body data-theme="basic" data-basic="mono">
+<div id="app">
+  <div id="main">
+    <div id="corner">
+      <button class="tool" id="side-btn" type="button" title="Show or hide songs and playlists"><svg viewBox="0 0 16 16"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"/></svg></button>
+    </div>
+
+    <div id="stage"><div id="card">
+      <div id="discwrap">
+        <canvas id="vis"></canvas>
+        <div id="disc" title="Click to let the ring hear the music"><div id="art" class="letter">&#9835;</div><span id="hole"></span></div>
+      </div>
+      <div id="words"><div id="title">Nothing playing</div><div id="sub">Search for a song, or press + to add a link</div></div>
+    </div></div>
+
+    <div id="seekbar">
+      <input id="seek" type="range" min="0" max="1000" value="0" title="Seek" aria-label="Seek">
+      <div id="times"><span id="at">0:00</span><span id="of">0:00</span></div>
+    </div>
+    <div id="controls">
+      <button id="shuffle" type="button" title="Shuffle"><svg viewBox="0 0 16 16"><path d="M2 4.5h2.5c2.5 0 4 7 6.5 7H14M2 11.5h2.5c1 0 1.8-1 2.5-2.3M9 6.8c.6-1.3 1.2-2.3 2-2.3H14M12 2.5l2 2-2 2M12 9.5l2 2-2 2"/></svg></button>
+      <button id="prev" type="button" title="Previous"><svg viewBox="0 0 16 16"><path d="M4 3v10M13 3 6 8l7 5z"/></svg></button>
+      <button id="play" type="button" title="Play or pause"><svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></button>
+      <button id="next" type="button" title="Next"><svg viewBox="0 0 16 16"><path d="M12 3v10M3 3l7 5-7 5z"/></svg></button>
+      <button id="repeat" type="button" title="Repeat"></button>
+    </div>
+    <div id="volrow"><span>&#128264;</span><input id="vol" type="range" min="0" max="100" value="90" title="Volume" aria-label="Volume"></div>
+
+    <button id="handle" type="button" title="Up next" aria-label="Up next"><svg viewBox="0 0 60 18"><path d="M4 14 30 4l26 10"/></svg></button>
+
+    <div id="queue">
+      <div class="head"><span class="t" id="queue-t">Up next</span>
+        <button class="tool" id="queue-shut" type="button" title="Close"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+      <div class="list" id="qlist"></div>
+    </div>
+    <div id="screen"></div>
+  </div>
+
+  <aside id="side">
+    <form id="search" autocomplete="off">
+      <label><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+        <input id="q" type="search" placeholder="Search songs" aria-label="Search songs"></label>
+      <button class="tool" id="add-btn" type="button" title="Add a song or playlist from a link">+</button>
+      <button class="tool" id="opts" type="button" title="Options"><svg viewBox="0 0 16 16"><circle cx="3.5" cy="8" r=".6"/><circle cx="8" cy="8" r=".6"/><circle cx="12.5" cy="8" r=".6"/></svg></button>
+    </form>
+    <div class="sec"><span class="t">Playlists</span><button id="list-new" type="button">+ New</button></div>
+    <div id="pls"></div>
+    <div class="sec" id="songs-head"><span class="t" id="songs-t">All songs</span><button class="x" id="search-clear" type="button" hidden>Clear</button></div>
+    <div class="list" id="songs"></div>
+  </aside>
+
+  <div id="menu" hidden></div>
+  <div id="toast" hidden></div>
+</div>
+<script>
+/* Listening: a music player for Notebook, made from CHALK OS's MP3 Player
+   (one song at a time, the cover turning, a ring round it, what plays next
+   along the bottom) and its Media player (links, playlists, finding songs).
+   Nothing is shipped with it: songs come from links people add, and from
+   finding them by name. Everything is kept in this browser. */
+"use strict";
+const $ = id => document.getElementById(id);
+const STORE = "listening.v1";
+const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
+/* the public tide servers Tide itself starts from (Tide's WISP_POOL_DEFAULTS) */
+const PUBLIC_WISP = [
+  "wss://fern.best/wisp/", "wss://lichology.com/wisp/", "wss://wisp.mercurywork.shop/",
+  "wss://wisp.terbiumon.top/wisp/", "wss://gointospace.app/wisp/", "wss://definitelyscience.com/wisp/",
+  "wss://anura.pro/", "wss://motor-cycle-part.org/wisp/"
+];
+const AUDIO_EXT = /\.(mp3|m4a|ogg|oga|opus|wav|aac|flac|weba)$/i;
+const LIBRARY_MAX = 2000;
+
+/* ---- the look follows Notebook, live (as in Chalk TV) ---- */
+const THEME_NAMES = { basic: 1, space: 1 };
+const BASIC_COLORS = { night: 1, mono: 1 };
+/* inside Notebook's Chalk Music tab the page lets Notebook's own sky show through */
+try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
+function applyLook() {
+  let nb = {};
+  try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
+  let theme = nb.theme === "glass" ? "space" : nb.theme;   // Glass is called Space now
+  let basic = BASIC_COLORS[nb.basic] ? nb.basic : "mono";   // Mono is the default look
+  if (nb.plain || theme === "night" || theme === "terminal") { theme = "basic"; basic = "night"; }   // Night is a Basic color now; Terminal is retired
+  if (!THEME_NAMES[theme]) theme = "basic";
+  document.body.dataset.theme = theme;
+  if (theme === "basic") document.body.dataset.basic = basic;
+  else delete document.body.dataset.basic;
+}
+applyLook();
+window.addEventListener("storage", e => { if (e.key === SETTINGS_STORE || e.key === null) applyLook(); });
+
+/* ---- what is kept: songs, playlists and how the player was left ---- */
+/* a song: { id, kind: "yt" | "file", vid, url, title, author, thumb, secs } */
+function freshStore() {
+  return { songs: {}, order: [], lists: [], list: "all", shuffle: false, repeat: "off", vol: 90, vis: true, video: false };
+}
+let S = freshStore();
+try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE) || "null") || {}); } catch (e) {}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
+const uid = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const listById = id => S.lists.find(l => l.id === id) || null;
+function listIds(id) {
+  if (id === "all") return S.order.filter(x => S.songs[x]);
+  const l = listById(id);
+  return l ? l.ids.filter(x => S.songs[x]) : [];
+}
+function keepSong(song) {
+  if (!S.songs[song.id]) S.order.push(song.id);
+  S.songs[song.id] = Object.assign(S.songs[song.id] || {}, song);
+  if (S.order.length > LIBRARY_MAX) dropSong(S.order[0]);
+  return song.id;
+}
+function addToList(listId, songId) {
+  const l = listById(listId);
+  if (l && !l.ids.includes(songId)) l.ids.push(songId);
+}
+function dropSong(id) {
+  delete S.songs[id];
+  S.order = S.order.filter(x => x !== id);
+  S.lists.forEach(l => { l.ids = l.ids.filter(x => x !== id); });
+}
+
+/* ---- small helpers ---- */
+function fmt(s) {
+  if (!Number.isFinite(s) || s <= 0) return "0:00";
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = String(Math.floor(s % 60)).padStart(2, "0");
+  return h ? h + ":" + String(m).padStart(2, "0") + ":" + sec : m + ":" + sec;
+}
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+let toastTimer = 0;
+function toast(msg, ms) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, ms || 3200);
+}
+function closeMenu() { $("menu").hidden = true; }
+function menu(anchor, items) {
+  const m = $("menu");
+  m.innerHTML = "";
+  items.forEach(it => {
+    if (it === "-") return m.appendChild(el("div", "sep"));
+    const b = el("button", null, it.label);
+    b.type = "button";
+    b.onclick = e => { e.stopPropagation(); closeMenu(); it.run(); };
+    m.appendChild(b);
+  });
+  m.hidden = false;
+  const r = anchor.getBoundingClientRect();
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(6, Math.min(r.right - w, innerWidth - w - 6)) + "px";
+  m.style.top = (r.bottom + h + 6 < innerHeight ? r.bottom + 4 : Math.max(6, r.top - h - 4)) + "px";
+}
+document.addEventListener("click", e => { if (!$("menu").contains(e.target)) closeMenu(); });
+/* a question with a text box; answers the text, or null. With value false
+   there is no box, and it answers true or null. */
+function ask(title, text, value, ok) {
+  return new Promise(done => {
+    const veil = el("div", "veil");
+    const box = el("form", "box");
+    const input = el("input");
+    input.hidden = value === false;
+    input.value = value || "";
+    input.autocomplete = "off";
+    const no = el("button", "btn plain", "Cancel"); no.type = "button";
+    const yes = el("button", "btn", ok || "OK"); yes.type = "submit";
+    const btns = el("div", "btns"); btns.append(no, yes);
+    box.append(el("h2", null, title), el("p", null, text), input, btns);
+    veil.appendChild(box);
+    $("app").appendChild(veil);
+    const finish = v => { veil.remove(); done(v); };
+    no.onclick = () => finish(null);
+    veil.onclick = e => { if (e.target === veil) finish(null); };
+    box.onsubmit = e => { e.preventDefault(); finish(value === false ? true : input.value.trim()); };
+    box.onkeydown = e => { if (e.key === "Escape") finish(null); };
+    setTimeout(() => { const f = value === false ? yes : input; f.focus({ preventScroll: true }); if (f === input) input.select(); }, 30);
+  });
+}
+
+/* ============================================================
+   Reaching other sites. YouTube and Spotify don't let other pages
+   read them, so finding songs and reading playlists goes through a
+   tide server with libcurl, as Tide does: the owner's server when a
+   tide key is saved here, otherwise the public ones.
+   ============================================================ */
+let curl = null, curlRelay = "", curlLoading = null;
+function loadCurl() {
+  if (window.LibcurlTransport) return Promise.resolve();
+  if (!curlLoading) curlLoading = new Promise((ok, fail) => {
+    const s = document.createElement("script");
+    s.src = "listening/libcurl-client.js";
+    s.onload = ok;
+    s.onerror = () => { curlLoading = null; fail(new Error("The search part did not load. Check you are online.")); };
+    document.head.appendChild(s);
+  });
+  return curlLoading;
+}
+function relays() {
+  let last = ""; try { last = localStorage.getItem("listening.relay") || ""; } catch (e) {}
+  const own = [];
+  const pub = PUBLIC_WISP.includes(last) ? [last].concat(PUBLIC_WISP.filter(x => x !== last)) : PUBLIC_WISP;
+  return own.concat(pub);
+}
+function timeout(p, ms) {
+  return Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timed out")), ms))]);
+}
+async function useRelay(relay) {
+  if (curl && curlRelay === relay) return curl;
+  const c = new LibcurlTransport.LibcurlClient({ wisp: relay });
+  await c.init();
+  curl = c;
+  curlRelay = relay;
+  return c;
+}
+async function once(url, opts) {
+  const r = await curl.request(new URL(url), opts.method || "GET", opts.body || null, new Headers(opts.headers || {}));
+  const headers = new Headers();
+  try { for (const [k, v] of (r.headers || [])) headers.append(k, v); } catch (e) {}
+  const empty = [101, 204, 205, 304].includes(r.status);
+  return new Response(empty ? null : r.body, { status: r.status || 200, statusText: r.statusText || "", headers });
+}
+let netQueue = Promise.resolve();
+/* a fetch through the tide; answers like fetch() does, following redirects */
+function netFetch(url, opts) {
+  const job = netQueue.then(() => netFetchNow(url, opts || {}));
+  netQueue = job.catch(() => {});
+  return job;
+}
+async function netFetchNow(url, opts) {
+  await loadCurl();
+  const list = curlRelay ? [curlRelay].concat(relays().filter(x => x !== curlRelay)) : relays();
+  let lastErr = null;
+  for (const relay of list) {
+    try {
+      await timeout(useRelay(relay), 15000);
+      let u = url, o = opts, res;
+      for (let hop = 0; hop < 6; hop++) {
+        res = await timeout(once(u, o), 20000);
+        const to = res.headers.get("location");
+        if (![301, 302, 303, 307, 308].includes(res.status) || !to) break;
+        u = new URL(to, u).href;
+        if (res.status === 303 || o.method === "POST" && res.status !== 307 && res.status !== 308) o = Object.assign({}, o, { method: "GET", body: null });
+      }
+      try { localStorage.setItem("listening.relay", relay); } catch (e) {}
+      return res;
+    } catch (e) {
+      lastErr = e;
+      curl = null; curlRelay = "";
+    }
+  }
+  throw new Error("Couldn't reach a server to look that up (" + ((lastErr && lastErr.message) || "no answer") + ").");
+}
+const YT_HEADERS = { "Accept-Language": "en", "Cookie": "CONSENT=YES+1; SOCS=CAI" };
+
+/* ---- YouTube links arrive in every shape they get shared in (CHALK OS) ---- */
+function parseYouTube(raw) {
+  let u;
+  try { u = new URL(String(raw || "").trim()); } catch (e) { return null; }
+  const host = u.hostname.replace(/^(www|m|music)\./, "");
+  let id = null;
+  const list = u.searchParams.get("list") || null;
+  if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+  else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    if (u.pathname === "/watch") id = u.searchParams.get("v");
+    else {
+      const m = u.pathname.match(/^\/(?:shorts|embed|live|v)\/([\w-]+)/);
+      if (m) id = m[1];
+    }
+  } else return null;
+  if (id && !/^[\w-]{6,20}$/.test(id)) id = null;
+  if (!id && !list) return null;
+  return { id, list };
+}
+const ytSong = (vid, title, author, secs) => ({
+  id: "yt:" + vid, kind: "yt", vid, title: title || "Untitled", author: author || "", secs: secs || 0,
+  thumb: "https://i.ytimg.com/vi/" + vid + "/hqdefault.jpg"
+});
+/* a video's title and channel: YouTube answers this for any page */
+async function ytInfo(vid) {
+  const url = "https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + vid);
+  for (const get of [u => fetch(u), u => netFetch(u)]) {
+    try {
+      const res = await get(url);
+      if (res.ok) { const j = await res.json(); return { title: j.title || "", author: j.author_name || "" }; }
+    } catch (e) {}
+  }
+  return null;
+}
+const runsText = t => !t ? "" : t.simpleText || t.content || (t.runs || []).map(r => r.text).join("");
+function ytClock(txt) {
+  const p = String(txt || "").split(":").map(Number);
+  return !txt || p.some(isNaN) ? 0 : p.reduce((a, b) => a * 60 + b, 0);
+}
+/* YouTube's own search, the one its website asks, videos only (CHALK OS) */
+async function ytSearch(q, max) {
+  const res = await netFetch("https://www.youtube.com/youtubei/v1/search?prettyPrint=false", {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, YT_HEADERS),
+    body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20250101.00.00", hl: "en", gl: "US" } },
+                           query: q, params: "EgIQAQ%3D%3D" })
+  });
+  if (!res.ok) throw new Error("The search answered " + res.status + ".");
+  const j = await res.json();
+  const out = [];
+  const walk = o => {
+    if (out.length >= (max || 20) || !o || typeof o !== "object") return;
+    if (Array.isArray(o)) { for (const v of o) walk(v); return; }
+    const v = o.videoRenderer;
+    if (v && v.videoId) out.push({ id: v.videoId, title: runsText(v.title), author: runsText(v.ownerText || v.longBylineText),
+                                   secs: ytClock(v.lengthText && v.lengthText.simpleText) });
+    else for (const k in o) walk(o[k]);
+  };
+  walk(j);
+  return out;
+}
+/* the newer way YouTube's pages describe a video: a "lockup" */
+function fromLockup(lv) {
+  const md = (lv.metadata && lv.metadata.lockupMetadataViewModel) || {};
+  let author = "", secs = 0;
+  try { author = md.metadata.contentMetadataViewModel.metadataRows[0].metadataParts[0].text.content; } catch (e) {}
+  const badge = JSON.stringify(lv.contentImage || {}).match(/"text":"(\d+(?::\d\d){1,2})"/);
+  if (badge) secs = ytClock(badge[1]);
+  return { id: lv.contentId, title: runsText(md.title), author, secs };
+}
+/* a YouTube playlist's songs (the first hundred or so), read from its page */
+async function ytPlaylist(listId) {
+  const res = await netFetch("https://www.youtube.com/playlist?list=" + encodeURIComponent(listId) + "&hl=en", { headers: YT_HEADERS });
+  if (!res.ok) throw new Error("YouTube answered " + res.status + ". A private playlist can't be read.");
+  const html = await res.text();
+  const m = /ytInitialData\s*=\s*(\{[\s\S]+?\});\s*<\/script>/.exec(html);
+  let data = null;
+  try { data = JSON.parse(m[1]); } catch (e) {}
+  if (!data) throw new Error("That playlist's page had no songs in it.");
+  const out = [];
+  let name = "";
+  try { name = data.metadata.playlistMetadataRenderer.title; } catch (e) {}
+  const walk = o => {
+    if (!o || typeof o !== "object") return;
+    if (Array.isArray(o)) { for (const v of o) walk(v); return; }
+    const v = o.playlistVideoRenderer, lv = o.lockupViewModel;
+    if (v && v.videoId) out.push({ id: v.videoId, title: runsText(v.title), author: runsText(v.shortBylineText), secs: Number(v.lengthSeconds) || 0 });
+    else if (lv && lv.contentId && /VIDEO/.test(lv.contentType || "VIDEO")) out.push(fromLockup(lv));
+    else for (const k in o) walk(o[k]);
+  };
+  walk(data);
+  return { name: name || "YouTube playlist", tracks: out };
+}
+
+/* ---- Spotify: read the playlist, then find each song on YouTube (CHALK OS) ----
+   Spotify's songs only play whole in Spotify's own player, so each song's
+   name, artist and length are read from the page Spotify hands out for
+   embedding, and the YouTube upload that best matches all three is used. */
+const SPOTIFY_LINK = /open\.spotify\.com\/(?:intl-[\w-]+\/)?(?:embed\/)?(playlist|album|track)\/([A-Za-z0-9]{10,})/i;
+function spotifyTarget(url) {
+  const m = SPOTIFY_LINK.exec(String(url || ""));
+  return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
+}
+async function spotifyTracks(url) {
+  const t = spotifyTarget(url);
+  const res = await netFetch("https://open.spotify.com/embed/" + t.type + "/" + t.id,
+                             { headers: { "Accept-Language": "en", "User-Agent": navigator.userAgent } });
+  if (!res.ok) throw new Error("Spotify answered " + res.status + ". A private playlist can't be read.");
+  const html = await res.text();
+  const m = /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
+  let e = null;
+  try { e = JSON.parse(m[1]).props.pageProps.state.data.entity; } catch (x) {}
+  if (!e) throw new Error("Spotify's page didn't have the songs in it. A private playlist can't be read.");
+  const tracks = e.type === "track"
+    ? [{ title: e.name || e.title || "", artist: (e.artists || []).map(a => a.name).join(", "), ms: e.duration || 0 }]
+    : (e.trackList || []).map(x => ({ title: x.title || "", artist: String(x.subtitle || "").replace(/ /g, " "), ms: x.duration || 0 }));
+  return { name: e.name || e.title || "Spotify", type: e.type, tracks: tracks.filter(x => x.title) };
+}
+const plainWords = x => String(x || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
+  .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+const NOT_THE_SONG = ["live", "cover", "remix", "sped up", "slowed", "karaoke", "reaction", "instrumental", "nightcore",
+                      "8d", "reverb", "1 hour", "loop", "acoustic", "tutorial", "lesson", "bass boosted"];
+function ytScore(v, t, rank) {
+  const vt = plainWords(v.title), va = plainWords(v.author);
+  const tt = plainWords(t.title.replace(/\s*[-(\[].*$/, "")) || plainWords(t.title);
+  const ar = plainWords(String(t.artist).split(",")[0]);
+  let s = 0;
+  if (tt && vt.includes(tt)) s += 4;
+  else {
+    const w = tt.split(" ").filter(Boolean);
+    s += 3 * (w.filter(x => vt.includes(x)).length / Math.max(w.length, 1));
+  }
+  if (ar && (vt.includes(ar) || va.includes(ar))) s += 3;
+  if (/ topic$/.test(va)) s += 2;                       /* the label's own upload of the record */
+  if (v.secs && t.ms) {
+    const d = Math.abs(v.secs - t.ms / 1000);
+    s += d < 5 ? 3 : d < 15 ? 2 : d < 40 ? 0 : -3;
+  }
+  const whole = plainWords(t.title);
+  for (const bad of NOT_THE_SONG) if (vt.includes(bad) && !whole.includes(bad)) s -= 3;
+  return s - rank * 0.3;
+}
+async function findOnYouTube(t) {
+  const hits = await ytSearch((String(t.artist).split(",")[0] + " " + t.title).trim(), 10);
+  let best = null, top = -Infinity;
+  hits.forEach((v, i) => { const sc = ytScore(v, t, i); if (sc > top) { top = sc; best = v; } });
+  if (!best || top < 3) return null;
+  return ytSong(best.id, t.title + (t.artist ? " - " + t.artist : ""), best.author, best.secs);
+}
+
+/* ============================================================
+   Playing. Files play in an <audio>; YouTube songs in YouTube's own
+   player, kept out of sight.
+   ============================================================ */
+const audio = new Audio();
+audio.preload = "auto";
+let yt = null, ytReadyP = null, ytApiP = null, using = "none";
+function loadYouTubeApi() {
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  if (!ytApiP) ytApiP = new Promise((ok, fail) => {
+    const before = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (typeof before === "function") before(); ok(); };
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
+    s.onerror = () => { ytApiP = null; fail(new Error("YouTube's player would not load.")); };
+    document.head.appendChild(s);
+  });
+  return ytApiP;
+}
+/* the player's frame is made here, so it can send YouTube the page's address:
+   this page sends no referrer by default, and YouTube's player needs one */
+function ytPlayer(firstVid) {
+  if (!ytReadyP) ytReadyP = loadYouTubeApi().then(() => new Promise(ok => {
+    const f = document.createElement("iframe");
+    f.id = "yt-frame";
+    f.title = "Player";
+    f.allow = "autoplay; encrypted-media";
+    f.referrerPolicy = "strict-origin-when-cross-origin";
+    f.src = "https://www.youtube.com/embed/" + firstVid + "?enablejsapi=1&autoplay=1&playsinline=1&rel=0&origin=" + encodeURIComponent(location.origin);
+    $("screen").appendChild(f);
+    yt = new YT.Player(f, {
+      events: {
+        onReady: () => { yt.setVolume(S.vol); ok(yt); },
+        onStateChange: e => ytState(e.data),
+        onError: e => ytError(e.data)
+      }
+    });
+  }));
+  return ytReadyP;
+}
+const ytPaused = () => !yt || !yt.getPlayerState || yt.getPlayerState() !== 1;
+function ytState(s) {
+  if (using !== "yt") return;
+  if (s === 0) return ended();
+  playingChanged();
+}
+let skipTimer = 0;
+function skipSoon(why) {
+  $("sub").textContent = why + " Skipping…";
+  clearTimeout(skipTimer);
+  skipTimer = setTimeout(() => { const i = stepIndex(1); if (i >= 0 && i !== at) play(i, 1); }, 1800);
+}
+function ytError(code) {
+  if (using !== "yt") return;
+  skipSoon(code === 101 || code === 150 || code === 153 ? "This one can't play outside YouTube." : "That one wouldn't play.");
+}
+const engine = {
+  paused: () => (using === "yt" ? ytPaused() : using === "file" ? audio.paused : true),
+  time: () => (using === "yt" ? (yt && yt.getCurrentTime ? yt.getCurrentTime() : 0) : audio.currentTime),
+  dur: () => (using === "yt" ? (yt && yt.getDuration ? yt.getDuration() : 0) : audio.duration),
+  seek: t => { if (using === "yt") yt && yt.seekTo(t, true); else if (audio.duration) audio.currentTime = t; },
+  play: () => { if (using === "yt") yt && yt.playVideo(); else if (using === "file") audio.play().catch(() => {}); },
+  pause: () => { if (yt && yt.pauseVideo) yt.pauseVideo(); audio.pause(); }
+};
+
+/* ---- the playlist being played, in the order it plays ---- */
+let tracks = [], at = -1, order = [], seeking = false, slideTok = 0, playingList = S.list;
+function build() {
+  if (S.list !== "all" && !listById(S.list)) S.list = "all";
+  if (playingList !== "all" && !listById(playingList)) playingList = "all";
+  const current = at >= 0 ? tracks[at] : null;
+  tracks = listIds(playingList);
+  at = current == null ? -1 : tracks.indexOf(current);
+  if (at < 0 && current != null && S.songs[current]) { tracks.unshift(current); at = 0; }
+  drawPlaylists();
+  drawSongs();
+  reorder();
+  drawQueue();
+}
+/* shuffle keeps its own running order so Previous still goes back */
+function reorder() {
+  order = tracks.map((t, i) => i);
+  if (S.shuffle) {
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    if (at >= 0) {
+      const k = order.indexOf(at);
+      if (k > 0) { order.splice(k, 1); order.unshift(at); }
+    }
+  }
+}
+function stepIndex(dir) {
+  if (!tracks.length) return -1;
+  if (at < 0) return order[0];
+  const k = order.indexOf(at);
+  if (k < 0) return order[0];
+  if (S.repeat === "one") return at;
+  const n = k + dir;
+  if (n < 0) return order[order.length - 1];
+  if (n >= order.length) return S.repeat === "all" ? order[0] : -1;
+  return order[n];
+}
+const song = i => S.songs[tracks[i]];
+const listName = id => (id === "all" ? "All songs" : (listById(id) || {}).name || "All songs");
+
+function songRow(s, opts) {
+  const r = el("div", "row" + (opts.on ? " on" : ""));
+  const pick = el("button", "pick");
+  pick.type = "button";
+  pick.title = "Play";
+  if (opts.num != null) pick.appendChild(el("span", "g", opts.on && !engine.paused() ? "▶" : String(opts.num)));
+  const pic = el("span", "pic");
+  if (s.thumb) pic.style.backgroundImage = 'url("' + String(s.thumb).replace(/"/g, "%22") + '")';
+  const n = el("span", "n", s.title);
+  n.appendChild(el("small", null, s.author || (s.kind === "file" ? "a link" : "")));
+  pick.append(pic, n, el("span", "d", s.secs ? fmt(s.secs) : ""));
+  pick.onclick = opts.play;
+  r.appendChild(pick);
+  const plus = el("button", "mini", "+");
+  plus.type = "button";
+  plus.title = "Add to a playlist";
+  plus.onclick = e => { e.stopPropagation(); addToMenu(plus, s); };
+  r.appendChild(plus);
+  if (opts.remove) {
+    const x = el("button", "mini", "✕");
+    x.type = "button";
+    x.title = opts.removeTitle;
+    x.onclick = e => { e.stopPropagation(); opts.remove(); };
+    r.appendChild(x);
+  }
+  return r;
+}
+
+/* ---- the bar on the right: playlists, then the songs in the one picked ---- */
+function drawPlaylists() {
+  const box = $("pls");
+  box.innerHTML = "";
+  const row = (id, name, n, from) => {
+    const r = el("div", "pl" + (id === S.list && !searching ? " on" : ""));
+    const pick = el("button", "pick");
+    pick.type = "button";
+    pick.append(el("span", "ic", id === "all" ? "♫" : name.trim().charAt(0).toUpperCase() || "♪"), el("span", "n", name));
+    if (from) pick.appendChild(el("span", "from", from));
+    pick.appendChild(el("span", "c", String(n)));
+    pick.onclick = () => { S.list = id; save(); endSearch(); build(); };
+    r.appendChild(pick);
+    if (id !== "all") {
+      const more = el("button", "mini", "⋯");
+      more.type = "button";
+      more.title = "Play, rename or delete";
+      more.onclick = e => { e.stopPropagation(); listMenu(more, id); };
+      r.appendChild(more);
+    }
+    box.appendChild(r);
+  };
+  row("all", "All songs", listIds("all").length);
+  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, l.from === "spotify" ? "Spotify" : l.from === "youtube" ? "YouTube" : ""));
+}
+function drawSongs() {
+  if (searching) return;
+  const box = $("songs");
+  box.innerHTML = "";
+  $("songs-t").textContent = listName(S.list);
+  $("search-clear").hidden = true;
+  const ids = listIds(S.list);
+  if (!ids.length) {
+    box.appendChild(el("div", "none", S.list === "all"
+      ? "No songs yet. Search for one above, or press + to add a link to a song or a whole playlist."
+      : "This playlist is empty. Press + next to any song to put it here."));
+    return;
+  }
+  const now = at >= 0 ? tracks[at] : null;
+  ids.forEach((id, k) => {
+    const s = S.songs[id];
+    box.appendChild(songRow(s, {
+      num: k + 1, on: id === now, play: () => playFromList(S.list, id),
+      remove: () => removeFrom(S.list, id),
+      removeTitle: S.list === "all" ? "Remove from your songs" : "Remove from this playlist"
+    }));
+  });
+}
+function drawQueue() {
+  const q = $("qlist");
+  q.innerHTML = "";
+  $("queue-t").textContent = "Up next · " + listName(playingList);
+  if (!tracks.length) { q.appendChild(el("div", "none", "Nothing to play yet.")); return; }
+  const k0 = Math.max(0, order.indexOf(at));
+  order.slice(k0).concat(S.repeat === "all" ? order.slice(0, k0) : []).forEach((i, k) => {
+    q.appendChild(songRow(song(i), { num: k + 1, on: i === at, play: () => play(i) }));
+  });
+}
+function playFromList(listId, id) {
+  playingList = listId;
+  tracks = listIds(listId);
+  at = -1;
+  reorder();
+  play(tracks.indexOf(id));
+  closeSide();
+}
+function removeFrom(listId, id) {
+  if (listId === "all") dropSong(id);
+  else { const l = listById(listId); if (l) l.ids = l.ids.filter(x => x !== id); }
+  save();
+  build();
+}
+function listMenu(anchor, id) {
+  const l = listById(id);
+  if (!l) return;
+  menu(anchor, [
+    { label: "Play " + l.name, run: () => { const ids = listIds(id); if (ids.length) playFromList(id, S.shuffle ? ids[Math.floor(Math.random() * ids.length)] : ids[0]); } },
+    { label: "Rename…", run: async () => {
+      const name = await ask("Rename playlist", "A new name for " + l.name + ":", l.name, "Rename");
+      if (name) { l.name = name.slice(0, 40); save(); build(); }
+    } },
+    { label: "Delete…", run: async () => {
+      if (!(await ask("Delete " + l.name + "?", "The songs stay in All songs.", false, "Delete"))) return;
+      S.lists = S.lists.filter(x => x !== l);
+      if (S.list === id) S.list = "all";
+      save(); build();
+    } }
+  ]);
+}
+function addToMenu(anchor, s) {
+  const items = S.lists.map(l => ({ label: (l.ids.includes(s.id) ? "✓ " : "") + l.name, run: () => {
+    keepSong(s); addToList(l.id, s.id); save(); build(); toast("Added to " + l.name);
+  } }));
+  if (items.length) items.push("-");
+  items.push({ label: "New playlist…", run: async () => {
+    const name = await ask("New playlist", "What should it be called?", "", "Make it");
+    if (!name) return;
+    const l = newListNamed(name);
+    keepSong(s); addToList(l.id, s.id); save(); build(); toast("Added to " + l.name);
+  } });
+  menu(anchor, items);
+}
+
+/* ---- the sliding change of song (CHALK OS) ---- */
+function slide(dir, fill) {
+  const card = $("card");
+  if (!card.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) return fill();
+  const tok = ++slideTok;
+  const out = card.animate(
+    [{ transform: "none", opacity: 1 }, { transform: "translateX(" + (-dir * 70) + "px)", opacity: 0 }],
+    { duration: 190, easing: "ease-in", fill: "forwards" });
+  let swapped = false;
+  const swap = () => {
+    if (swapped || tok !== slideTok) return;
+    swapped = true;
+    fill();
+    out.cancel();
+    card.animate(
+      [{ transform: "translateX(" + (dir * 70) + "px)", opacity: 0 }, { transform: "none", opacity: 1 }],
+      { duration: 280, easing: "cubic-bezier(.2,.8,.3,1)" });
+  };
+  out.onfinish = swap;
+  setTimeout(swap, 230);
+}
+function setArt(url, title) {
+  const art = $("art");
+  if (url) {
+    art.classList.remove("letter");
+    art.textContent = "";
+    art.style.backgroundImage = 'url("' + String(url).replace(/"/g, "%22") + '")';
+  } else {
+    art.classList.add("letter");
+    art.style.backgroundImage = "";
+    art.textContent = (title || "?").trim().charAt(0).toUpperCase() || "?";
+  }
+}
+function dressUp(s) {
+  $("title").textContent = s.title;
+  $("sub").textContent = s.author || (s.kind === "file" ? "a link" : "");
+  setArt(s.thumb, s.title);
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.author || "",
+        artwork: s.thumb ? [{ src: s.thumb, sizes: "480x360", type: "image/jpeg" }] : [] });
+    } catch (e) {}
+  }
+}
+async function play(i, dir) {
+  if (i < 0 || i >= tracks.length) return;
+  clearTimeout(skipTimer);
+  const back = dir != null ? dir : (i < at ? -1 : 1);
+  at = i;
+  const s = song(i);
+  slide(back, () => dressUp(s));
+  if (s.kind === "yt") {
+    audio.pause();
+    using = "yt";
+    try {
+      if (!yt) await ytPlayer(s.vid);
+      else yt.loadVideoById(s.vid);
+    } catch (e) { $("sub").textContent = e.message; }
+  } else {
+    if (yt && yt.pauseVideo) yt.pauseVideo();
+    using = "file";
+    audio.src = s.url;
+    audio.play().catch(() => {});
+  }
+  vis.follow();
+  drawSongs();
+  drawQueue();
+}
+function toggle() {
+  if (at < 0) {
+    if (!tracks.length) { playingList = S.list; tracks = listIds(S.list); reorder(); }
+    return play(order.length ? order[0] : 0);
+  }
+  engine.paused() ? engine.play() : engine.pause();
+}
+function step(dir) {
+  if (!tracks.length) return;
+  /* going back in the first seconds means the start of this song */
+  if (dir < 0 && engine.time() > 4) { engine.seek(0); return; }
+  const i = stepIndex(dir);
+  if (i < 0) return;
+  play(i, dir);
+}
+function ended() {
+  if (S.repeat === "one") { engine.seek(0); engine.play(); return; }
+  const i = stepIndex(1);
+  if (i >= 0) play(i, 1); else playingChanged();
+}
+let wasPaused = true;
+function playingChanged() {
+  const p = engine.paused();
+  document.body.classList.toggle("playing", !p);
+  $("play").innerHTML = p ? '<svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>'
+                          : '<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>';
+  if ("mediaSession" in navigator) try { navigator.mediaSession.playbackState = p ? "paused" : "playing"; } catch (e) {}
+  if (p !== wasPaused) { wasPaused = p; drawSongs(); drawQueue(); if (!p) vis.follow(); }
+}
+function paintToggles() {
+  $("shuffle").classList.toggle("on", !!S.shuffle);
+  $("repeat").classList.toggle("on", S.repeat !== "off");
+  $("repeat").title = S.repeat === "one" ? "Repeat this song" : S.repeat === "all" ? "Repeat the playlist" : "Repeat";
+  $("repeat").innerHTML = '<svg viewBox="0 0 16 16"><path d="M3 7V6a2 2 0 0 1 2-2h8M11 2l2 2-2 2M13 9v1a2 2 0 0 1-2 2H3M5 14l-2-2 2-2"/>' +
+    (S.repeat === "one" ? '<path d="M7.6 7.2 8.4 6.6v3"/>' : "") + "</svg>";
+  document.body.classList.toggle("no-hole", S.hole === false);
+  document.body.classList.toggle("side-shut", S.side === false);
+  $("disc").title = hearing ? "" : "Click to let the ring hear the music";
+}
+
+/* ============================================================
+   The ring: the music, drawn round the turning cover (CHALK OS).
+   A page can't listen to YouTube's player on its own, so the ring only
+   moves once it is let hear this tab: clicking the cover asks the
+   browser to share the tab's sound (nothing leaves the computer). Until
+   then, and whenever it can't hear anything, there is no ring.
+   ============================================================ */
+const Vis = { ctx: null, sink: null };
+function visTapStream(stream) {
+  try {
+    if (!Vis.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      Vis.ctx = new AC();
+      Vis.sink = Vis.ctx.createGain();
+      Vis.sink.gain.value = 0;           /* heard nowhere: it only has to be listened to */
+      Vis.sink.connect(Vis.ctx.destination);
+    }
+    if (Vis.ctx.state === "suspended") Vis.ctx.resume().catch(() => {});
+    const src = Vis.ctx.createMediaStreamSource(stream);
+    const an = Vis.ctx.createAnalyser();
+    an.fftSize = 256;
+    an.smoothingTimeConstant = 0.78;
+    src.connect(an);
+    an.connect(Vis.sink);
+    return { src, an };
+  } catch (e) { return null; }
+}
+let hearing = null;          /* { stream, tap } once the tab's sound is shared */
+async function hearTab() {
+  if (hearing) return;
+  const md = navigator.mediaDevices;
+  if (!md || !md.getDisplayMedia) return toast("This browser can't share its sound, so the ring can't hear the music.", 5000);
+  let stream;
+  try {
+    stream = await md.getDisplayMedia({ video: true, audio: { suppressLocalAudioPlayback: false },
+      preferCurrentTab: true, selfBrowserSurface: "include", surfaceSwitching: "exclude", systemAudio: "include" });
+  } catch (e) {
+    return toast("Not shared, so the ring stays off. Click the cover to try again.", 4500);
+  }
+  const a = stream.getAudioTracks()[0];
+  stream.getVideoTracks().forEach(t => t.stop());       /* only the sound is wanted */
+  if (!a) {
+    stream.getTracks().forEach(t => t.stop());
+    return toast("Turn on “Also share tab audio” in that box so the ring can hear the music.", 6000);
+  }
+  const tap = visTapStream(new MediaStream([a]));
+  if (!tap) { a.stop(); return toast("The ring couldn't start in this browser.", 4500); }
+  hearing = { stream, tap };
+  a.onended = stopHearing;
+  paintToggles();
+  vis.follow();
+  toast("The ring can hear the music now.");
+}
+function stopHearing() {
+  if (!hearing) return;
+  try { hearing.tap.src.disconnect(); hearing.tap.an.disconnect(); } catch (e) {}
+  hearing.stream.getTracks().forEach(t => t.stop());
+  hearing = null;
+  paintToggles();
+}
+function visRing(g, w, h, bins, color) {
+  /* the canvas is 136% of the cover, so this is the cover's own edge */
+  const cx = w / 2, cy = h / 2, half = Math.min(w, h) / 2, r0 = half / 1.36 * 1.03;
+  const n = 72, room = half - r0 - 2;
+  g.strokeStyle = color;
+  g.lineCap = "round";
+  g.lineWidth = Math.max(2, 2 * Math.PI * r0 / n * 0.42);
+  for (let i = 0; i < n; i++) {
+    /* mirrored left and right, the low notes at the top */
+    const m = i < n / 2 ? i : n - 1 - i;
+    const b = Math.min(bins.length - 1, Math.floor(Math.pow(m / (n / 2), 1.5) * 90) + 1);
+    const v = bins[b] / 255;
+    const len = 2 + v * v * room;
+    const a = i / n * Math.PI * 2 - Math.PI / 2;
+    g.globalAlpha = 0.4 + v * 0.6;
+    g.beginPath();
+    g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+    g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+const vis = (() => {
+  const canvas = $("vis"), g = canvas.getContext("2d"), bins = new Uint8Array(128);
+  let raf = 0, color = "#8fb3d9", colorAt = -1e9;
+  const clear = () => g.clearRect(0, 0, canvas.width, canvas.height);
+  function frame(t) {
+    raf = 0;
+    if (!hearing || engine.paused()) { clear(); return; }
+    raf = requestAnimationFrame(frame);
+    if (document.hidden) return;
+    if (t - colorAt > 1000) {
+      colorAt = t;
+      color = getComputedStyle(document.body).getPropertyValue("--accent").trim() || color;
+    }
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    const cw = Math.round(canvas.clientWidth * dpr), ch = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
+    hearing.tap.an.getByteFrequencyData(bins);
+    clear();
+    visRing(g, cw, ch, bins, color);
+  }
+  return { follow() { if (!raf) raf = requestAnimationFrame(frame); } };
+})();
+
+/* ---- adding songs ---- */
+/* a song found or linked goes into your songs, and into the playlist that's open */
+function takeSong(s, andPlay) {
+  keepSong(s);
+  if (S.list !== "all") addToList(S.list, s.id);
+  save();
+  build();
+  if (andPlay) playFromList(S.list, s.id);
+}
+async function addLink() {
+  const raw = await ask("Add a link",
+    "Paste a link to a song or a playlist: a YouTube video or playlist, a Spotify playlist, album or song, or a link straight to a sound file.",
+    "", "Add");
+  if (!raw) return;
+  const yl = parseYouTube(raw), sp = spotifyTarget(raw);
+  try {
+    if (yl && yl.list) return await importYouTubeList(yl.list);
+    if (yl && yl.id) {
+      toast("Adding…");
+      const info = await ytInfo(yl.id);
+      return takeSong(ytSong(yl.id, info && info.title, info && info.author), true);
+    }
+    if (sp) return await importSpotify(raw);
+    let u = null;
+    try { u = new URL(raw); } catch (e) {}
+    if (u && /^https?:$/.test(u.protocol) && AUDIO_EXT.test(u.pathname)) {
+      const name = decodeURIComponent(u.pathname.split("/").pop()).replace(AUDIO_EXT, "").replace(/[_-]+/g, " ");
+      return takeSong({ id: "url:" + u.href, kind: "file", url: u.href, title: name || "A song", author: u.hostname.replace(/^www\./, "") }, true);
+    }
+    toast("That link isn't a song or a playlist this can play.", 4500);
+  } catch (e) {
+    toast((e && e.message) || String(e), 6000);
+  }
+}
+function newListNamed(name, from) {
+  let n = String(name || "Playlist").slice(0, 40), k = 2;
+  while (S.lists.some(x => x.name === n)) n = String(name).slice(0, 36) + " " + k++;
+  const l = { id: uid(), name: n, ids: [] };
+  if (from) l.from = from;
+  S.lists.push(l);
+  return l;
+}
+async function importYouTubeList(listId) {
+  toast("Reading the playlist…", 20000);
+  const p = await ytPlaylist(listId);
+  if (!p.tracks.length) return toast("That playlist has no songs in it.", 4500);
+  const l = newListNamed(p.name, "youtube");
+  p.tracks.forEach(t => { const s = ytSong(t.id, t.title, t.author, t.secs); keepSong(s); l.ids.push(s.id); });
+  S.list = l.id;
+  save();
+  endSearch();
+  build();
+  toast(l.name + ": " + p.tracks.length + " songs.", 4500);
+}
+async function importSpotify(url) {
+  toast("Reading the playlist from Spotify…", 30000);
+  const sp = await spotifyTracks(url);
+  const n = sp.tracks.length;
+  if (!n) return toast("That " + sp.type + " has no songs in it.", 4500);
+  const l = sp.type === "track" ? null : newListNamed(sp.name, "spotify");
+  if (l) { S.list = l.id; save(); endSearch(); build(); }
+  toast("Finding " + n + (n === 1 ? " song" : " songs") + "…", 60000);
+  const found = new Array(n), missed = [];
+  let next = 0, done = 0;
+  const flush = () => {
+    found.forEach(s => { if (s) keepSong(s); });
+    if (l) l.ids = found.filter(Boolean).map(s => s.id);
+    save();
+    build();
+  };
+  const worker = async () => {
+    while (next < n) {
+      const i = next++, t = sp.tracks[i];
+      let hit = null;
+      try { hit = await findOnYouTube(t); } catch (e) {}
+      if (hit) found[i] = hit; else missed.push(t.title);
+      done++;
+      if (done % 5 === 0 || done === n) { flush(); toast("Found " + found.filter(Boolean).length + " of " + n + "…", 60000); }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  flush();
+  const got = found.filter(Boolean);
+  if (!got.length) {
+    if (l) { S.lists = S.lists.filter(x => x !== l); S.list = "all"; save(); build(); }
+    return toast("None of those songs could be found.", 5000);
+  }
+  if (!l) return takeSong(got[0], true);
+  toast(l.name + ": " + got.length + " of " + n + " songs." + (missed.length ? " Not found: " + missed.slice(0, 3).join("; ") + (missed.length > 3 ? " and " + (missed.length - 3) + " more." : ".") : ""), 7000);
+}
+
+/* ---- searching: the results take the place of the songs below ---- */
+let searching = false, findTok = 0;
+function endSearch() {
+  if (!searching) return;
+  searching = false;
+  findTok++;
+  $("q").value = "";
+  drawPlaylists();
+  drawSongs();
+}
+async function find(q) {
+  q = String(q || "").trim();
+  if (!q) return endSearch();
+  const box = $("songs");
+  searching = true;
+  drawPlaylists();
+  $("songs-t").textContent = "Results for “" + q + "”";
+  $("search-clear").hidden = false;
+  box.innerHTML = "";
+  box.appendChild(el("div", "none", "Looking…"));
+  const tok = ++findTok;
+  let hits;
+  try { hits = await ytSearch(q, 20); }
+  catch (e) {
+    if (tok !== findTok) return;
+    box.innerHTML = "";
+    box.appendChild(el("div", "none", (e && e.message) || "That didn't work. Try again in a moment."));
+    return;
+  }
+  if (tok !== findTok) return;
+  box.innerHTML = "";
+  if (!hits.length) { box.appendChild(el("div", "none", "Nothing found. Try other words.")); return; }
+  hits.forEach(h => {
+    const s = ytSong(h.id, h.title, h.author, h.secs);
+    box.appendChild(songRow(s, { play: () => takeSong(s, true) }));
+  });
+}
+
+function openQueue(on) {
+  const want = on == null ? !document.body.classList.contains("queued") : !!on;
+  document.body.classList.toggle("queued", want);
+}
+function closeSide() { document.body.classList.remove("siding"); }
+
+/* ---- the buttons ---- */
+$("play").onclick = toggle;
+$("next").onclick = () => step(1);
+$("prev").onclick = () => step(-1);
+$("handle").onclick = () => openQueue();
+$("queue-shut").onclick = () => openQueue(false);
+$("side-btn").onclick = e => {
+  e.stopPropagation();
+  if (matchMedia("(max-width: 720px)").matches) return document.body.classList.toggle("siding");
+  S.side = S.side === false;
+  save();
+  paintToggles();
+};
+$("main").addEventListener("click", e => { if (!$("side-btn").contains(e.target)) closeSide(); });
+$("search").onsubmit = e => { e.preventDefault(); find($("q").value); };
+$("q").addEventListener("search", () => { if (!$("q").value.trim()) endSearch(); });
+$("search-clear").onclick = endSearch;
+$("add-btn").onclick = addLink;
+$("disc").onclick = () => { if (!hearing) hearTab(); };
+$("opts").onclick = e => {
+  e.stopPropagation();
+  menu($("opts"), [
+    hearing ? { label: "Stop the ring", run: stopHearing } : { label: "Let the ring hear the music…", run: hearTab },
+    { label: S.hole === false ? "Show the middle hole" : "Hide the middle hole", run: () => { S.hole = S.hole === false; save(); paintToggles(); } }
+  ]);
+};
+$("shuffle").onclick = () => { S.shuffle = !S.shuffle; save(); paintToggles(); reorder(); drawQueue(); };
+$("repeat").onclick = () => {
+  S.repeat = S.repeat === "off" ? "all" : S.repeat === "all" ? "one" : "off";
+  save(); paintToggles(); drawQueue();
+};
+$("list-new").onclick = async () => {
+  const name = await ask("New playlist", "What should it be called? Then press + next to any song to put it in.", "", "Make it");
+  if (!name) return;
+  S.list = newListNamed(name).id;
+  save();
+  endSearch();
+  build();
+};
+$("seek").oninput = () => { seeking = true; };
+$("seek").onchange = () => {
+  seeking = false;
+  const d = engine.dur();
+  if (d) engine.seek(d * ($("seek").value / 1000));
+};
+$("vol").value = S.vol;
+audio.volume = S.vol / 100;
+$("vol").oninput = () => {
+  S.vol = Number($("vol").value);
+  audio.volume = S.vol / 100;
+  if (yt && yt.setVolume) yt.setVolume(S.vol);
+  save();
+};
+audio.onplay = audio.onpause = playingChanged;
+audio.onended = () => { if (using === "file") ended(); };
+audio.onerror = () => { if (using === "file" && audio.getAttribute("src")) skipSoon("That link wouldn't play."); };
+/* the clock, and keeping up with YouTube's player, which says less on its own */
+setInterval(() => {
+  if (using === "none") return;
+  const t = engine.time(), d = engine.dur();
+  if (!seeking && d) $("seek").value = String(Math.round(t / d * 1000));
+  $("at").textContent = fmt(t);
+  $("of").textContent = fmt(d);
+  if (using === "yt") playingChanged();
+}, 250);
+document.addEventListener("keydown", e => {
+  const tag = e.target.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || document.querySelector(".veil")) return;
+  if (e.key === " ") { e.preventDefault(); toggle(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+  else if (e.key === "/") { e.preventDefault(); $("q").focus({ preventScroll: true }); }
+  else if (e.key === "Escape") { openQueue(false); closeSide(); closeMenu(); }
+});
+if ("mediaSession" in navigator) {
+  const h = (k, f) => { try { navigator.mediaSession.setActionHandler(k, f); } catch (e) {} };
+  h("play", () => engine.play());
+  h("pause", () => engine.pause());
+  h("nexttrack", () => step(1));
+  h("previoustrack", () => step(-1));
+}
+
+/* nothing here scrolls; a box getting focus mustn't push the page up */
+for (const id of ["app", "main"]) $(id).addEventListener("scroll", () => { $(id).scrollTop = 0; $(id).scrollLeft = 0; });
+paintToggles();
+build();
+</script>
+</body>
+</html>

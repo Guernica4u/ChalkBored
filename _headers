@@ -1,0 +1,18 @@
+# Security headers for Cloudflare (Workers static assets read this file).
+# vercel.json sets the same ones for the Vercel copy. Keep the two in step.
+#
+# frame-ancestors / X-Frame-Options: only ChalkBored itself may put its pages
+#   in a frame (Requests in Notebook, the game viewer, Chalk TV, the
+#   about:blank cloak). Other sites can't wrap it.
+# nosniff: browsers don't guess file types.
+# Referrer-Policy: other sites don't see which ChalkBored page you came from.
+# Permissions-Policy: no page can ask for camera, mic, location, payments, USB.
+# No full Content-Security-Policy for scripts: the games need inline code and
+#   loaders from many places, and it would break them.
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000

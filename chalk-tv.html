@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Chalk TV</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://tide.guernica4u.workers.dev">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* the same three looks as Notebook, picked from Notebook's settings */
+  :root {
+    --paper: #fbfbf7;
+    --paper-2: #f3f3ec;
+    --card: #ffffff;
+    --ink: #1f2d44;
+    --pencil: #66708a;
+    --rule-line: #dde6f2;
+    --margin-line: #ecb3ad;
+    --edge: #d9dde4;
+    --accent: #2c5fb8;
+    --accent-ink: #ffffff;
+    --highlight: #ffe680;
+    --danger: #c0473a;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --rule: 28px;
+    --radius: 10px;
+    --hand: 'Kalam', 'Segoe Print', 'Comic Sans MS', cursive;
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  /* Basic: soft and dark, in Night (blue-grey, below) or Mono */
+  body[data-theme="basic"] {
+    --paper: #16181d;
+    --paper-2: #1f232a;
+    --card: #1c1f26;
+    --ink: #d9d5cc;
+    --pencil: #8b909a;
+    --rule-line: transparent;
+    --margin-line: transparent;
+    --edge: #2b3039;
+    --accent: #8fb3d9;
+    --accent-ink: #16181d;
+    --highlight: #2f4157;
+    --danger: #d98b7f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.18);
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  body[data-theme="basic"] .mono { background: transparent !important; color: var(--accent); border: 1px solid var(--edge); }
+
+  /* Mono: the same Basic layout in plain black and white */
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --accent-ink: #0b0b0b; --highlight: #3a3a3a; --danger: #e6e6e6;
+  }
+
+  /* Space: soft see-through panels over a dim starry sky (matches Notebook) */
+  body[data-theme="space"] {
+    --paper: #0b0f1c;
+    --paper-2: rgba(46, 54, 80, 0.92);
+    --card: rgba(24, 30, 48, 0.92);
+    --ink: #e6e9f2;
+    --pencil: #a4adc4;
+    --rule-line: rgba(200, 212, 255, 0.08);
+    --margin-line: transparent;
+    --edge: rgba(200, 212, 255, 0.15);
+    --accent: #dbe3f6;
+    --accent-ink: #0e1328;
+    --highlight: rgba(200, 212, 255, 0.16);
+    --danger: #f2a3a3;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --radius: 16px;
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  /* on its own the page draws the sky; inside Notebook, Notebook's sky shows through */
+  html:not(.in-notebook) body[data-theme="space"] { background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c; }
+  /* the frame is dark; saying "light" here would make the browser paint a solid sheet over that sky */
+  html.in-notebook { color-scheme: dark; }
+  html.in-notebook body[data-theme="space"] { background: transparent; }
+  body[data-theme="space"] #stage { background: transparent; }
+  body[data-theme="space"] #bar { background: rgba(24, 30, 48, 0.85); }
+  body[data-theme="space"] .veil { background: rgba(6, 9, 18, 0.88); }
+  body[data-theme="space"] .mono { background: rgba(200, 212, 255, 0.12) !important; }
+  body[data-theme="space"] .btn { background: var(--accent); color: var(--accent-ink); }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  #app { display: flex; flex-direction: column; height: 100%; }
+
+  /* ---- the bar along the top ---- */
+  #bar {
+    display: flex; align-items: center; gap: 4px; padding: 6px 8px;
+    background: var(--paper-2); border-bottom: 1px solid var(--edge);
+  }
+  #brand { flex: none; margin: 0 10px 0 4px; font: 700 1.25rem/1 var(--hand); white-space: nowrap; }
+  #brand span { color: var(--accent); }
+  #site-name {
+    flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    color: var(--pencil); font-size: 0.9rem;
+  }
+  .tool {
+    flex: none; height: 34px; min-width: 34px; padding: 0 10px; border: none; border-radius: var(--radius);
+    background: transparent; color: var(--pencil); font-size: 0.88rem;
+  }
+  .tool.icon { padding: 0; font-size: 17px; line-height: 1; }
+  .tool:hover { background: var(--card); color: var(--ink); }
+
+  /* the bar stays out of the way: it slides in when the mouse comes to the top edge,
+     or (on touch screens) when the small tab at the top is tapped */
+  #app { position: relative; }
+  #bar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 20; box-shadow: var(--shadow);
+    transform: translateY(-100%); transition: transform 0.18s ease;
+  }
+  #app.bar-on #bar, #bar:focus-within { transform: none; }
+  #hot { position: absolute; top: 0; left: 0; right: 0; height: 8px; z-index: 19; }
+  #bar-tab {
+    display: none; position: absolute; top: 0; left: 50%; z-index: 19; transform: translateX(-50%);
+    height: 20px; padding: 0 16px; border: 1px solid var(--edge); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius); background: var(--paper-2); color: var(--pencil); font-size: 12px;
+  }
+  @media (hover: none), (pointer: coarse) { #bar-tab { display: block; } #hot { display: none; } }
+  #stage { position: relative; flex: 1; min-height: 0; background: var(--paper); }
+  #stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
+
+  /* ---- boxes that sit over everything: the key, and picking a site ---- */
+  .veil {
+    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+    padding: 16px; overflow-y: auto; background: var(--paper);
+  }
+  .box {
+    width: 100%; max-width: 420px; padding: 30px; text-align: center;
+    background: var(--card); border: 1px solid var(--edge); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .box.wide { max-width: 560px; text-align: left; }
+  .box h2 { margin: 0; font: 700 2rem/1.1 var(--hand); }
+  .box h2 span { color: var(--accent); }
+  .box > p { margin: 6px 0 16px; color: var(--pencil); }
+  .field {
+    display: block; width: 100%; height: 42px; padding: 0 14px;
+    background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius);
+  }
+  .field:focus { outline: none; border-color: var(--accent); }
+  .btn {
+    height: 42px; padding: 0 20px; border: none; border-radius: var(--radius);
+    background: var(--accent); color: var(--accent-ink); font-weight: 700;
+  }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  #key-input { margin-bottom: 12px; }
+  #submit-btn { width: 100%; }
+  .or { margin: 14px 0 10px; color: var(--pencil); font-size: 0.85rem; }
+  #public-btn { width: 100%; background: transparent; color: var(--ink); border: 1px solid var(--edge); }
+  #status { margin-top: 12px; min-height: 20px; font-size: 0.88rem; color: var(--danger); }
+  .small { margin-top: 8px; font-size: 0.8rem; color: var(--pencil); }
+
+  .options { display: grid; gap: 10px; margin-bottom: 18px; }
+  .option {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left;
+    background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius);
+  }
+  .option:hover:not(:disabled) { border-color: var(--accent); }
+  .option:disabled { opacity: 0.55; cursor: default; }
+  .option .num {
+    flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink); font-weight: 700;
+  }
+  .option b { display: block; }
+  .option small { display: block; color: var(--pencil); font-size: 0.8rem; word-break: break-all; }
+  .own { display: flex; gap: 8px; }
+  .own .field { flex: 1; min-width: 0; }
+  .label { margin: 0 0 8px; font: 700 1.05rem/1.2 var(--hand); }
+  #pick-msg { min-height: 20px; margin: 8px 0 0; font-size: 0.85rem; color: var(--danger); }
+  #pick-cancel, .link { margin-top: 14px; background: none; border: none; padding: 0; color: var(--pencil); text-decoration: underline; }
+  .link + .link, #pick-cancel + .link { margin-left: 16px; }
+  #servers { z-index: 1002; }                       /* over the site picker */
+  .veil > .box { margin: auto; }                    /* a tall box scrolls from its top */
+  #server-list { gap: 6px; margin-bottom: 8px; }
+  #server-list .option { padding: 7px 12px; }
+  #server-list .num { width: 28px; height: 28px; font-size: 0.85rem; }
+  .option .num.pin { background: var(--ink); color: var(--paper); }
+  .option .ms { margin-left: auto; flex: none; color: var(--pencil); font-size: 0.85rem; white-space: nowrap; }
+  .option.now { border-color: var(--accent); }
+  /* a small spinner while a server is being tested */
+  .ms.busy::after {
+    content: ""; display: inline-block; width: 12px; height: 12px; vertical-align: -2px;
+    border: 2px solid var(--edge); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 1001;
+    max-width: calc(100% - 32px); padding: 10px 14px; border-radius: var(--radius);
+    background: var(--ink); color: var(--paper); font-size: 0.85rem;
+    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  @media (max-width: 560px) { #brand { display: none; } .tool.words { padding: 0 6px; font-size: 0.8rem; } }
+</style>
+</head>
+<body data-theme="basic" data-basic="mono">
+<div id="app">
+  <div id="bar">
+    <div id="brand">Chalk <span>TV</span></div>
+    <button class="tool icon" id="back" type="button" title="Back" aria-label="Back">&#8249;</button>
+    <button class="tool icon" id="reload" type="button" title="Reload" aria-label="Reload">&#8635;</button>
+    <div id="site-name"></div>
+    <button class="tool words" id="change" type="button">Change site</button>
+    <button class="tool words" id="change-server" type="button">Change server</button>
+    <button class="tool icon" id="full" type="button" title="Full screen" aria-label="Full screen">&#9974;</button>
+  </div>
+  <div id="hot"></div>
+  <button id="bar-tab" type="button" aria-label="Show the bar">&#9662;</button>
+  <main id="stage"></main>
+</div>
+
+
+<!-- what Chalk TV shows -->
+<div class="veil" id="picker" hidden>
+  <div class="box wide">
+    <h2>Pick a site for <span>Chalk TV</span></h2>
+    <p>Chalk TV shows one site. Choose one of these, or use your own. You can change it later with Change site.</p>
+    <div class="options" id="options"></div>
+    <p class="label">Or your own</p>
+    <form class="own" id="own-form">
+      <input class="field" id="own-url" type="text" placeholder="example.com" autocomplete="off" spellcheck="false" aria-label="Your own site">
+      <button class="btn" type="submit">Use it</button>
+    </form>
+    <p id="pick-msg"></p>
+    <button id="pick-cancel" type="button" hidden>Keep the current site</button>
+    <button class="link" id="pick-server" type="button">Change server</button>
+  </div>
+</div>
+<!-- Change server: the tide key pinned first, then every public server -->
+<div class="veil" id="servers" hidden>
+  <div class="box wide">
+    <h2>Pick a <span>server</span></h2>
+    <p>Lower ms is faster.</p>
+    <div class="options" id="server-list"></div>
+    <button class="link" id="ping-again" type="button">Test again</button>
+    <button class="link" id="servers-cancel" type="button">Keep the current server</button>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+// ============================================================
+// PASTE YOUR SITES HERE
+// The three choices Chalk TV offers the first time it opens.
+// Put a name and an address in each one. A choice with no
+// address shows as "not set up yet" and can't be picked.
+// ============================================================
+const TV_SITES = [
+  { name: "Movy", url: "movy.sx" },
+  { name: "CNO", url: "https://beta.cno.to/" },
+  { name: "CineJoy", url: "Cinejoy.pk/" }
+];
+
+// ============================================================
+// Do not edit below this line
+// ============================================================
+
+/* Chalk TV shows one site through the public Tide (github.com/Guernica4u/Tide) in its TV mode - no tabs. */
+/* the public Tide lives on workers.dev, which loads more reliably in class */
+const TIDE_PAGE = "https://tide.guernica4u.workers.dev/";
+const SITE_STORE = "chalk-tv.site";
+const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
+const MODE_STORE = "chalk-tv.mode";               /* "key" or "public" */
+const RELAY_STORE = "chalk-tv.relay";             /* a public server, or none for Tide's fastest */
+/* the same public servers as Tide's WISP_POOL_DEFAULTS (Tide only takes these) */
+const PUBLIC_RELAYS = [
+  "wss://fern.best/wisp/",
+  "wss://lichology.com/wisp/",
+  "wss://wisp.mercurywork.shop/",
+  "wss://wisp.terbiumon.top/wisp/",
+  "wss://gointospace.app/wisp/",
+  "wss://definitelyscience.com/wisp/",
+  "wss://anura.pro/",
+  "wss://motor-cycle-part.org/wisp/"
+];
+
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+const toastEl = $("toast");
+
+/* ---- the look follows Notebook, live ---- */
+const THEME_NAMES = { basic: 1, space: 1 };   /* anything else, Terminal included, shows as Basic Night */
+const BASIC_COLORS = { night: 1, mono: 1 };
+/* inside Notebook's Chalk TV tab the page lets Notebook's own sky show through */
+try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
+function applyLook() {
+  let nb = {};
+  try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
+  let theme = nb.theme === "glass" ? "space" : nb.theme;   // Glass is called Space now
+  let basic = nb.basic == null ? "mono" : BASIC_COLORS[nb.basic] ? nb.basic : "night";   // Basic Mono is the default, like Notebook
+  if (nb.plain || theme === "night") { theme = "basic"; basic = "night"; }   // Night is a Basic color now
+  if (!THEME_NAMES[theme]) { if (theme) basic = "night"; theme = "basic"; }   // a saved old theme (Terminal) shows as Night
+  document.body.dataset.theme = theme;
+  if (theme === "basic") document.body.dataset.basic = basic;
+  else delete document.body.dataset.basic;
+  /* Tide wears the same look: "space", or the Basic color ("night" or "mono") */
+  tideLook = theme === "space" ? "space" : basic === "mono" ? "mono" : "night";
+}
+var tideLook = "mono";
+applyLook();
+window.addEventListener("storage", e => {
+  if (e.key !== SETTINGS_STORE && e.key !== null) return;
+  applyLook();
+  tide({ tide: "look", look: tideLook });
+});
+
+
+/* ---- the site ---- */
+function siteUrl(raw) {
+  raw = String(raw || "").trim();
+  if (!raw || /\s/.test(raw)) return null;   /* Chrome would take "not a site" as an address */
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(raw)) raw = "https://" + raw;
+  try {
+    const u = new URL(raw);
+    return /^https?:$/.test(u.protocol) && /[.:]|^localhost$/.test(u.hostname) ? u.href : null;
+  } catch (e) { return null; }
+}
+function hostOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url; }
+}
+/* Chalk TV forgets everything on refresh: no last site, and Tide starts fresh
+   (sites' cookies and storage wiped, no history). Only the server choice stays. */
+try { localStorage.removeItem(SITE_STORE); } catch (e) {}
+let currentSite = null;
+
+
+/* ---- Tide, in its TV mode (just the site, no tabs) ---- */
+let tideFrame = null;
+let tideReady = false;                            /* Tide says {tide:"ready"} once it can take "go" */
+let pendingUrl = "";
+/* Tide starts as soon as the server is picked, so it's warmed up while you pick a site */
+function openTide(site) {
+  tideReady = false;
+  pendingUrl = "";
+  const f = document.createElement("iframe");
+  f.title = "Chalk TV";
+  f.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture";
+  f.allowFullscreen = true;
+  /* a site can't take over the whole tab, open real tabs or download */
+  f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-presentation allow-orientation-lock");
+  const cfg = { ui: "tv", fresh: true, look: tideLook };
+  if (site) cfg.open = site.url;
+  if (relay) cfg.relay = relay;
+  f.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify(cfg));
+  stage.replaceChildren(f);
+  tideFrame = f;
+}
+function tide(message) {
+  const origin = new URL(TIDE_PAGE).origin;
+  if (tideFrame && tideFrame.contentWindow) tideFrame.contentWindow.postMessage(message, origin);
+}
+window.addEventListener("message", e => {
+  if (!tideFrame || e.source !== tideFrame.contentWindow || !e.data || e.data.tide !== "ready") return;
+  if (e.origin !== new URL(TIDE_PAGE).origin) return;
+  tideReady = true;
+  if (pendingUrl) { tide({ tide: "go", url: pendingUrl }); pendingUrl = ""; }
+});
+function toast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add("show");
+  setTimeout(() => toastEl.classList.remove("show"), 8000);
+}
+
+
+/* ---- picking a site ---- */
+let mode = "";                                    /* "key" or "public", once started */
+let relay = "";
+try { relay = localStorage.getItem(RELAY_STORE) || ""; } catch (e) {}
+if (!PUBLIC_RELAYS.includes(relay)) relay = "";
+function setMode(m) {
+  mode = m;
+  try { localStorage.setItem(MODE_STORE, m); } catch (e) {}
+}
+function setRelay(r) {
+  relay = r;
+  try { if (r) localStorage.setItem(RELAY_STORE, r); else localStorage.removeItem(RELAY_STORE); } catch (e) {}
+}
+
+function show(site) {
+  $("picker").hidden = true;
+  $("site-name").textContent = site.name;
+  document.title = "Chalk TV";
+  currentSite = site;
+  barOn(2500);                                    /* a short peek, so it's clear where the bar went */
+  if (!tideFrame) openTide(site);
+  else if (tideReady) tide({ tide: "go", url: site.url });
+  else pendingUrl = site.url;
+}
+const choose = show;
+/* the server is picked: start Tide, then ask for a site (or keep the one showing) */
+function start() {
+  $("servers").hidden = true;
+  if (currentSite) return openTide(currentSite);
+  openTide(null);
+  openPicker(false);
+}
+function openPicker(canCancel) {
+  const list = $("options");
+  list.innerHTML = "";
+  TV_SITES.forEach((s, i) => {
+    const url = siteUrl(s && s.url);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "option";
+    b.innerHTML = '<span class="num"></span><span><b></b><small></small></span>';
+    b.querySelector(".num").textContent = String(i + 1);
+    b.querySelector("b").textContent = (s && s.name) || (url ? hostOf(url) : "Option " + (i + 1));
+    b.querySelector("small").textContent = url ? hostOf(url) : "Not set up yet";
+    b.disabled = !url;
+    if (url) b.onclick = () => choose({ name: (s.name || hostOf(url)), url });
+    list.appendChild(b);
+  });
+  $("pick-msg").textContent = "";
+  $("own-url").value = "";
+  $("pick-cancel").hidden = !canCancel;
+  $("picker").hidden = false;
+}
+$("own-form").onsubmit = e => {
+  e.preventDefault();
+  const url = siteUrl($("own-url").value);
+  if (!url) { $("pick-msg").textContent = "That doesn't look like a web address."; return; }
+  choose({ name: hostOf(url), url });
+};
+$("pick-cancel").onclick = () => { $("picker").hidden = true; };
+
+/* ---- the bar ---- */
+$("back").onclick = () => tide({ tide: "back" });
+$("reload").onclick = () => tide({ tide: "reload" });
+$("change").onclick = () => { if (mode) openPicker(!!currentSite); };
+/* hidden until the mouse reaches the top edge; on touch screens the tab shows it for a while */
+const app = $("app");
+let barTimer = 0;
+function barOn(ms) {
+  app.classList.add("bar-on");
+  clearTimeout(barTimer);
+  if (ms) barTimer = setTimeout(barOff, ms);
+}
+function barOff() { if (!$("bar").matches(":hover")) app.classList.remove("bar-on"); }
+$("hot").addEventListener("mouseenter", () => barOn(0));
+$("bar").addEventListener("mouseenter", () => barOn(0));
+$("hot").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
+$("bar").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
+$("bar-tab").onclick = () => { if (app.classList.contains("bar-on")) app.classList.remove("bar-on"); else barOn(5000); };
+/* ---- Change server: the tide key pinned first, then every public server ---- */
+/* how long a server takes to answer, in ms (null: no answer) */
+function ping(url) {
+  return new Promise(resolve => {
+    const t0 = performance.now();
+    let ws, done = false;
+    const finish = v => { if (done) return; done = true; clearTimeout(timer); try { ws.close(); } catch (e) {} resolve(v); };
+    const timer = setTimeout(() => finish(null), 4000);
+    try { ws = new WebSocket(url); } catch (e) { return finish(null); }
+    ws.onopen = () => finish(Math.round(performance.now() - t0));
+    ws.onerror = ws.onclose = () => finish(null);
+  });
+}
+async function averagePing(url, tries) {
+  const got = [];
+  for (let i = 0; i < tries; i++) { const v = await ping(url); if (v != null) got.push(v); }
+  return got.length ? Math.round(got.reduce((a, b) => a + b, 0) / got.length) : null;
+}
+let serverRun = 0;
+function serverRow(pin, name, note, isNow, onPick) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "option" + (isNow ? " now" : "");
+  b.innerHTML = '<span class="num"></span><span><b></b><small></small></span><span class="ms"></span>';
+  b.querySelector(".num").textContent = pin;
+  if (pin === "★") b.querySelector(".num").classList.add("pin");
+  b.querySelector("b").textContent = name;
+  b.querySelector("small").textContent = isNow ? note + " · in use" : note;
+  b.onclick = onPick;
+  $("server-list").appendChild(b);
+  return b.querySelector(".ms");
+}
+function openServers() {
+  $("server-list").innerHTML = "";
+  const tests = [];
+  serverRow("A", "Fastest public server", "Tide tests them all when it starts", mode === "public" && !relay,
+    () => usePublic(""));
+  const publicRows = PUBLIC_RELAYS.map((r, i) => {
+    const ms = serverRow(String(i + 1), hostOf(r), "Public server", mode === "public" && relay === r, () => usePublic(r));
+    tests.push([ms, r]);
+    return ms;
+  });
+  /* the speed test: each server 3 times, then the public ones ranked by their average */
+  const run = ++serverRun;
+  Promise.all(tests.map(async ([el, url]) => {
+    el.textContent = "";
+    el.classList.add("busy");
+    el.avg = await averagePing(url, 3);
+    if (run !== serverRun) return;
+    el.classList.remove("busy");
+    el.textContent = el.avg == null ? "no answer" : "avg " + el.avg + " ms";
+  })).then(() => {
+    if (run !== serverRun) return;
+    const list = $("server-list");
+    publicRows.slice().sort((a, b) => (a.avg ?? 1e9) - (b.avg ?? 1e9)).forEach((ms, i) => {
+      const row = ms.parentNode;
+      row.querySelector(".num").textContent = String(i + 1);
+      list.appendChild(row);
+    });
+  });
+  $("servers-cancel").hidden = !mode;
+  $("servers").hidden = false;
+}
+$("change-server").onclick = openServers;
+$("pick-server").onclick = openServers;
+$("ping-again").onclick = openServers;
+$("servers-cancel").onclick = () => { $("servers").hidden = true; };
+$("full").onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {});
+};
+
+
+/* a public server (none: Tide picks the fastest); switching to one forgets the tide key */
+function usePublic(r) {
+  setMode("public");
+  setRelay(r);
+  start();
+}
+usePublic(relay);
+</script>
+</body>
+</html>

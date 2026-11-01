@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talk to a Teacher — ChalkBored</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #171717;
+    --muted: #8a8580;
+    --line: #d9d5cf;
+    --accent: #3d4f4a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 2rem 1.75rem 0;
+    max-width: 1040px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .back-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .back-link:hover { color: var(--ink); border-color: var(--ink); }
+  main {
+    flex: 1;
+    max-width: 1040px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 7rem 1.75rem 10rem;
+  }
+  .rule {
+    width: 48px;
+    height: 1px;
+    background: var(--accent);
+    margin-bottom: 2.5rem;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.15;
+    margin: 0 0 1.5rem;
+  }
+  .soon {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+  }
+  p {
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    line-height: 1.75;
+    color: #3a3a3a;
+    max-width: 58ch;
+    margin: 0 0 1.25rem;
+  }
+  .onward {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .onward:hover { color: var(--ink); border-color: var(--ink); }
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    margin: 0 1.75rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <a class="back-link" href="index.html">&larr; Back to ChalkBored</a>
+  </header>
+  <main>
+    <div class="rule"></div>
+    <h1>Talk to a Teacher</h1>
+    <p class="soon">Coming soon.</p>
+    <p>A way to ask a real person when a resource still leaves you stuck. We're still working out how to run it properly.</p>
+    <a class="onward" href="library.html">In the meantime, try the Library &rarr;</a>
+  </main>
+  <footer>
+    Chalk &middot; Made For Fun
+  </footer>
+</body>
+</html>
