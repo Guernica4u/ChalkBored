@@ -4,7 +4,7 @@ A study-break notebook for students: lessons and games, Chalk Music, Chalk TV,
 Chalk Browser, a Requests poll, themes and tab cloaks.
 
 - https://chalkbored.win
-- https://chalkbored-public.vercel.app
+- https://chalkboredforall.vercel.app
 
 This repo is generated. Every file here is written by a script from the
 ChalkBored source, so changes made here directly are overwritten on the next
