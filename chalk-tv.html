@@ -471,6 +471,30 @@ async function averagePing(url, tries) {
   for (let i = 0; i < tries; i++) { const v = await ping(url); if (v != null) got.push(v); }
   return got.length ? Math.round(got.reduce((a, b) => a + b, 0) / got.length) : null;
 }
+/* A server can answer the ping and still fail every site (error 35 in Tide), so it must also
+   reach a real one: a stream to example.com's https port has to get an answer back. */
+function reachesSite(url, ms = 6000) {
+  return new Promise(done => {
+    let ws, timer;
+    const finish = ok => { clearTimeout(timer); try { ws.close(); } catch (e) {} done(ok); };
+    try { ws = new WebSocket(url); } catch (e) { return done(false); }
+    ws.binaryType = "arraybuffer";
+    timer = setTimeout(() => finish(false), ms);
+    ws.onerror = ws.onclose = () => finish(false);
+    ws.onopen = () => {
+      const enc = new TextEncoder(), host = enc.encode("example.com"), req = enc.encode("GET / HTTP/1.0\r\nHost: example.com\r\n\r\n");
+      const open = new Uint8Array(8 + host.length), data = new Uint8Array(5 + req.length);
+      open.set([1, 1, 0, 0, 0, 1, 443 & 255, 443 >> 8]); open.set(host, 8);   /* tide CONNECT: stream 1, TCP, port 443 */
+      data.set([2, 1, 0, 0, 0]); data.set(req, 5);                             /* DATA on stream 1 */
+      ws.send(open); ws.send(data);
+    };
+    ws.onmessage = e => {
+      const p = new Uint8Array(e.data);
+      if (p[1] === 1 && p[0] === 2) finish(true);                              /* the site answered */
+      else if (p[1] === 1 && p[0] === 4) finish(false);                        /* the server closed the stream */
+    };
+  });
+}
 let serverRun = 0;
 function serverRow(pin, name, note, isNow, onPick) {
   const b = document.createElement("button");
@@ -501,9 +525,11 @@ function openServers() {
     el.textContent = "";
     el.classList.add("busy");
     el.avg = await averagePing(url, 3);
+    const down = el.avg != null && !(await reachesSite(url));
+    if (down) el.avg = null;                          /* sorted last, like a server that doesn't answer */
     if (run !== serverRun) return;
     el.classList.remove("busy");
-    el.textContent = el.avg == null ? "no answer" : "avg " + el.avg + " ms";
+    el.textContent = down ? "not working" : el.avg == null ? "no answer" : "avg " + el.avg + " ms";
   })).then(() => {
     if (run !== serverRun) return;
     const list = $("server-list");
