@@ -1,0 +1,51 @@
+.webgl-content * {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#gameContainer canvas {
+    display: block;
+    background: #222;
+}
+
+.webgl-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.webgl-content .logo,
+.webgl-content .text {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, -50%);
+}
+
+.webgl-content .logo {
+    background: url('logo.png') no-repeat center / contain;
+    width: 500px;
+    height: 155px;
+}
+
+.webgl-content .text {
+    color: white;
+    text-align: center;
+    margin-top: 170px;
+    font-size: 25px;
+    font-weight: 700;
+    width: 500px;
+}
+
+.webgl-content .spinner {
+    vertical-align: middle;
+    height: 100px;
+}

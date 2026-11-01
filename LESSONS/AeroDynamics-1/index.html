@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AeroDynamics-1</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden; }
+        #player-container { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="player-container"></div>
+
+    <script src="../Flash-Player/ruffle.js"></script>
+
+    <script>
+        window.addEventListener("load", () => {
+            const ruffle = window.RufflePlayer.newest();
+            const player = ruffle.createPlayer();
+            player.style.width = "100%";
+            player.style.height = "100%";
+            document.getElementById("player-container").appendChild(player);
+            player.load("lesson.swf");
+        });
+    </script>
+</body>
+</html>

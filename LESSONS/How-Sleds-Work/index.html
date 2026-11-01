@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Rider 3D - Thrilling Unblocked Skiing Adventure Game</title>
+    <meta name="description" content="Dive into Snow Rider 3D for an adrenaline-filled sled riding adventure. Race down snowy slopes, dodge obstacles, and collect gifts for an exhilarating experience.">
+    <meta name="keywords" content="Snow Rider 3D, skiing game, winter sports, snowboarding, ski game, mountain landscapes, skiing adventure, snowboarding adventure, snowy mountain, sleigh ride, winter game">
+    <meta name="author" content="Premium Unblocked Games">
+    
+    <!-- Open Graph (OG) data for Facebook and Twitter -->
+    <meta property="og:title" content="Snow Rider 3D - Thrilling Unblocked  Skiing Adventure Game">
+    <meta property="og:description" content="Immerse yourself in Snow Rider 3D, a thrilling skiing adventure game set in breathtaking mountain landscapes. Ride your sleigh down snowy slopes, dodge obstacles, and collect gifts for an exhilarating experience.">
+    <meta property="og:image" content="TemplateData/snowrider3d-banner.webp">
+    <meta property="og:url" content="/">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Snow Rider 3D - Thrilling Unblocked Skiing Adventure Game">
+    <meta name="twitter:description" content="Immerse yourself in Snow Rider 3D, a thrilling skiing adventure game set in breathtaking mountain landscapes. Ride your sleigh down snowy slopes, dodge obstacles, and collect gifts for an exhilarating experience.">
+    <meta name="twitter:image" content="TemplateData/snowrider3d-banner.webp">
+    
+    <!-- Other metadata -->
+    <meta name="theme-color" content="#007ACC">
+    <link rel="icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    
+    <!-- Unity game scripts -->
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var gameInstance = UnityLoader.instantiate("gameContainer", "Build/SnowRider3D-gd-1.json", { onProgress: UnityProgress, Module: { onRuntimeInitialized: function () { UnityProgress(gameInstance, "complete") } } });
+        });
+    </script>
+</head>
+<body style="overflow:hidden;padding:0px;margin:0px;">
+    <div class="webgl-content">
+        <div id="gameContainer" style="width: 960px; height: 600px; margin: auto"></div>
+    </div>
+</body>
+</html>
+
