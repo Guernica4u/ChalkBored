@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rhythm-Geometry-Lite</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #bbb; font: 16px system-ui, sans-serif; }
+  body { display: grid; place-items: center; }
+</style>
+</head>
+<body>
+<p id="status">Loading... 0%</p>
+<script>
+  // This game is one very large page. Cloudflare only serves files up to
+  // 25 MB, so it is stored as 3 parts that get joined back together here.
+  (async () => {
+    const status = document.getElementById('status');
+    const parts = [];
+    try {
+      for (let i = 1; i <= 3; i++) {
+        const res = await fetch('part' + i + '.bin');
+        if (!res.ok) throw new Error('part ' + i + ' did not load');
+        parts.push(await res.arrayBuffer());
+        status.textContent = 'Loading... ' + Math.round(i / 3 * 100) + '%';
+      }
+    } catch (e) {
+      status.textContent = 'This game did not load. Try again in a minute.';
+      return;
+    }
+    const html = await new Blob(parts).text();
+    document.open();
+    document.write(html);
+    document.close();
+  })();
+</script>
+</body>
+</html>
