@@ -399,11 +399,11 @@ function show(site) {
   else pendingUrl = site.url;
 }
 const choose = show;
-/* the server is picked: start Tide, then ask for a site (or keep the one showing) */
+/* the server is picked: ask for a site, and start Tide only once one is chosen
+   (a Chromebook shouldn't boot a whole browser engine before it knows what to show) */
 function start() {
   $("servers").hidden = true;
   if (currentSite) return openTide(currentSite);
-  openTide(null);
   openPicker(false);
 }
 function openPicker(canCancel) {
