@@ -938,7 +938,7 @@
       <ul>
         <li><b>Chalk Music:</b> a new tab for your songs and playlists. Find a song, or add a link to one song or a whole playlist.</li>
         <li><b>New looks:</b> Basic (Night or Mono) and Space, with softer colors that are easy on the eyes. The old Terminal look is retired.</li>
-        <li><b>Chalk Chat and Chalk Browser open right in Notebook,</b> like Chalk Music. You can switch back to a new tab in Settings.</li>
+        <li><b>Chalk Chat and Chalk Browser open right in Notebook.</b> You can switch back to a new tab in Settings.</li>
         <li><b>More room</b> on the Music, Chat and Browser tabs.</li>
         <li><b>Notebook opens faster,</b> especially on slower laptops.</li>
         <li><b>Safer class chat:</b> moderators can now remove accounts that break the rules.</li>
@@ -1177,7 +1177,7 @@
       requestsSignedOut: false, // show Requests (as "Make account!") before you have an account
       openMode: 'google',      // how lessons, tools and apps open
       skipMenu: false,         // open straight away instead of asking which cloak
-      appsHere: true,          // Chalk Chat and Chalk Browser open inside Notebook, like Chalk Music
+      appsHere: true,          // Chalk Chat and Chalk Browser open inside Notebook
       shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
       railMini: false,         // OS look: sidebar folded down to icons
       wallpaper: 'hands',      // OS look background: one of WALLPAPERS, 'own' (your picture) or 'none'
@@ -1387,8 +1387,8 @@
     const NO_POPUPS_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-downloads allow-orientation-lock allow-presentation';
 
     // Experimental "Nothing opens in a new tab": the page opens on top of this one,
-    // and anything in it that asks for a new tab replaces it instead, the way
-    // Chalk Music does. Back goes to the page before.
+    // and anything in it that asks for a new tab replaces it instead.
+    // Back goes to the page before.
     let viewerFrame = null;
     let viewerDepth = 0;        // pages you can go Back to
     let viewerGoingBack = false;
