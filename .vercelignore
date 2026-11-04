@@ -1,8 +1,3 @@
 _headers
 .assetsignore
 wrangler.jsonc
-README.md
-listening/README.md
-listening/libcurl-client.js
-LESSONS/**/README.md
-LESSONS/**/readme.txt
