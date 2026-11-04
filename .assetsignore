@@ -3,3 +3,8 @@ wrangler.jsonc
 .vercelignore
 .git
 node_modules
+README.md
+listening/README.md
+listening/libcurl-client.js
+LESSONS/**/README.md
+LESSONS/**/readme.txt

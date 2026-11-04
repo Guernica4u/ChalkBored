@@ -311,12 +311,8 @@
 const $ = id => document.getElementById(id);
 const STORE = "listening.v1";
 const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
-/* the public tide servers Tide itself starts from (Tide's WISP_POOL_DEFAULTS) */
-const PUBLIC_WISP = [
-  "wss://fern.best/wisp/", "wss://lichology.com/wisp/", "wss://wisp.mercurywork.shop/",
-  "wss://wisp.terbiumon.top/wisp/", "wss://gointospace.app/wisp/", "wss://definitelyscience.com/wisp/",
-  "wss://anura.pro/", "wss://motor-cycle-part.org/wisp/"
-];
+/* No public relay list is shipped. Lookups use the browser's own fetch. */
+const PUBLIC_WISP = [];
 const AUDIO_EXT = /\.(mp3|m4a|ogg|oga|opus|wav|aac|flac|weba)$/i;
 const LIBRARY_MAX = 2000;
 
@@ -483,8 +479,9 @@ function netFetch(url, opts) {
   return job;
 }
 async function netFetchNow(url, opts) {
-  await loadCurl();
   const list = curlRelay ? [curlRelay].concat(relays().filter(x => x !== curlRelay)) : relays();
+  if (!list.length) return fetch(url, opts);
+  await loadCurl();
   let lastErr = null;
   for (const relay of list) {
     try {
