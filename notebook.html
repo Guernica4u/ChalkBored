@@ -446,8 +446,12 @@
   body.on-home .content { overflow: hidden; }
   .home-hero { display: flex; flex-direction: column; align-items: center; gap: 1.3rem; padding: 2rem 0; text-align: center; }
   .home-title { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .home-hero .search-wrap { width: min(560px, 82vw); }
+  .home-hero .search, .home-hero .search:focus { width: 100%; padding: 0.85rem 1rem 0.85rem 2.6rem; font-size: 1rem; }
+  .home-hero .results { left: 0; right: 0; width: auto; text-align: left; }
   /* everything on Home rises into place and fades in, a little slower than before */
   #panel-home.active .home-title { animation: home-rise 1.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  #panel-home.active .home-hero .search-wrap { animation: home-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
   #panel-home.active .hello-meta > * { animation: home-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
   #panel-home.active .hello-meta > *:first-child { animation-delay: 0.18s; }
   #panel-home.active .hello-meta > *:last-child { animation-delay: 0.32s; }
@@ -797,6 +801,7 @@
         <section class="panel" id="panel-home">
           <div class="home-hero">
             <h2 class="home-title" id="home-title">ChalkBored</h2>
+            <div id="hero-search-slot"></div>
             <p class="hello-meta">
               <button class="meta-link" id="stat-online" type="button"><span class="stat-dot"></span><b id="online-count">&hellip;</b> <span id="online-note">online now</span></button>
               <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver"></b> <span id="updated-when"></span></button>
@@ -1987,6 +1992,9 @@
       try { keepBrowser = localStorage.getItem('chalk-browser.keep') !== '0'; } catch (e) {}
       if (name !== 'browser' && browserFrame && !keepBrowser) { browserFrame.remove(); browserFrame = null; }
 
+      // leaving Chalk TV unloads it, so a Chromebook never keeps two browser engines in memory
+      if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
+
       // Chalk TV lives in this page now, not a new tab
       if (name === 'tv' && !tvFrame) {
         tvFrame = document.createElement('iframe');
@@ -2122,11 +2130,11 @@
     }
 
     // ---- OS look ----
-    // the one search box moves: top bar in Classic, the big Home search or the sidebar in OS
+    // the one search box lives in the middle of Home, and in the sidebar on every other tab
     const searchWrap = $('search').closest('.search-wrap');
     const searchSpot = { parent: searchWrap.parentNode, next: searchWrap.nextElementSibling };
     function placeSearch() {
-      const to = $('rail-search-slot');
+      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
       const nav = document.querySelector('.rail .nav');
       const before = nav.getBoundingClientRect().top;
