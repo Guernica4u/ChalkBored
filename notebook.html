@@ -1888,7 +1888,6 @@
     $('cloak-pick-cancel').addEventListener('click', () => { $('cloak-pick').hidden = true; });
     $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
-    document.querySelectorAll('#apps-open-choice button').forEach((b) => b.addEventListener('click', () => change('appsHere', b.dataset.appsOpen === 'here')));
 
     $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
 
