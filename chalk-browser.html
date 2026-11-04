@@ -120,7 +120,7 @@
   .or { margin: 14px 0 10px; color: var(--pencil); font-size: 0.85rem; }
   #public-btn { width: 100%; height: 42px; border-radius: var(--radius); background: transparent; color: var(--ink); border: 1px solid var(--edge); }
   /* public servers: Tide fills the page, with a small way back to the key */
-  #tide-full { position: fixed; inset: 0; width: 100%; height: 100%; border: none; background: var(--paper); }
+  #tide-full { position: fixed; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
   #key-switch {
     position: fixed; right: 10px; bottom: 10px; z-index: 900; padding: 5px 10px; border: 1px solid var(--edge);
     border-radius: var(--radius); background: var(--card); color: var(--pencil); font-size: 0.75rem; opacity: 0.55;
@@ -166,22 +166,22 @@ const $ = id => document.getElementById(id);
 const toastEl = $("toast");
 
 /* ---- the look follows Notebook, live ---- */
-const THEME_NAMES = { basic: 1 };   /* anything else, Terminal included, shows as Basic Night */
-const BASIC_COLORS = { mono: 1 };
+const THEME_NAMES = { basic: 1, space: 1 };   /* anything else, Terminal included, shows as Basic Night */
+const BASIC_COLORS = { night: 1, mono: 1 };
 /* inside Notebook's Chalk TV tab the page lets Notebook's own sky show through */
 try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
 function applyLook() {
   let nb = {};
   try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
   let theme = nb.theme === "glass" ? "space" : nb.theme;   // Glass is called Space now
-  let basic = BASIC_COLORS[nb.basic] ? nb.basic : "mono";   // Basic Mono is the default, like Notebook
-  if (nb.plain || theme === "night") { theme = "basic"; basic = "mono"; }   // Night is a Basic color now
-  if (!THEME_NAMES[theme]) { theme = "basic"; basic = "mono"; }   // a saved old theme (Terminal) shows as Night
+  let basic = nb.basic == null ? "mono" : BASIC_COLORS[nb.basic] ? nb.basic : "night";   // Basic Mono is the default, like Notebook
+  if (nb.plain || theme === "night") { theme = "basic"; basic = "night"; }   // Night is a Basic color now
+  if (!THEME_NAMES[theme]) { if (theme) basic = "night"; theme = "basic"; }   // a saved old theme (Terminal) shows as Night
   document.body.dataset.theme = theme;
   if (theme === "basic") document.body.dataset.basic = basic;
   else delete document.body.dataset.basic;
   /* Tide wears the same look: "space", or the Basic color ("night" or "mono") */
-  tideLook = "mono";
+  tideLook = theme === "space" ? "space" : basic === "mono" ? "mono" : "night";
 }
 var tideLook = "mono";
 applyLook();
