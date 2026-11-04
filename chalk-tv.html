@@ -274,8 +274,17 @@ const SITE_STORE = "chalk-tv.site";
 const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
 const MODE_STORE = "chalk-tv.mode";               /* "key" or "public" */
 const RELAY_STORE = "chalk-tv.relay";             /* a public server, or none for Tide's fastest */
-/* Tide picks its own public server. ChalkBored ships no relay addresses. */
-const PUBLIC_RELAYS = [];
+/* the same public servers as Tide's WISP_POOL_DEFAULTS (Tide only takes these) */
+const PUBLIC_RELAYS = [
+  "wss://fern.best/wisp/",
+  "wss://lichology.com/wisp/",
+  "wss://wisp.mercurywork.shop/",
+  "wss://wisp.terbiumon.top/wisp/",
+  "wss://gointospace.app/wisp/",
+  "wss://definitelyscience.com/wisp/",
+  "wss://anura.pro/",
+  "wss://motor-cycle-part.org/wisp/"
+];
 
 const $ = id => document.getElementById(id);
 const stage = $("stage");
