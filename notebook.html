@@ -127,6 +127,44 @@
     padding: 1.1rem 0.9rem 1.1rem 1.2rem;
   }
 
+  /* Space: soft see-through panels over a dim blue sky (the sky picture is
+     look/stars.svg, shared by every page). No blur, so slow computers stay
+     smooth. Rounder corners, pill buttons and cards that lift. */
+  body[data-theme="space"] {
+    --paper: #0b0f1c;
+    --paper-2: rgba(46, 54, 80, 0.9);
+    --card: rgba(24, 30, 48, 0.9);
+    --ink: #e6e9f2;
+    --pencil: #a4adc4;
+    --rule-line: rgba(200, 212, 255, 0.08);
+    --margin-line: transparent;
+    --edge: rgba(200, 212, 255, 0.15);
+    --accent: #dbe3f6;
+    --highlight: rgba(200, 212, 255, 0.16);
+    --highlight-ink: #ffffff;
+    --danger: #f2a3a3;
+    --shadow: none;
+    --rail: rgba(14, 18, 32, 0.92);
+    --hand: var(--body);
+    color-scheme: dark;
+    background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c;
+  }
+  body[data-theme="space"] .main, body[data-theme="space"] footer { background: transparent; }
+  body[data-theme="space"] .card { position: relative; overflow: hidden; }
+  body[data-theme="space"] .card:hover, body[data-theme="space"] .card-wrap.is-open .card,
+  body[data-theme="space"] .tile:hover, body[data-theme="space"] .tool:hover { border-color: rgba(200, 212, 255, 0.45); }
+  body[data-theme="space"] .thumb { background-image: none; background-color: rgba(200, 212, 255, 0.06); }
+  body[data-theme="space"] .mono { transform: none; font-size: 2rem; color: var(--accent); }
+  body[data-theme="space"] .nav-btn.active { background: rgba(200, 212, 255, 0.13); box-shadow: none; }
+  body[data-theme="space"] .btn.primary, body[data-theme="space"] .switch[aria-checked="true"] {
+    background: var(--accent); border-color: transparent; color: #0e1328;
+  }
+  body[data-theme="space"] .switch { background: rgba(200, 212, 255, 0.16); }
+  body[data-theme="space"] h1 .scribble { background: none; color: var(--ink); padding: 0; }
+  body[data-theme="space"] .modal { background: rgba(6, 9, 18, 0.6); }
+  body[data-theme="space"] .modal-box, body[data-theme="space"] .open-menu, body[data-theme="space"] .results { background: #161c2e; }
+  body[data-theme="space"] .viewer { background: #0b0f1c; }
+  body[data-theme="space"] .tip::before { color: var(--accent); }
 
   .brand { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 1.35rem; line-height: 1; }
   .brand span { color: var(--accent); }
@@ -436,26 +474,14 @@
   /* ---------------- home ---------------- */
   /* Home: the title is the one thing that moves, sliding in once when Notebook opens */
   #panel-home { max-width: 980px; margin: 0 auto; }
-  #panel-home.active {
-    animation: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 100%;
-  }
-  body.on-home .content { overflow: hidden; }
-  .home-hero { display: flex; flex-direction: column; align-items: center; gap: 1.3rem; padding: 2rem 0; text-align: center; }
+  #panel-home.active { animation: none; }
+  .home-hero { display: flex; flex-direction: column; align-items: center; gap: 1.3rem; padding: 16vh 0 3rem; text-align: center; }
   .home-title { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .home-title:not(.shown) { animation: title-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  @keyframes title-in { from { opacity: 0; transform: translateX(-48px); } }
   .home-hero .search-wrap { width: min(560px, 82vw); }
   .home-hero .search, .home-hero .search:focus { width: 100%; padding: 0.85rem 1rem 0.85rem 2.6rem; font-size: 1rem; }
   .home-hero .results { left: 0; right: 0; width: auto; text-align: left; }
-  /* everything on Home rises into place and fades in, a little slower than before */
-  #panel-home.active .home-title { animation: home-rise 1.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  #panel-home.active .home-hero .search-wrap { animation: home-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
-  #panel-home.active .hello-meta > * { animation: home-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  #panel-home.active .hello-meta > *:first-child { animation-delay: 0.18s; }
-  #panel-home.active .hello-meta > *:last-child { animation-delay: 0.32s; }
-  @keyframes home-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
   body.on-home .topbar h1 { display: none; }
   .hello-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.3rem 1.2rem; margin: 0; font-size: 0.85rem; color: var(--pencil); }
   .meta-link { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
@@ -779,6 +805,7 @@
         </button>
       </div>
 
+      <div class="rail-foot"><a href="index.html">&larr; Back to ChalkBored</a></div>
     </nav>
 
     <div class="main">
@@ -807,6 +834,14 @@
               <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver"></b> <span id="updated-when"></span></button>
             </p>
           </div>
+          <div id="home-favs-wrap">
+            <p class="section-label">Your favorites</p>
+            <div class="fav-row" id="home-favs"></div>
+          </div>
+          <p class="section-label">Apps</p>
+          <div class="quick" id="quick"></div>
+          <p class="section-label">Recently opened</p>
+          <div class="recents" id="recents"></div>
         </section>
 
         <!-- brain exercises: short practice activities for study breaks -->
@@ -864,6 +899,26 @@
             <div class="group">
               <h2>Look</h2>
               <p>How ChalkBored looks.</p>
+              <div class="setting">
+                <div><h3>Theme</h3><p>Basic is soft and dark. Space is soft panels over a starry sky.</p></div>
+                <div class="theme-stack">
+                  <div class="choice" id="theme-choice">
+                    <button type="button" data-theme-pick="basic">Basic</button>
+                    <button type="button" data-theme-pick="space">Space</button>
+                  </div>
+                  <div class="choice basic-colors" id="basic-choice" aria-label="Basic colors" hidden>
+                    <button type="button" data-basic-pick="night">Night</button>
+                    <button type="button" data-basic-pick="mono">Mono</button>
+                  </div>
+                </div>
+              </div>
+              <div class="setting">
+                <div><h3>Layout</h3><p>OS is a sidebar desktop over a picture you pick.</p></div>
+                <div class="choice" id="shell-choice">
+                  <button type="button" data-shell="classic">Classic</button>
+                  <button type="button" data-shell="os">OS</button>
+                </div>
+              </div>
               <div class="setting os-setting">
                 <div><h3>Wallpaper</h3><p>Your own picture stays on this device.</p></div>
                 <div id="wall-pick"></div>
@@ -919,6 +974,7 @@
       <div class="modal-actions">
         <button class="btn" id="setup-back" type="button">Back</button>
         <span class="spacer"></span>
+        <button class="link-btn" id="setup-skip" type="button">Skip</button>
         <button class="btn primary" id="setup-next" type="button">Next</button>
       </div>
     </div>
@@ -1171,8 +1227,8 @@
     const VERSION = '1.1';
     const VERSION_LABEL = 'v1.1 Early Access';   // what the footer and Home show
     const SETUP_VERSION = '1.0';   // bump this when everyone should see setup again
-    const THEMES = ['basic'];
-    const BASIC_COLORS = [['mono', 'Mono']];
+    const THEMES = ['basic', 'space'];
+    const BASIC_COLORS = [['night', 'Night'], ['mono', 'Mono']];
     const OPEN_MODE_KEYS = ['google', 'docs', 'normal'];
 
     const DEFAULT_SETTINGS = {
@@ -1201,8 +1257,8 @@
     } catch (e) {}
     if (returningVisitor && !(savedSettings && 'setupDone' in savedSettings)) settings.setupDone = true;
     // OS look and Mono are the defaults for new people only: older saves keep Classic and Night
-    if (savedSettings && !savedSettings.shell) settings.shell = 'os';
-    if (savedSettings && !savedSettings.basic) settings.basic = 'mono';
+    if (savedSettings && !savedSettings.shell) settings.shell = 'classic';
+    if (savedSettings && !savedSettings.basic) settings.basic = 'night';
     if (!(settings.disguise in { off: 1, docs: 1, drive: 1, classroom: 1, google: 1 })) settings.disguise = 'google';
     settings.gameArt = true;   // card pictures are always on now
     // Plain look and Movie night are gone; Plain look users get Night instead
@@ -1224,9 +1280,10 @@
     delete settings.tutor;
     delete settings.tutorAsked;
     try { localStorage.removeItem('vault-panic-key'); } catch (e) {}
-    // one look only now: Basic Mono over the OS layout
-    settings.theme = 'basic';
-    if (!BASIC_COLORS.some(([k]) => k === settings.basic)) settings.basic = 'mono';
+    if (settings.theme === 'glass') settings.theme = 'space';
+    // Night is one of the Basic colors now, and Terminal is retired: both become Basic Night
+    if (settings.theme === 'night' || settings.theme === 'terminal') { settings.theme = 'basic'; settings.basic = 'night'; }
+    if (!BASIC_COLORS.some(([k]) => k === settings.basic)) settings.basic = 'night';
     // Chalkboard and Notebook are gone; anything unknown becomes Basic
     if (!THEMES.includes(settings.theme)) settings.theme = 'basic';
     // Glass is called Space now, and has no background choices
@@ -1239,10 +1296,10 @@
     if (!OPEN_MODE_KEYS.includes(settings.openMode)) settings.openMode = 'google';
     // 1.1: new tabs from games are always blocked, and the homepage opens the vault for everyone once
     settings.blockPopups = true;
-    settings.shell = 'os';
+    if (settings.shell !== 'os') settings.shell = 'classic';
     // saves from before wallpapers keep what they had: their own picture, or plain dark without one
     if (savedSettings && !('wallpaper' in savedSettings)) settings.wallpaper = 'own';
-    if (!['hands', 'mountains', 'ribbons', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
+    if (!['hands', 'mountains', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
     if (!settings.v11) { settings.autoVault = true; settings.v11 = true; }
 
     function saveSettings() {
@@ -1257,7 +1314,7 @@
 
     // this page's own address, whatever it's called or wherever it's hosted
     const PAGE_URL = location.href.split('?')[0].split('#')[0];
-    const HOME_URL = new URL('notebook.html', location.href).href;
+    const HOME_URL = new URL('index.html', location.href).href;
 
     // true when this page is running inside the about:blank cloak tab
     function inCloakFrame() {
@@ -1854,9 +1911,27 @@
       $('updated-when').textContent = 'updated ' + MONTH_NAMES[up.getMonth()].slice(0, 3) + ' ' + up.getDate() + (ago ? ' · ' + ago : '') + ' · what’s new';
       $('updated-ver').textContent = VERSION_LABEL;
 
+      // favorites
+      const favLessons = favs.map((path) => LIST.lessons.find((g) => g.path === path)).filter(Boolean);
+      $('home-favs-wrap').hidden = !favLessons.length;
+      const row = $('home-favs');
+      row.innerHTML = '';
+      favLessons.forEach((g) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        putName(chip, g, '★ ');
+        chip.addEventListener('click', () => launch(g, 'Games'));
+        row.appendChild(chip);
+      });
+
+      buildQuick();
+      buildRecents();
     }
 
     $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
+    $('home-title').addEventListener('animationend', () => $('home-title').classList.add('shown'), { once: true });
+
 
     // people online: the module script at the bottom fills this in while Home is open
     window.addEventListener('chalk-online', (e) => {
@@ -1991,9 +2066,6 @@
       let keepBrowser = true;
       try { keepBrowser = localStorage.getItem('chalk-browser.keep') !== '0'; } catch (e) {}
       if (name !== 'browser' && browserFrame && !keepBrowser) { browserFrame.remove(); browserFrame = null; }
-
-      // leaving Chalk TV unloads it, so a Chromebook never keeps two browser engines in memory
-      if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
 
       // Chalk TV lives in this page now, not a new tab
       if (name === 'tv' && !tvFrame) {
@@ -2130,11 +2202,12 @@
     }
 
     // ---- OS look ----
-    // the one search box lives in the middle of Home, and in the sidebar on every other tab
+    // the one search box moves: top bar in Classic, the big Home search or the sidebar in OS
     const searchWrap = $('search').closest('.search-wrap');
     const searchSpot = { parent: searchWrap.parentNode, next: searchWrap.nextElementSibling };
     function placeSearch() {
-      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
+      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot')
+        : settings.shell === 'os' ? $('rail-search-slot') : searchSpot.parent;
       if (searchWrap.parentNode === to) return;
       const nav = document.querySelector('.rail .nav');
       const before = nav.getBoundingClientRect().top;
@@ -2162,7 +2235,7 @@
         };
       });
     }
-    const WALLPAPERS = [['hands', 'Hands'], ['mountains', 'Mountains'], ['ribbons', 'Ribbons'], ['moon', 'Moon']];
+    const WALLPAPERS = [['hands', 'Hands'], ['mountains', 'Mountains'], ['moon', 'Moon']];
     let bgShownFor = null;
     let bgUrl = '';
     async function showBackground() {
@@ -2245,11 +2318,15 @@
       document.body.classList.toggle('apps-here', !!settings.appsHere);
       document.body.classList.toggle('os', settings.shell === 'os');
       document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
+      document.querySelectorAll('#shell-choice button').forEach((b) => b.classList.toggle('on', b.dataset.shell === settings.shell));
       placeSearch();
       if (bgShownFor !== settings.shell + settings.wallpaper) { bgShownFor = settings.shell + settings.wallpaper; showBackground(); }
       $('wall-pick').replaceChildren(makeWallpapers());
       $('open-browser').title = settings.appsHere ? '' : 'Opens in a new tab';
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      document.querySelectorAll('#theme-choice button').forEach((b) => b.classList.toggle('on', b.dataset.themePick === settings.theme));
+      $('basic-choice').hidden = settings.theme !== 'basic';
+      document.querySelectorAll('#basic-choice button').forEach((b) => b.classList.toggle('on', settings.theme === 'basic' && b.dataset.basicPick === settings.basic));
       applyDisguise();
     }
 
@@ -2281,7 +2358,11 @@
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
     document.querySelectorAll('#apps-open-choice button').forEach((b) => b.addEventListener('click', () => change('appsHere', b.dataset.appsOpen === 'here')));
 
+    document.querySelectorAll('#shell-choice button').forEach((b) => b.addEventListener('click', () => change('shell', b.dataset.shell)));
     $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
+    document.querySelectorAll('#theme-choice button').forEach((b) => b.addEventListener('click', () => change('theme', b.dataset.themePick)));
+    function pickBasic(color) { settings.basic = color; change('theme', 'basic'); }
+    document.querySelectorAll('#basic-choice button').forEach((b) => b.addEventListener('click', () => pickBasic(b.dataset.basicPick)));
 
     function makeDisguiseButtons(container, after) {
       container.innerHTML = '';
@@ -2358,6 +2439,17 @@
         },
       },
       {
+        step: 'Theme',
+        title: 'Pick a theme',
+        text: 'Basic is soft and dark, in two colors. Space is soft panels over a starry sky.',
+        body: () => {
+          const box = document.createDocumentFragment();
+          box.appendChild(makeChoice([['basic', 'Basic'], ['space', 'Space']], settings.theme, (k) => change('theme', k)));
+          if (settings.theme === 'basic') box.appendChild(makeChoice(BASIC_COLORS, settings.basic, pickBasic));
+          return box;
+        },
+      },
+      {
         step: 'Wallpaper',
         title: 'Choose wallpaper',
         text: 'It sits behind everything in the OS look.',
@@ -2366,7 +2458,7 @@
       {
         step: 'Home',
         title: 'Start on a Home screen?',
-        text: 'Home shows the name, who\u2019s online and the last update.',
+        text: 'Home shows who\u2019s online, what you opened last and every app.',
         body: () => makeSwitch(tabShown('home'), 'Home app', () => {
           settings.hiddenTabs = tabShown('home') ? [...settings.hiddenTabs, 'home'] : settings.hiddenTabs.filter((x) => x !== 'home');
           saveSettings();
@@ -2399,6 +2491,8 @@
       const content = st.body();
       if (content) body.appendChild(content);
       $('setup-back').hidden = setupStep === 0;
+      $('setup-skip').textContent = st.skip || 'Skip the rest';
+      $('setup-skip').hidden = setupStep === SETUP_STEPS.length - 1;
       $('setup-next').textContent = st.next || 'Next';
     }
 
@@ -2417,6 +2511,7 @@
     }
 
     $('setup-back').addEventListener('click', () => { if (setupStep > 0) { setupStep--; renderSetup(); } });
+    $('setup-skip').addEventListener('click', closeSetup);
     $('setup-next').addEventListener('click', () => {
       if (setupStep < SETUP_STEPS.length - 1) { setupStep++; renderSetup(); return; }
       closeSetup();
