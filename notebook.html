@@ -2,7 +2,7 @@
 <html lang="en">
 <!--
   ChalkBored study notebook.
-  Brain exercises for study breaks, study tools, class chat, homework help
+  Brain exercises for study breaks and homework help
   links and notes, all in one page. Settings stay in this browser.
 -->
 <head>
@@ -192,7 +192,6 @@
   }
   .ping + .out { margin-left: 0.4rem; }
 
-  /* pop-up when someone @s you in Chalk Chat */
   .nb-toasts { position: fixed; right: 1.2rem; bottom: 4.2rem; z-index: 35; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
   .nb-toast {
     display: flex;
@@ -565,7 +564,6 @@
     font-size: 0.82rem;
     color: var(--pencil);
   }
-  /* Chalk Chat and Chalk Browser inside Notebook: no "new tab" arrow */
   body.apps-here .nav-out .out { display: none; }
   /* Music, Chat and Browser get the whole height, so no footer there */
   body.full-panel footer { display: none; }
@@ -738,7 +736,7 @@
   <div class="curtain" aria-hidden="true"></div>
 
   <div class="shell">
-    <nav class="rail" aria-label="Apps">
+    <nav class="rail" aria-label="Games">
       <div class="rail-top">
         <button class="icon-btn os-only" id="rail-collapse" type="button" aria-label="Fold the sidebar" title="Fold the sidebar">
           <svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M6 2.5v11"/></svg>
@@ -748,30 +746,9 @@
       <div class="rail-search" id="rail-search-slot"></div>
 
       <div class="nav">
-        <button class="nav-btn" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
-          <svg viewBox="0 0 16 16"><path d="M2.5 7.2 8 2.5l5.5 4.7V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.8V9.2h3.2v4.6"/></svg>
-          <span>Home</span>
-        </button>
         <button class="nav-btn active" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
           <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
           <span>Games</span><span class="tally" id="tally-games"></span>
-        </button>
-        <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
-          <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
-          <span>Chalk Music</span>
-        </button>
-        <button class="nav-btn nav-out" type="button" id="open-browser" data-app="browser" style="--tab:#9b8ad6">
-          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.8 1.7 2.6 3.7 2.6 6S9.8 12.3 8 14M8 2C6.2 3.7 5.4 5.7 5.4 8s.8 4.3 2.6 6"/></svg>
-          <span>Chalk Browser</span>
-          <svg class="out" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M11.5 9.5V13h-8V4.5H7"/></svg>
-        </button>
-        <button class="nav-btn" type="button" data-panel="tools" id="nav-tools" style="--tab:#6a9ae0">
-          <svg viewBox="0 0 16 16"><path d="M10.5 1.8a3.6 3.6 0 0 0-4.3 4.6L1.8 10.8a1.5 1.5 0 0 0 2.1 2.1l4.4-4.4a3.6 3.6 0 0 0 4.6-4.3L11 5.9 9.4 5.6 9.1 4z"/></svg>
-          <span>Tools</span><span class="tally" id="tally-tools"></span>
-        </button>
-        <button class="nav-btn" type="button" data-panel="requests" id="nav-requests" style="--tab:#e39bc0">
-          <svg viewBox="0 0 16 16"><path d="M8 13.5V3M3.5 7.5 8 3l4.5 4.5"/></svg>
-          <span id="requests-label">Requests</span>
         </button>
       </div>
 
@@ -783,7 +760,7 @@
         <div class="topbar-right">
           <div class="search-wrap">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
-            <input class="search" id="search" type="search" placeholder="Search" autocomplete="off" aria-label="Search everything">
+            <input class="search" id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
             <div class="results" id="results" hidden></div>
           </div>
           <button class="icon-btn" id="gear" type="button" aria-label="Settings" title="Settings">
@@ -793,38 +770,11 @@
       </header>
 
       <main class="content">
-        <!-- home: today's date, study tips and what you worked on last -->
-        <section class="panel" id="panel-home">
-          <div class="home-hero">
-            <h2 class="home-title" id="home-title">ChalkBored</h2>
-            <div id="hero-search-slot"></div>
-            <p class="hello-meta">
-              <button class="meta-link" id="stat-online" type="button"><span class="stat-dot"></span><b id="online-count">&hellip;</b> <span id="online-note">online now</span></button>
-              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver"></b> <span id="updated-when"></span></button>
-            </p>
-          </div>
-        </section>
-
         <!-- brain exercises: short practice activities for study breaks -->
         <section class="panel active" id="panel-games">
           <div class="cards" id="games"></div>
         </section>
 
-        <!-- study tools: calculators, references and other helpers -->
-        <section class="panel" id="panel-tools">
-          <p class="lead"><b>Tools.</b> Useful things that aren't games.</p>
-          <div class="tools" id="tools"></div>
-        </section>
-
-        <section class="panel flush" id="panel-music"></section>
-        <section class="panel flush" id="panel-browser"></section>
-
-        <section class="panel flush" id="panel-requests">
-          <div id="requests-soon" hidden>
-            <p class="lead"><b>Requests.</b> Coming soon.</p>
-            <p class="empty-note">Voting on what gets added next isn't ready yet.</p>
-          </div>
-        </section>
 
 
         <!-- settings: how the notebook looks and opens -->
@@ -844,14 +794,7 @@
                 <button class="switch" id="always-blank" type="button" role="switch" aria-checked="false" aria-label="Always open cloaked"></button>
               </div>
               <div class="setting">
-                <div><h3>Chalk Browser</h3><p>Open it inside Notebook or in its own tab.</p></div>
-                <div class="choice" id="apps-open-choice">
-                  <button type="button" data-apps-open="here">In Notebook</button>
-                  <button type="button" data-apps-open="tab">New tab</button>
-                </div>
-              </div>
-              <div class="setting">
-                <div><h3>Ask to cloak</h3><p>Asks which cloak to use each time you open a game or tool.</p></div>
+                <div><h3>Ask to cloak</h3><p>Asks which cloak to use each time you open a game.</p></div>
                 <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
               </div>
             </div>
@@ -867,12 +810,6 @@
             </div>
 
             <div class="group">
-              <h2>Sidebar tabs</h2>
-              <p>Turn off the tabs you don't use.</p>
-              <div id="tab-switches"></div>
-            </div>
-
-            <div class="group">
               <h2>Advanced &amp; experimental</h2>
               <p>How things opened from here behave.</p>
               <div class="setting">
@@ -880,7 +817,7 @@
                 <button class="switch" id="auto-vault" type="button" role="switch" aria-checked="false" aria-label="Open the site to the vault"></button>
               </div>
               <div class="setting">
-                <div><h3>No New Tabs</h3><p>Games, tools, Chat and Chalk Browser open on top of this page instead of a new tab.</p></div>
+                <div><h3>No New Tabs</h3><p>Games open on top of this page instead of a new tab.</p></div>
                 <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
               </div>
             </div>
@@ -925,7 +862,7 @@
       <p class="ms-name">ChalkBored</p>
       <div class="ms-mask"><p class="ms-num">1.1</p></div>
       <span class="ms-line" aria-hidden="true"></span>
-      <p class="milestone-msg" id="milestone-msg">New looks, Chalk Music and a quicker notebook.</p>
+      <p class="milestone-msg" id="milestone-msg">New looks and a faster games notebook.</p>
       <p class="milestone-hint">Click anywhere to see what’s new</p>
     </div>
   </div>
@@ -936,12 +873,9 @@
       <p class="modal-step">What's new</p>
       <h2 id="notes-title">ChalkBored 1.1</h2>
       <ul>
-        <li><b>Chalk Music:</b> a new tab for your songs and playlists. Find a song, or add a link to one song or a whole playlist.</li>
-        <li><b>New looks:</b> Basic (Night or Mono) and Space, with softer colors that are easy on the eyes. The old Terminal look is retired.</li>
-        <li><b>Chalk Chat and Chalk Browser open right in Notebook.</b> You can switch back to a new tab in Settings.</li>
-        <li><b>More room</b> on the Music, Chat and Browser tabs.</li>
+        <li><b>Games only:</b> Notebook opens straight to your games now.</li>
+        <li><b>New looks:</b> Basic (Night or Mono) and Space, with softer colors that are easy on the eyes.</li>
         <li><b>Notebook opens faster,</b> especially on slower laptops.</li>
-        <li><b>Safer class chat:</b> moderators can now remove accounts that break the rules.</li>
         <li>More lessons, and sharper versions of some.</li>
       </ul>
       <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
@@ -961,7 +895,7 @@
   <div class="modal" id="cloak-pick" hidden role="dialog" aria-modal="true" aria-labelledby="cloak-pick-title">
     <div class="modal-box">
       <h2 id="cloak-pick-title">Which cloak?</h2>
-      <p>Games and tools will always open this way.</p>
+      <p>Games will always open this way.</p>
       <div class="choice" id="cloak-pick-choice"></div>
       <div class="modal-actions"><span class="spacer"></span><button class="btn" id="cloak-pick-cancel" type="button">Keep asking</button></div>
     </div>
@@ -1065,8 +999,6 @@
         { name: ".World's;H5rd3st;G5m3?", path: 'LESSONS/Hardest-Path-1/index.html' },
         { name: ".World's;H5rd3st;G5m3;2?", path: 'LESSONS/Hardest-Path-2/index.html' },
       ],
-      tools: [
-      ],
     };
 
     // ---- card pictures ----
@@ -1160,11 +1092,10 @@
 
     // ---- settings that stick (same storage as before, so nobody loses theirs) ----
     const SETTINGS_STORE = 'vault-settings';
-    const RECENTS_STORE = 'vault-recents';
     const SEEN_STORE = 'vault-seen-version';
     const FAVS_STORE = 'vault-favorites';
     const VERSION = '1.1';
-    const VERSION_LABEL = 'v1.1 Early Access';   // what the footer and Home show
+    const VERSION_LABEL = 'v1.1 Early Access';   // what the footer shows
     const SETUP_VERSION = '1.0';   // bump this when everyone should see setup again
     const THEMES = ['basic'];
     const BASIC_COLORS = [['mono', 'Mono']];
@@ -1173,11 +1104,8 @@
     const DEFAULT_SETTINGS = {
       disguise: 'google', alwaysBlank: false, setupDone: false, setupVersion: '', theme: 'basic', basic: 'mono',
       blockPopups: true,
-      hiddenTabs: ['tools'],   // sidebar tabs turned off in Settings > Sidebar tabs
-      requestsSignedOut: false, // show Requests (as "Make account!") before you have an account
-      openMode: 'google',      // how lessons, tools and apps open
+      openMode: 'google',      // how games open
       skipMenu: false,         // open straight away instead of asking which cloak
-      appsHere: true,          // Chalk Chat and Chalk Browser open inside Notebook
       shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
       railMini: false,         // OS look: sidebar folded down to icons
       wallpaper: 'hands',      // OS look background: one of WALLPAPERS, 'own' (your picture) or 'none'
@@ -1192,7 +1120,7 @@
     try {
       savedSettings = JSON.parse(localStorage.getItem(SETTINGS_STORE) || 'null');
       if (savedSettings) settings = Object.assign(settings, savedSettings);
-      returningVisitor = !!(savedSettings || localStorage.getItem(RECENTS_STORE));
+      returningVisitor = !!savedSettings;
     } catch (e) {}
     if (returningVisitor && !(savedSettings && 'setupDone' in savedSettings)) settings.setupDone = true;
     // OS look and Mono are the defaults for new people only: older saves keep Classic and Night
@@ -1202,19 +1130,10 @@
     settings.gameArt = true;   // card pictures are always on now
     // Plain look and Movie night are gone; Plain look users get Night instead
     if (settings.plain) settings.theme = 'night';
-    if (!Array.isArray(settings.hiddenTabs)) settings.hiddenTabs = [];
     delete settings.plain;
     delete settings.layout;
     delete settings.dev;
     delete settings.junk;
-    // v0.9 new defaults, applied to everyone once: card pictures, Tools off (the saved theme is kept)
-    if (!settings.v09) {
-      if (savedSettings) {
-        settings.gameArt = true;
-        if (!settings.hiddenTabs.includes('tools')) settings.hiddenTabs = [...settings.hiddenTabs, 'tools'];
-      }
-      settings.v09 = true;
-    }
     // the AI app and the panic key are gone
     delete settings.tutor;
     delete settings.tutorAsked;
@@ -1226,7 +1145,7 @@
     if (!THEMES.includes(settings.theme)) settings.theme = 'basic';
     // Glass is called Space now, and has no background choices
     delete settings.glassBg;
-    // Home is on for everyone now, and the sidebar no longer collapses
+    // the old Home preference is gone
     delete settings.home;
     delete settings.rail;
     // the tide key is always remembered now
@@ -1399,7 +1318,7 @@
         let doc;
         try { doc = win.document; } catch (e) { return; }   // a frame from elsewhere: out of reach
         if (!doc) return;
-        // Chalk Browser keeps its own tide pages in its own tabs
+        // pages that manage their own tabs keep them
         if (String(win.location.href).includes('/tide/go/')) return;
         try { for (let i = 0; i < win.frames.length; i++) patchWin(win.frames[i]); } catch (e) {}
         if (win.__chalkHere) return;
@@ -1524,22 +1443,7 @@
       win.focus();
     }
 
-    // ---- recents ----
-    let recents = [];
-    try { recents = JSON.parse(localStorage.getItem(RECENTS_STORE) || '[]'); } catch (e) {}
-    // only pages can be reopened from here
-    recents = recents.filter((r) => r.kind === 'page' && r.path);
-    recents.forEach((r) => { r.path = String(r.path).replace(/^GAMES\//, 'LESSONS/'); });
-
-    function recordRecent(entry) {
-      const id = entry.app + ':' + entry.name;
-      recents = [Object.assign({ id, at: Date.now(), kind: 'page' }, entry), ...recents.filter((r) => r.id !== id)].slice(0, 6);
-      try { localStorage.setItem(RECENTS_STORE, JSON.stringify(recents)); } catch (e) {}
-      if ($('panel-home').classList.contains('active')) buildHome();
-    }
-
     function launch(item, appName, mode) {
-      recordRecent({ app: appName, name: item.name, path: item.path });
       openTab(item.path, mode || settings.openMode, { title: coded(item) ? '' : item.name });
     }
 
@@ -1727,38 +1631,8 @@
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
-    function buildTools() {
-      const list = $('tools');
-      list.innerHTML = '';
-      if (!LIST.tools.length) {
-        list.innerHTML = '<p class="empty-note">No tools yet.</p>';
-      }
-      LIST.tools.forEach((item, i) => {
-        const tool = document.createElement('div');
-        tool.className = 'tool';
-        tool.style.setProperty('--i', i);
-        tool.innerHTML = '<span class="tool-icon"></span><div><div class="tool-name"></div><div class="tool-desc"></div></div>';
-        tool.querySelector('.tool-icon').textContent = initials(item.name);
-        tool.querySelector('.tool-name').textContent = item.name;
-        tool.querySelector('.tool-desc').textContent = item.desc || '';
-
-        const wrap = document.createElement('div');
-        wrap.className = 'card-wrap';
-        const open = document.createElement('button');
-        open.className = 'btn';
-        open.type = 'button';
-        open.textContent = 'Open';
-        const menu = buildMenu(item, 'Tools');
-        wire(wrap, open, menu, item, 'Tools');
-        wrap.append(open, menu);
-        tool.appendChild(wrap);
-        list.appendChild(tool);
-      });
-      $('tally-tools').textContent = String(LIST.tools.length);
-    }
-
     // the Games cards are made the first time Games opens, or once the page is
-    // idle, so opening on Home doesn't wait for every card
+    // idle, so opening Games doesn't wait for every card
     let lessonsBuilt = false;
     function ensureLessons() {
       if (lessonsBuilt) return;
@@ -1768,105 +1642,17 @@
     $('tally-games').textContent = String(LIST.lessons.length);
     if (window.requestIdleCallback) requestIdleCallback(ensureLessons, { timeout: 3000 });
     else setTimeout(ensureLessons, 1500);
-    buildTools();
 
     document.addEventListener('click', (e) => { if (!e.target.closest('.card-wrap')) closeAllMenus(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllMenus(); });
 
-    // ---- home ----
-    const APP_ICONS = {
-      Games: '<svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>',
-      'Chalk Chat': '<svg viewBox="0 0 16 16"><path d="M2 3.5h12v8H6.5L3 14.2V11.5H2z"/></svg>',
-      Requests: '<svg viewBox="0 0 16 16"><path d="M8 13.5V3M3.5 7.5 8 3l4.5 4.5"/></svg>',
-      Tools: '<svg viewBox="0 0 16 16"><path d="M10.5 1.8a3.6 3.6 0 0 0-4.3 4.6L1.8 10.8a1.5 1.5 0 0 0 2.1 2.1l4.4-4.4a3.6 3.6 0 0 0 4.6-4.3L11 5.9 9.4 5.6 9.1 4z"/></svg>',
-      'Chalk Music': '<svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>',
-      'Chalk Browser': '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.8 1.7 2.6 3.7 2.6 6S9.8 12.3 8 14M8 2C6.2 3.7 5.4 5.7 5.4 8s.8 4.3 2.6 6"/></svg>',
-    };
-
-    // Requests shows "Coming soon" instead of loading requests.html; set false to bring it back
-    const REQUESTS_SOON = false;
-
-    function buildQuick() {
-      const apps = [
-        { tab: 'games', name: 'Games', panel: 'games' },
-        { tab: 'music', name: 'Chalk Music', panel: 'music' },
-        { tab: 'browser', name: 'Chalk Browser', run: openBrowser },
-        { tab: 'tools', name: 'Tools', panel: 'tools' },
-        { tab: 'requests', name: 'Requests', panel: 'requests' },
-      ].filter((app) => tabShown(app.tab));
-
-      const wrap = $('quick');
-      wrap.innerHTML = '';
-      apps.forEach((app) => {
-        const tile = document.createElement('button');
-        tile.className = 'tile';
-        tile.type = 'button';
-        tile.innerHTML = APP_ICONS[app.name] + '<span></span>';
-        tile.querySelector('span').textContent = app.name;
-        tile.addEventListener('click', () => (app.run ? app.run() : showPanel(app.panel)));
-        wrap.appendChild(tile);
-      });
-    }
-
-    function buildRecents() {
-      const wrap = $('recents');
-      wrap.innerHTML = '';
-      if (!recents.length) {
-        wrap.innerHTML = '<p class="empty-note">Nothing opened yet.</p>';
-        return;
-      }
-      recents.forEach((entry) => {
-        const row = document.createElement('button');
-        row.className = 'rec';
-        row.type = 'button';
-        row.innerHTML = '<span></span><span class="rec-app"></span>';
-        putName(row.querySelector('span'), entry);
-        row.querySelector('.rec-app').textContent = entry.app;
-        row.addEventListener('click', () => launch(entry, entry.app));
-        wrap.appendChild(row);
-      });
-    }
-
-    // when this version went up; shown on Home as "Last update"
-    const UPDATED = '2026-10-31';
-
-    function daysAgo(iso) {
-      const then = new Date(iso + 'T00:00:00');
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const d = Math.round((today - then) / 86400000);
-      return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d < 14 ? d + ' days ago' : '';
-    }
-
-    // dates in plain English: the browser's first toLocaleDateString call is
-    // slow on school laptops, and the page is in English anyway
-    const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    function buildHome() {
-      const ago = daysAgo(UPDATED);
-      const up = new Date(UPDATED + 'T00:00:00');
-      $('updated-when').textContent = 'updated ' + MONTH_NAMES[up.getMonth()].slice(0, 3) + ' ' + up.getDate() + (ago ? ' · ' + ago : '') + ' · what’s new';
-      $('updated-ver').textContent = VERSION_LABEL;
-
-    }
-
-    $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
-
-    // people online: the module script at the bottom fills this in while Home is open
-    window.addEventListener('chalk-online', (e) => {
-      const n = e.detail;
-      $('online-count').textContent = n === null ? '—' : String(n);
-      $('online-note').textContent = 'online now';
-      $('stat-online').classList.toggle('good', !!n);
-    });
-
-    // ---- search across every app ----
+    // ---- search across games ----
     const search = $('search');
     const results = $('results');
 
     function searchRows() {
       const rows = [];
       LIST.lessons.forEach((g) => rows.push({ app: 'Games', item: g }));
-      LIST.tools.forEach((t) => rows.push({ app: 'Tools', item: t }));
       return rows;
     }
 
@@ -1885,7 +1671,7 @@
         results.appendChild(none);
       }
 
-      ['Games', 'Tools'].forEach((app) => {
+      ['Games'].forEach((app) => {
         const group = hits.filter((h) => h.app === app);
         if (!group.length) return;
         const label = document.createElement('p');
@@ -1950,18 +1736,6 @@
     }, 15000);
 
     // ---- switching apps ----
-    let requestsFrame = null;
-    let musicFrame = null;
-    let browserFrame = null;
-
-    // the Requests page follows this page's theme
-    function lookParams() {
-      return 'theme=' + encodeURIComponent(settings.theme) + '&basic=' + encodeURIComponent(settings.basic) + '&shell=' + encodeURIComponent(settings.shell);
-    }
-    function sendLook() {
-      if (!requestsFrame) return;
-      try { requestsFrame.contentWindow.postMessage({ type: 'look', theme: settings.theme, basic: settings.basic, shell: settings.shell }, location.origin); } catch (e) {}
-    }
 
     function showPanel(name) {
       closeAllMenus();
@@ -1969,154 +1743,25 @@
       document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', (b.dataset.panel || b.dataset.app) === name));
       document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
       $('gear').classList.toggle('active', name === 'settings');
-      if (name !== 'requests') $('nav-requests').hidden = !tabShown('requests');   // put away after a vote
       placeSearch();
-      document.body.classList.toggle('on-home', name === 'home');
-      document.body.classList.toggle('app-open', ['music', 'chat', 'browser'].includes(name));
-      document.body.classList.toggle('full-panel', ['music', 'chat', 'browser'].includes(name));
-
-      if (name === 'home') buildHome();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
-      window.dispatchEvent(new CustomEvent('chalk-home', { detail: name === 'home' }));
-
-      // Chalk Browser asked "Remember it when you switch tabs?"; "0" closes it to save memory
-      let keepBrowser = true;
-      try { keepBrowser = localStorage.getItem('chalk-browser.keep') !== '0'; } catch (e) {}
-      if (name !== 'browser' && browserFrame && !keepBrowser) { browserFrame.remove(); browserFrame = null; }
-
-      // Chalk Music lives in this page too, and keeps playing on other tabs
-      if (name === 'music' && !musicFrame) {
-        musicFrame = document.createElement('iframe');
-        musicFrame.className = 'frame blend';
-        musicFrame.title = 'Chalk Music';
-        musicFrame.src = 'listening.html';
-        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
-        $('panel-music').appendChild(musicFrame);
-      }
-
-      // Chalk Chat and Chalk Browser too, unless Settings says "New tab"
-      if (name === 'browser' && !browserFrame) {
-        browserFrame = document.createElement('iframe');
-        browserFrame.className = 'frame blend';
-        browserFrame.title = 'Chalk Browser';
-        browserFrame.src = BROWSER_PATH;
-        browserFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write');
-        browserFrame.setAttribute('allowfullscreen', '');
-        $('panel-browser').appendChild(browserFrame);
-      }
-
-      if (name === 'requests' && REQUESTS_SOON) {
-        $('panel-requests').classList.remove('flush');
-        $('requests-soon').hidden = false;
-      } else if (name === 'requests' && !requestsFrame) {
-        requestsFrame = document.createElement('iframe');
-        requestsFrame.className = 'frame blend';
-        requestsFrame.title = 'Requests';
-        requestsFrame.src = 'requests.html?' + lookParams() + (signedIn ? '' : '&signup=1');
-        $('panel-requests').appendChild(requestsFrame);
-      }
-
     }
 
     document.querySelectorAll('.nav-btn[data-panel]').forEach((b) => b.addEventListener('click', () => showPanel(b.dataset.panel)));
 
 
-    // Chalk Browser: tabs and a homepage, in Notebook or in its own tab like Chat
-    const BROWSER_PATH = 'chalk-browser.html';
-    function openBrowser() {
-      if (settings.appsHere) showPanel('browser');
-      else openTab(BROWSER_PATH, settings.openMode, { title: 'Chalk Browser' });
-    }
-    $('open-browser').addEventListener('click', openBrowser);
-
     $('gear').addEventListener('click', () => showPanel('settings'));
     $('viewer-close').addEventListener('click', closeHere);
 
-    const signedIn = true; function paintAccount() {}
-
-    // ---- sidebar tabs that can be turned off ----
-    const TABS = [
-      { id: 'home',     label: 'Home',          btn: 'nav-home' },
-      { id: 'games',    label: 'Games',         btn: 'nav-games' },
-      { id: 'music',    label: 'Chalk Music',   btn: 'nav-music' },
-      { id: 'browser',  label: 'Chalk Browser', btn: 'open-browser' },
-      { id: 'tools',    label: 'Tools',         btn: 'nav-tools' },
-      { id: 'requests', label: 'Requests',      btn: 'nav-requests' },
-    ];
-    // Requests waits for an account, unless it's switched on in Settings (then it reads "Make account!")
-    // after you vote, Requests steps aside until it has an option you haven't seen
-    const REQ_VOTED_STORE = 'vault-requests-voted';
-    let requestsVoted = null;   // the open options when you last voted
-    try { requestsVoted = JSON.parse(localStorage.getItem(REQ_VOTED_STORE) || 'null'); } catch (e) {}
-    function setRequestsVoted(open) {
-      requestsVoted = Array.isArray(open) ? open : null;
-      try {
-        if (requestsVoted) localStorage.setItem(REQ_VOTED_STORE, JSON.stringify(requestsVoted));
-        else localStorage.removeItem(REQ_VOTED_STORE);
-      } catch (e) {}
-    }
-    window.addEventListener('message', (e) => {
-      if (e.origin !== location.origin || !e.data || e.data.type !== 'requests-voted') return;
-      setRequestsVoted(e.data.open);
-    });
-    // the check at the bottom found an option that wasn't there when you voted
-    window.addEventListener('chalk-requests-new', () => {
-      setRequestsVoted(null);
-      $('nav-requests').hidden = !tabShown('requests');
-      if ($('panel-home').classList.contains('active')) buildHome();
-    });
-
-    function tabShown(id, inSettings) {
-      if (id === 'requests' && !signedIn) return !!settings.requestsSignedOut;
-      if (id === 'requests' && !inSettings && requestsVoted) return false;
-      return !settings.hiddenTabs.includes(id);
-    }
-    function firstPanel() {
-      return tabShown('home') ? 'home' : tabShown('games') ? 'games' : tabShown('tools') ? 'tools' : 'settings';
-    }
-    function buildTabSwitches() {
-      const box = $('tab-switches');
-      box.innerHTML = '';
-      TABS.forEach((t) => {
-        const row = document.createElement('div');
-        row.className = 'setting';
-        const text = document.createElement('div');
-        text.innerHTML = '<h3></h3>';
-        const name = t.id === 'requests' && !signedIn ? 'Requests / Make account!' : t.label;
-        text.querySelector('h3').textContent = name;
-        const sw = document.createElement('button');
-        sw.className = 'switch';
-        sw.type = 'button';
-        sw.setAttribute('role', 'switch');
-        sw.setAttribute('aria-label', 'Show ' + name);
-        const on = tabShown(t.id, true);
-        sw.setAttribute('aria-checked', String(on));
-        sw.addEventListener('click', () => {
-          if (t.id === 'requests' && !signedIn) settings.requestsSignedOut = !on;
-          else if (on) settings.hiddenTabs = [...settings.hiddenTabs, t.id];
-          else settings.hiddenTabs = settings.hiddenTabs.filter((x) => x !== t.id);
-          saveSettings();
-          applySettings();
-        });
-        row.append(text, sw);
-        box.appendChild(row);
-      });
-    }
 
     // ---- OS look ----
-    // the one search box lives in the middle of Home, and in the sidebar on every other tab
+    // the search box lives in the sidebar
     const searchWrap = $('search').closest('.search-wrap');
-    const searchSpot = { parent: searchWrap.parentNode, next: searchWrap.nextElementSibling };
     function placeSearch() {
-      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
+      const to = $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
-      const nav = document.querySelector('.rail .nav');
-      const before = nav.getBoundingClientRect().top;
-      if (to === searchSpot.parent) to.insertBefore(searchWrap, searchSpot.next);
-      else to.appendChild(searchWrap);
-      const shift = before - nav.getBoundingClientRect().top;
-      if (shift && nav.animate) nav.animate([{ transform: 'translateY(' + shift + 'px)' }, { transform: 'none' }], { duration: 250, easing: 'ease' });
-      searchWrap.classList.toggle('arrive', to.id === 'rail-search-slot');
+      to.appendChild(searchWrap);
+      searchWrap.classList.add('arrive');
     }
 
     // your background picture stays in this browser (IndexedDB); it's never uploaded
@@ -2200,29 +1845,19 @@
 
     // ---- applying settings to the page ----
     function applySettings() {
-      TABS.forEach((t) => { $(t.btn).hidden = !tabShown(t.id); });
-      buildTabSwitches();
-      paintAccount();
-      // a tab that was just turned off can't stay open
-      const open = document.querySelector('.nav-btn.active[data-panel], .nav-btn.active[data-app]');
-      if (open && open.hidden) showPanel(firstPanel());
       document.body.dataset.theme = THEMES.includes(settings.theme) ? settings.theme : 'basic';
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
-      sendLook();
 
       $('ask-cloak').setAttribute('aria-checked', String(!settings.skipMenu));
       [['always-blank', 'alwaysBlank'], ['auto-vault', 'autoVault'],
        ['exp-no-tabs', 'noNewTabs']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
-      document.querySelectorAll('#apps-open-choice button').forEach((b) => b.classList.toggle('on', (b.dataset.appsOpen === 'here') === !!settings.appsHere));
-      document.body.classList.toggle('apps-here', !!settings.appsHere);
       document.body.classList.toggle('os', settings.shell === 'os');
       document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
       placeSearch();
       if (bgShownFor !== settings.shell + settings.wallpaper) { bgShownFor = settings.shell + settings.wallpaper; showBackground(); }
       $('wall-pick').replaceChildren(makeWallpapers());
-      $('open-browser').title = settings.appsHere ? '' : 'Opens in a new tab';
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
     }
@@ -2338,22 +1973,6 @@
         body: () => makeWallpapers(renderSetup),
       },
       {
-        step: 'Home',
-        title: 'Start on a Home screen?',
-        text: 'Home shows the name, who\u2019s online and the last update.',
-        body: () => makeSwitch(tabShown('home'), 'Home app', () => {
-          settings.hiddenTabs = tabShown('home') ? [...settings.hiddenTabs, 'home'] : settings.hiddenTabs.filter((x) => x !== 'home');
-          saveSettings();
-          applySettings();
-        }),
-      },
-      {
-        step: 'Browser',
-        title: 'Chalk Browser',
-        text: 'Chalk Browser has tabs and search.',
-        body: () => null,
-      },
-      {
         step: 'All set',
         title: 'You\u2019re ready',
         text: 'Click the version at the bottom any time to see what\u2019s new in 1.1.',
@@ -2394,7 +2013,7 @@
     $('setup-next').addEventListener('click', () => {
       if (setupStep < SETUP_STEPS.length - 1) { setupStep++; renderSetup(); return; }
       closeSetup();
-      showPanel(firstPanel());
+      showPanel('games');
       // the Finish click counts as the click browsers need to open a tab
       if (settings.alwaysBlank && !inCloakFrame()) openCloaked();
     });
@@ -2449,7 +2068,7 @@
 
     saveSettings();
     applySettings();
-    showPanel(firstPanel());
+    showPanel('games');
 
     if (!inCloakFrame()) {
       // everyone walks through the new setup once per big update
@@ -2462,69 +2081,6 @@
     }
 
     setTimeout(() => { const c = document.querySelector('.curtain'); if (c) c.remove(); }, 1200);
-  </script>
-  <div class="nb-toasts" id="nb-toasts" aria-live="polite"></div>
-
-  <script type="module">
-    // @mentions from Chalk Chat: a count on the Chat button, and a pop-up when
-    // someone @s you. Only loads for people signed in to the chat in this browser.
-    const SUPABASE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_0NGQlBRZ08bdTFpT4aRw6Q_T_DBsAby';
-    const SESSION_KEY = 'sb-thrwgeuljtqjfcohzfdt-auth-token';
-
-    let signedIn = false;
-    try { signedIn = !!localStorage.getItem(SESSION_KEY); } catch (e) {}
-    signedIn = true;   // no accounts: everyone can vote
-    let device = ''; try { device = localStorage.getItem('chalk-device') || ''; if (!device) localStorage.setItem('chalk-device', device = crypto.randomUUID()); } catch (e) { device = crypto.randomUUID(); }
-
-    let dbReady = null;
-    function client() {
-      // the Supabase library lives in this site (vendor/), checked by its fingerprint
-      if (!dbReady) dbReady = new Promise((ok, fail) => {
-        const s = document.createElement('script');
-        s.src = 'vendor/supabase-js-2.117.1.js';
-        s.integrity = 'sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz';
-        s.onload = () => ok(window.supabase);
-        s.onerror = fail;
-        document.head.appendChild(s);
-      }).then(({ createClient }) => createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
-      return dbReady;
-    }
-
-    const here = () => client().then((db) => db.rpc('i_am_here', { p_device: device })).catch(() => {}); const checkedIn = here(); setInterval(() => { if (!document.hidden) here(); }, 30000);
-    // People online on Home: the database's count of people with Chat open
-    // (each Chat checks in every 30 seconds), asked for while Home is open.
-    let onlineTimer = null;
-    const report = (n) => window.dispatchEvent(new CustomEvent('chalk-online', { detail: n }));
-    async function countOnline() {
-      try {
-        await checkedIn;
-        const { data, error } = await (await client()).rpc('online_count');
-        report(error ? null : data);
-      } catch (e) { report(null); }
-    }
-    async function watchOnline(on) {
-      clearInterval(onlineTimer);
-      onlineTimer = null;
-      if (!on) return;
-      countOnline();
-      onlineTimer = setInterval(() => { if (!document.hidden) countOnline(); }, 30000);
-    }
-    // skip the asking while this tab is in the background, and catch up on return
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && onlineTimer) countOnline(); });
-    window.addEventListener('chalk-home', (e) => { watchOnline(e.detail).catch(() => report(null)); });
-    // the page may have opened on Home before this script ran
-    if (document.getElementById('panel-home').classList.contains('active')) watchOnline(true).catch(() => report(null));
-
-    // Requests is put away after you vote: bring it back if there's an option you haven't seen
-    (async () => {
-      let voted = null;
-      try { voted = JSON.parse(localStorage.getItem('vault-requests-voted') || 'null'); } catch (e) {}
-      if (!signedIn || !Array.isArray(voted)) return;
-      const { data, error } = await (await client()).from('requests').select('id').in('status', ['open', 'planned']).eq('hidden', false);
-      if (!error && (data || []).some((r) => !voted.includes(r.id))) window.dispatchEvent(new CustomEvent('chalk-requests-new'));
-    })().catch(() => {});
-
   </script>
 </body>
 </html>
