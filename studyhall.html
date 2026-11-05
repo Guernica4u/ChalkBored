@@ -459,6 +459,8 @@
   .hello-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.3rem 1.2rem; margin: 0; font-size: 0.85rem; color: var(--pencil); }
   .meta-link { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
   .meta-link:hover { color: var(--ink); }
+  .meta-link.static { cursor: default; }
+  .meta-link.static:hover { color: inherit; }
   .meta-link b { color: var(--ink); }
   .stat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); }
   .meta-link.good .stat-dot { background: #4cc38a; }
@@ -674,6 +676,8 @@
   /* leaving Home, the search box drops into the sidebar */
   .search-wrap.arrive { animation: search-in 0.25s ease; }
   @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }
+  .nav.tabs-drop { animation: tabs-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-drop { from { opacity: 0.35; transform: translateY(-42px); } }
 
   /* ---------------- small screens ---------------- */
   @media (max-width: 760px) {
@@ -763,7 +767,7 @@
           <span>Chalk TV</span>
         </button>
         <button class="nav-btn" type="button" data-panel="browser" id="nav-browser" style="--tab:#b18cd9">
-          <svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 5.8h13"/><path d="M3.8 4.2h.01M6 4.2h.01"/></svg>
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2c1.8 1.7 2.7 3.8 2.7 6S9.8 12.3 8 14M8 2C6.2 3.7 5.3 5.8 5.3 8s.9 4.3 2.7 6"/></svg>
           <span>Chalk Browser</span>
         </button>
       </div>
@@ -791,7 +795,10 @@
           <div class="home-hero">
             <h2 class="home-title" id="home-title">ChalkBored</h2>
             <div id="hero-search-slot"></div>
-            <p class="hello-meta"><span>Games, Chalk Music, Chalk TV, and Chalk Browser, all in one place.</span></p>
+            <p class="hello-meta">
+              <span class="meta-link static" id="stat-online" title="People online now"><span class="stat-dot"></span><b id="online-count" aria-live="polite">&hellip;</b> <span id="online-note">online now</span></span>
+              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.1 Early Access</b> <span id="updated-when">updated Nov 5 · what’s new</span></button>
+            </p>
           </div>
         </section>
 
@@ -1582,6 +1589,7 @@
       document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
       $('gear').classList.toggle('active', name === 'settings');
       document.body.classList.toggle('on-home', name === 'home');
+      window.dispatchEvent(new CustomEvent('chalk-home', { detail: name === 'home' }));
       document.body.classList.toggle('app-open', name === 'music' || name === 'tv' || name === 'browser');
       document.body.classList.toggle('full-panel', name === 'music' || name === 'tv' || name === 'browser');
       placeSearch();
@@ -1628,11 +1636,20 @@
     function placeSearch() {
       const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
+      const fromHero = searchWrap.parentNode === $('hero-search-slot');
+      const nav = document.querySelector('.nav');
       searchWrap.classList.remove('arrive');
       to.appendChild(searchWrap);
       if (to.id === 'rail-search-slot') {
         void searchWrap.offsetWidth;
         searchWrap.classList.add('arrive');
+        if (fromHero && nav) {
+          nav.classList.remove('tabs-drop');
+          void nav.offsetWidth;
+          nav.classList.add('tabs-drop');
+        }
+      } else if (nav) {
+        nav.classList.remove('tabs-drop');
       }
     }
 
@@ -1807,6 +1824,9 @@
 
     // ---- patch notes: once per version, then behind the version number ----
     const notesEl = $('notes');
+    $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
+    $('updated-ver').textContent = VERSION_LABEL;
+    $('updated-when').textContent = 'updated Nov 5 · what\u2019s new';
     $('ver').addEventListener('click', () => { notesEl.hidden = false; });
     $('notes-close').addEventListener('click', () => { notesEl.hidden = true; });
 
@@ -1841,6 +1861,60 @@
       if (VERSION === '1.1') showMilestone();
       else notesEl.hidden = false;
     }
+
+    // ---- people online ----
+    const ONLINE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
+    const ONLINE_KEY = 'sb_publishable_0NGQlBRZ08bdTFpT4aRw6Q_T_DBsAby';
+    let onlineClient = null;
+    let onlineLoading = null;
+    let onlineTimer = null;
+
+    function loadOnline() {
+      if (onlineClient) return Promise.resolve(onlineClient);
+      if (onlineLoading) return onlineLoading;
+      onlineLoading = (window.supabase ? Promise.resolve(window.supabase) : new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'vendor/supabase-js-2.117.1.js';
+        s.integrity = 'sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz';
+        s.onload = () => window.supabase ? resolve(window.supabase) : reject(new Error('Supabase did not load'));
+        s.onerror = () => reject(new Error('Supabase did not load'));
+        document.head.appendChild(s);
+      })).then((lib) => {
+        if (!lib || !lib.createClient) throw new Error('Supabase did not load');
+        onlineClient = lib.createClient(ONLINE_URL, ONLINE_KEY);
+        return onlineClient;
+      }).catch((err) => { onlineLoading = null; throw err; });
+      return onlineLoading;
+    }
+
+    function setOnline(n) {
+      const count = n === null || n === undefined || n === '' || !Number.isFinite(Number(n)) ? null : Number(n);
+      $('online-count').textContent = count === null ? '—' : String(count);
+      $('online-note').textContent = count === null ? 'count unavailable' : 'online now';
+      $('stat-online').classList.toggle('good', count !== null && count > 0);
+    }
+
+    async function countOnline() {
+      try {
+        const db = await loadOnline();
+        const { data, error } = await db.rpc('online_count');
+        setOnline(error ? null : data);
+      } catch (e) {
+        setOnline(null);
+      }
+    }
+
+    function watchOnline(on) {
+      clearInterval(onlineTimer);
+      onlineTimer = null;
+      if (!on) return;
+      countOnline();
+      onlineTimer = setInterval(() => { if (!document.hidden) countOnline(); }, 30000);
+    }
+
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && onlineTimer) countOnline(); });
+    window.addEventListener('chalk-home', (e) => { watchOnline(e.detail); });
+    if ($('panel-home').classList.contains('active')) watchOnline(true);
 
     // ---- arrival ----
     let notesPending = false;
