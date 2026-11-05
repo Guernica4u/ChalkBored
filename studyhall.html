@@ -356,6 +356,7 @@
   .card-name { font-weight: 700; min-width: 0; }
   .card-arrow { color: var(--pencil); transition: transform 0.2s ease; }
   .card:hover .card-arrow { transform: translateX(3px); color: var(--accent); }
+  .card-wrap.is-open .card-arrow { transform: rotate(90deg); color: var(--accent); }
 
   .card.soon { cursor: default; box-shadow: none; border-style: dashed; background: transparent; }
   .card.soon .thumb { background: transparent; border-bottom-style: dashed; }
@@ -450,7 +451,7 @@
   .home-hero .results { left: 0; right: 0; width: auto; text-align: left; }
   /* everything on Home rises into place and fades in, a little slower than before */
   #panel-home.active .home-title { animation: home-rise 1.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  #panel-home.active .home-hero .search-wrap { animation: home-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
+  #panel-home.active .home-hero .search-wrap { animation: search-home 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
   #panel-home.active .hello-meta > * { animation: home-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
   #panel-home.active .hello-meta > *:first-child { animation-delay: 0.18s; }
   #panel-home.active .hello-meta > *:last-child { animation-delay: 0.32s; }
@@ -678,6 +679,10 @@
   @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }
   .nav.tabs-drop { animation: tabs-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
   @keyframes tabs-drop { from { opacity: 0.35; transform: translateY(-42px); } }
+  /* returning Home: the tabs and search rise together */
+  .nav.tabs-rise { animation: tabs-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-rise { from { opacity: 0.35; transform: translateY(42px); } }
+  @keyframes search-home { from { opacity: 0; transform: translateY(42px); } }
 
   /* ---------------- small screens ---------------- */
   @media (max-width: 760px) {
@@ -750,11 +755,11 @@
       <div class="rail-search" id="rail-search-slot"></div>
 
       <div class="nav">
-        <button class="nav-btn" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
+        <button class="nav-btn active" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
           <svg viewBox="0 0 16 16"><path d="M2.5 7.2 8 2.5l5.5 4.7V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.8V9.2h3.2v4.6"/></svg>
           <span>Home</span>
         </button>
-        <button class="nav-btn active" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
+        <button class="nav-btn" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
           <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
           <span>Games</span><span class="tally" id="tally-games"></span>
         </button>
@@ -791,7 +796,7 @@
 
       <main class="content">
         <!-- home: a place to start -->
-        <section class="panel" id="panel-home">
+        <section class="panel active" id="panel-home">
           <div class="home-hero">
             <h2 class="home-title" id="home-title">ChalkBored</h2>
             <div id="hero-search-slot"></div>
@@ -803,7 +808,7 @@
         </section>
 
         <!-- brain exercises: short practice activities for study breaks -->
-        <section class="panel active" id="panel-games">
+        <section class="panel" id="panel-games">
           <div class="cards" id="games"></div>
         </section>
 
@@ -826,6 +831,19 @@
                 <div><h3>Wallpaper</h3><p>Your own picture stays on this device.</p></div>
                 <div id="wall-pick"></div>
                 <input type="file" id="bg-file" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Tab cloak</h2>
+              <p>What this tab and opened games pretend to be.</p>
+              <div class="setting">
+                <div><h3>Subject</h3><p>Changes the tab name and icon.</p></div>
+                <div class="choice" id="disguise-choice"></div>
+              </div>
+              <div class="setting">
+                <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open a game card.</p></div>
+                <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
               </div>
             </div>
 
@@ -1108,6 +1126,10 @@
       autoVault: true,         // the homepage sends you straight here (on from the second visit)
       noNewTabs: false,        // experimental: open things on top of this page instead of a new tab
       gameArt: true,           // cards with their own art show it
+      disguise: 'classroom',   // what this tab pretends to be
+      askCloak: true,          // ask which cloak to use before opening a game
+      cloakMode: 'classroom',  // the cloak picked last
+      cloakDefaults: false,    // one-time migration for the restored cloak settings
     };
     let settings = Object.assign({}, DEFAULT_SETTINGS);
     let savedSettings = null;
@@ -1147,6 +1169,15 @@
     delete settings.rememberTide;
     // 1.1: new tabs from games are always blocked, and the homepage opens the vault for everyone once
     settings.blockPopups = true;
+    // cloaking is back: Google Classroom by default, and ask before opening a game
+    if (!settings.cloakDefaults) {
+      settings.disguise = 'classroom';
+      settings.askCloak = true;
+      settings.cloakMode = 'classroom';
+      settings.cloakDefaults = true;
+    }
+    delete settings.skipMenu;
+    delete settings.openMode;
     settings.shell = 'os';
     // saves from before wallpapers keep what they had: their own picture, or plain dark without one
     if (savedSettings && !('wallpaper' in savedSettings)) settings.wallpaper = 'own';
@@ -1203,6 +1234,72 @@
     // Sandbox rules for embedded games when new tabs are blocked: everything a
     // lesson needs, but no pop-ups and no taking over the tab.
     const NO_POPUPS_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-downloads allow-orientation-lock allow-presentation';
+
+    // ---- tab cloaks ----
+    const DOCS_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">' +
+        '<path d="M12 4h17l11 11v27a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#4285f4"/>' +
+        '<path d="M29 4v9a2 2 0 0 0 2 2h9z" fill="#a1c2fa"/>' +
+        '<path d="M17 24h14M17 29h14M17 34h9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>' +
+      '</svg>'
+    );
+    const DRIVE_ICON = 'https://www.gstatic.com/images/branding/productlogos/drive_2026/v2/web-32dp/logo_drive_2026_color_1x_web_32dp.png';
+    const CLASSROOM_ICON = 'https://ssl.gstatic.com/classroom/favicon.png';
+
+    // what this tab says it is, and what a cloaked game tab says
+    const DISGUISES = {
+      classroom: { label: 'Google Classroom', title: 'Home - Classroom', icon: CLASSROOM_ICON },
+      docs:      { label: 'Google Docs', title: 'Untitled document - Google Docs', icon: DOCS_ICON },
+      drive:     { label: 'Google Drive', title: 'Home - Google Drive', icon: DRIVE_ICON },
+      google:    { label: 'Google', title: 'Google', icon: 'https://www.google.com/favicon.ico' },
+      off:       null,
+    };
+    const OPEN_MODES = [
+      ['classroom', 'Google Classroom'],
+      ['docs', 'Google Docs'],
+      ['drive', 'Google Drive'],
+      ['google', 'Google'],
+      ['normal', 'Normal tab'],
+    ];
+    const ORIGINAL_TITLE = document.title;
+
+    function setTabLook(doc, title, icon) {
+      doc.title = title;
+      doc.querySelectorAll('link[rel~="icon"]').forEach((l) => l.remove());
+      if (!icon) return;
+      const link = doc.createElement('link');
+      link.rel = 'icon';
+      link.href = icon;
+      doc.head.appendChild(link);
+    }
+
+    function applyDisguise() {
+      const d = DISGUISES[settings.disguise];
+      setTabLook(document, d ? d.title : ORIGINAL_TITLE, d ? d.icon : new URL('favicon.svg', location.href).href);
+    }
+
+    function openCloakedTab(fullUrl, mode, title) {
+      const win = window.open('about:blank', '_blank');
+      if (!win) {
+        alert('Your browser blocked the new tab. Allow pop-ups for this site, then try again.');
+        return false;
+      }
+      const d = DISGUISES[mode] || DISGUISES.classroom;
+      const doc = win.document;
+      doc.body.style.margin = '0';
+      doc.body.style.background = '#fff';
+      setTabLook(doc, d.title, d.icon);
+      const frame = doc.createElement('iframe');
+      frame.src = fullUrl;
+      frame.title = title || 'Game';
+      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;background:#fff;';
+      frame.setAttribute('allow', 'fullscreen; autoplay; gamepad; clipboard-read; clipboard-write');
+      frame.setAttribute('allowfullscreen', '');
+      if (settings.blockPopups) frame.setAttribute('sandbox', NO_POPUPS_SANDBOX);
+      doc.body.appendChild(frame);
+      armWindow(win, settings.blockPopups);
+      return true;
+    }
 
     // Experimental "Nothing opens in a new tab": the page opens on top of this one,
     // and anything in it that asks for a new tab replaces it instead.
@@ -1306,11 +1403,17 @@
         return;
       }
 
+      const cloak = opts && opts.cloak;
+      if (cloak && cloak !== 'normal') {
+        openCloakedTab(fullUrl, cloak, opts.title);
+        return;
+      }
+
       armWindow(window.open(fullUrl, '_blank'), blockTabs);
     }
 
-    function launch(item) {
-      openTab(item.path, { title: coded(item) ? '' : item.name });
+    function launch(item, mode) {
+      openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
 
     // ---- building the lists ----
@@ -1319,6 +1422,8 @@
         if (w === except) return;
         w.classList.remove('is-open');
         w.querySelector('.open-menu').classList.remove('open');
+        const card = w.querySelector('.card');
+        if (card) card.setAttribute('aria-expanded', 'false');
       });
     }
 
@@ -1387,8 +1492,39 @@
         .map((w) => w[0].toUpperCase()).join('');
     }
 
-    function wire(trigger, item) {
-      trigger.addEventListener('click', () => launch(item));
+    function buildMenu(item) {
+      const menu = document.createElement('div');
+      menu.className = 'open-menu';
+      const label = document.createElement('p');
+      label.textContent = 'Open as…';
+      menu.appendChild(label);
+      OPEN_MODES.forEach(([mode, text]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = text;
+        b.addEventListener('click', () => {
+          settings.cloakMode = mode;
+          saveSettings();
+          closeAllMenus();
+          launch(item, mode);
+        });
+        menu.appendChild(b);
+      });
+      return menu;
+    }
+
+    function wire(wrap, trigger, menu, item) {
+      trigger.setAttribute('aria-haspopup', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.addEventListener('click', () => {
+        if (!settings.askCloak) { closeAllMenus(); launch(item, settings.cloakMode); return; }
+        const opening = !wrap.classList.contains('is-open');
+        closeAllMenus(wrap);
+        wrap.classList.toggle('is-open', opening);
+        menu.classList.toggle('open', opening);
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) menu.querySelector('button').focus();
+      });
     }
 
     // ---- favorites (saved by path, so renaming a lesson keeps it starred) ----
@@ -1437,8 +1573,9 @@
           card.querySelector('.thumb').appendChild(img);
         }
 
-        wire(card, item);
-        wrap.append(card);
+        const menu = buildMenu(item);
+        wire(wrap, card, menu, item);
+        wrap.append(card, menu);
 
         if (canFav) {
           const on = isFav(item);
@@ -1637,6 +1774,7 @@
       const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
       const fromHero = searchWrap.parentNode === $('hero-search-slot');
+      const fromRail = searchWrap.parentNode === $('rail-search-slot');
       const nav = document.querySelector('.nav');
       searchWrap.classList.remove('arrive');
       to.appendChild(searchWrap);
@@ -1644,12 +1782,16 @@
         void searchWrap.offsetWidth;
         searchWrap.classList.add('arrive');
         if (fromHero && nav) {
-          nav.classList.remove('tabs-drop');
+          nav.classList.remove('tabs-drop', 'tabs-rise');
           void nav.offsetWidth;
           nav.classList.add('tabs-drop');
         }
       } else if (nav) {
-        nav.classList.remove('tabs-drop');
+        nav.classList.remove('tabs-drop', 'tabs-rise');
+        if (fromRail) {
+          void nav.offsetWidth;
+          nav.classList.add('tabs-rise');
+        }
       }
     }
 
@@ -1732,14 +1874,36 @@
       if (afterOwn) afterOwn();
     });
 
+    function makeDisguiseButtons() {
+      const box = $('disguise-choice');
+      box.innerHTML = '';
+      Object.entries(DISGUISES).forEach(([key, d]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.disguise = key;
+        b.textContent = d ? d.label : 'None';
+        b.classList.toggle('on', settings.disguise === key);
+        b.addEventListener('click', () => {
+          settings.disguise = key;
+          settings.cloakMode = key === 'off' ? 'normal' : key;
+          saveSettings();
+          applySettings();
+        });
+        box.appendChild(b);
+      });
+    }
+    makeDisguiseButtons();
+
     // ---- applying settings to the page ----
     function applySettings() {
       document.body.dataset.theme = THEMES.includes(settings.theme) ? settings.theme : 'basic';
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs']]
+      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
+      document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      applyDisguise();
       document.body.classList.toggle('os', settings.shell === 'os');
       document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
       placeSearch();
@@ -1753,6 +1917,7 @@
       applySettings();
     }
 
+    $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
     $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
 
@@ -1818,7 +1983,7 @@
     $('setup-next').addEventListener('click', () => {
       if (setupStep < SETUP_STEPS.length - 1) { setupStep++; renderSetup(); return; }
       closeSetup();
-      showPanel('games');
+      showPanel('home');
     });
     $('rerun-setup').addEventListener('click', openSetup);
 
@@ -1914,7 +2079,6 @@
 
     document.addEventListener('visibilitychange', () => { if (!document.hidden && onlineTimer) countOnline(); });
     window.addEventListener('chalk-home', (e) => { watchOnline(e.detail); });
-    if ($('panel-home').classList.contains('active')) watchOnline(true);
 
     // ---- arrival ----
     let notesPending = false;
@@ -1924,7 +2088,7 @@
 
     saveSettings();
     applySettings();
-    showPanel('games');
+    showPanel('home');
 
     // everyone walks through the new setup once per big update
     if (settings.setupVersion !== SETUP_VERSION) {
