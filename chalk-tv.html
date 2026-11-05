@@ -253,7 +253,7 @@
 <script>
 // ============================================================
 // PASTE YOUR SITES HERE
-// The three choices Chalk TV offers the first time it opens.
+// Sites in the Change site picker. Chalk TV boots straight to Movy.
 // Put a name and an address in each one. A choice with no
 // address shows as "not set up yet" and can't be picked.
 // ============================================================
@@ -262,6 +262,7 @@ const TV_SITES = [
   { name: "CNO", url: "https://beta.cno.to/" },
   { name: "CineJoy", url: "Cinejoy.pk/" }
 ];
+const BOOT_SITE = TV_SITES.find((s) => s && s.url === "movy.sx") || TV_SITES[0];
 
 // ============================================================
 // Do not edit below this line
@@ -285,6 +286,7 @@ const PUBLIC_RELAYS = [
   "wss://anura.pro/",
   "wss://motor-cycle-part.org/wisp/"
 ];
+const DEFAULT_RELAY = "wss://fern.best/wisp/";
 
 const $ = id => document.getElementById(id);
 const stage = $("stage");
@@ -376,9 +378,11 @@ function toast(text) {
 
 /* ---- picking a site ---- */
 let mode = "";                                    /* "key" or "public", once started */
-let relay = "";
-try { relay = localStorage.getItem(RELAY_STORE) || ""; } catch (e) {}
-if (!PUBLIC_RELAYS.includes(relay)) relay = "";
+let relay = DEFAULT_RELAY;
+try {
+  const savedRelay = localStorage.getItem(RELAY_STORE);
+  if (savedRelay && PUBLIC_RELAYS.includes(savedRelay)) relay = savedRelay;
+} catch (e) {}
 function setMode(m) {
   mode = m;
   try { localStorage.setItem(MODE_STORE, m); } catch (e) {}
@@ -404,6 +408,9 @@ const choose = show;
 function start() {
   $("servers").hidden = true;
   if (currentSite) return openTide(currentSite);
+  const boot = BOOT_SITE;
+  const bootUrl = siteUrl(boot && boot.url);
+  if (bootUrl) return choose({ name: (boot.name || hostOf(bootUrl)), url: bootUrl });
   openPicker(false);
 }
 function openPicker(canCancel) {
