@@ -324,7 +324,7 @@ const LIBRARY_MAX = 2000;
 const THEME_NAMES = { basic: 1, space: 1 };
 const BASIC_COLORS = { night: 1, mono: 1 };
 /* inside Notebook's Chalk Music tab the page lets Notebook's own sky show through */
-try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
+try { if (parent !== window && /studyhall|notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
 function applyLook() {
   let nb = {};
   try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
