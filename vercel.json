@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/notebook.html",
+      "destination": "/studyhall.html",
       "permanent": false
     }
   ],
