@@ -735,7 +735,7 @@
   <div class="curtain" aria-hidden="true"></div>
 
   <div class="shell">
-    <nav class="rail" aria-label="Games">
+    <nav class="rail" aria-label="Sections">
       <div class="rail-top">
         <button class="icon-btn os-only" id="rail-collapse" type="button" aria-label="Fold the sidebar" title="Fold the sidebar">
           <svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M6 2.5v11"/></svg>
@@ -745,9 +745,17 @@
       <div class="rail-search" id="rail-search-slot"></div>
 
       <div class="nav">
+        <button class="nav-btn" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
+          <svg viewBox="0 0 16 16"><path d="M2.5 7.2 8 2.5l5.5 4.7V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.8V9.2h3.2v4.6"/></svg>
+          <span>Home</span>
+        </button>
         <button class="nav-btn active" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
           <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
           <span>Games</span><span class="tally" id="tally-games"></span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
+          <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
+          <span>Chalk Music</span>
         </button>
       </div>
 
@@ -769,10 +777,21 @@
       </header>
 
       <main class="content">
+        <!-- home: a place to start -->
+        <section class="panel" id="panel-home">
+          <div class="home-hero">
+            <h2 class="home-title" id="home-title">ChalkBored</h2>
+            <div id="hero-search-slot"></div>
+            <p class="hello-meta"><span>Games and Chalk Music, all in one place.</span></p>
+          </div>
+        </section>
+
         <!-- brain exercises: short practice activities for study breaks -->
         <section class="panel active" id="panel-games">
           <div class="cards" id="games"></div>
         </section>
+
+        <section class="panel flush" id="panel-music"></section>
 
 
 
@@ -1401,7 +1420,7 @@
         }
 
         wire(card, item);
-        wrap.append(card, menu);
+        wrap.append(card);
 
         if (canFav) {
           const on = isFav(item);
@@ -1541,14 +1560,27 @@
 
     // ---- switching apps ----
 
+    let musicFrame = null;
+
     function showPanel(name) {
       closeAllMenus();
       closeResults();
       document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', (b.dataset.panel || b.dataset.app) === name));
       document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
       $('gear').classList.toggle('active', name === 'settings');
+      document.body.classList.toggle('on-home', name === 'home');
+      document.body.classList.toggle('app-open', name === 'music');
+      document.body.classList.toggle('full-panel', name === 'music');
       placeSearch();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
+      if (name === 'music' && !musicFrame) {
+        musicFrame = document.createElement('iframe');
+        musicFrame.className = 'frame blend';
+        musicFrame.title = 'Chalk Music';
+        musicFrame.src = 'listening.html';
+        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
+        $('panel-music').appendChild(musicFrame);
+      }
     }
 
     document.querySelectorAll('.nav-btn[data-panel]').forEach((b) => b.addEventListener('click', () => showPanel(b.dataset.panel)));
@@ -1562,7 +1594,7 @@
     // the search box lives in the sidebar
     const searchWrap = $('search').closest('.search-wrap');
     function placeSearch() {
-      const to = $('rail-search-slot');
+      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
       to.appendChild(searchWrap);
       searchWrap.classList.add('arrive');
