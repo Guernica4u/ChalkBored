@@ -628,7 +628,8 @@
   .frame.blend { border: 0; background: transparent; min-height: 80vh; }
   /* Music, Chat and Browser fill the page: no title, search or buttons above them */
   body.app-open .topbar { display: none; }
-  body.app-open .content { padding: 0; }
+  body.app-open .main { height: 100vh; }
+  body.app-open .content { height: 100vh; overflow: hidden; padding: 0; }
   body.app-open .frame.blend { min-height: 0; height: 100%; border-radius: 0; }
 
 
@@ -757,6 +758,10 @@
           <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
           <span>Chalk Music</span>
         </button>
+        <button class="nav-btn" type="button" data-panel="tv" id="nav-tv" style="--tab:#c9a45f">
+          <svg viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="9" rx="1.5"/><path d="M5.5 1.5 8 4l2.5-2.5"/></svg>
+          <span>Chalk TV</span>
+        </button>
       </div>
 
     </nav>
@@ -782,7 +787,7 @@
           <div class="home-hero">
             <h2 class="home-title" id="home-title">ChalkBored</h2>
             <div id="hero-search-slot"></div>
-            <p class="hello-meta"><span>Games and Chalk Music, all in one place.</span></p>
+            <p class="hello-meta"><span>Games, Chalk Music, and Chalk TV, all in one place.</span></p>
           </div>
         </section>
 
@@ -792,6 +797,7 @@
         </section>
 
         <section class="panel flush" id="panel-music"></section>
+        <section class="panel flush" id="panel-tv"></section>
 
 
 
@@ -1561,6 +1567,7 @@
     // ---- switching apps ----
 
     let musicFrame = null;
+    let tvFrame = null;
 
     function showPanel(name) {
       closeAllMenus();
@@ -1569,10 +1576,11 @@
       document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
       $('gear').classList.toggle('active', name === 'settings');
       document.body.classList.toggle('on-home', name === 'home');
-      document.body.classList.toggle('app-open', name === 'music');
-      document.body.classList.toggle('full-panel', name === 'music');
+      document.body.classList.toggle('app-open', name === 'music' || name === 'tv');
+      document.body.classList.toggle('full-panel', name === 'music' || name === 'tv');
       placeSearch();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
+      if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
       if (name === 'music' && !musicFrame) {
         musicFrame = document.createElement('iframe');
         musicFrame.className = 'frame blend';
@@ -1580,6 +1588,15 @@
         musicFrame.src = 'listening.html';
         musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
         $('panel-music').appendChild(musicFrame);
+      }
+      if (name === 'tv' && !tvFrame) {
+        tvFrame = document.createElement('iframe');
+        tvFrame.className = 'frame blend';
+        tvFrame.title = 'Chalk TV';
+        tvFrame.src = 'chalk-tv.html';
+        tvFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture');
+        tvFrame.setAttribute('allowfullscreen', '');
+        $('panel-tv').appendChild(tvFrame);
       }
     }
 
@@ -1596,8 +1613,12 @@
     function placeSearch() {
       const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
       if (searchWrap.parentNode === to) return;
+      searchWrap.classList.remove('arrive');
       to.appendChild(searchWrap);
-      searchWrap.classList.add('arrive');
+      if (to.id === 'rail-search-slot') {
+        void searchWrap.offsetWidth;
+        searchWrap.classList.add('arrive');
+      }
     }
 
     // your background picture stays in this browser (IndexedDB); it's never uploaded
