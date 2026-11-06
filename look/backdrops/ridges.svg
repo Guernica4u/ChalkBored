@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0.1" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#fbe0c6"/>
+      <stop offset="0.34" stop-color="#f8cbab"/>
+      <stop offset="0.68" stop-color="#f3b492"/>
+      <stop offset="1" stop-color="#eda07d"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.08" cy="-0.02" r="0.7">
+      <stop offset="0" stop-color="#fff8ec" stop-opacity="0.92"/>
+      <stop offset="0.4" stop-color="#fde3c4" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#fde3c4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde6cb" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#fde6cb" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="trees" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M0 64 7 40 14 64 22 26 30 64 38 44 46 64 54 32 62 64Z" fill="#2a1e19"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <rect width="1600" height="1000" fill="url(#sun)"/>
+  <rect y="330" width="1600" height="360" fill="url(#glow)"/>
+
+  <path d="M0 452C150 414 268 466 412 442 560 418 662 470 806 448 954 426 1074 470 1210 444 1348 418 1470 466 1600 442V1000H0Z" fill="#eec3aa" opacity="0.62"/>
+  <path d="M0 502C168 462 300 516 452 492 610 468 726 520 878 498 1030 476 1150 520 1292 496 1420 474 1530 514 1600 498V1000H0Z" fill="#e3ac92" opacity="0.72"/>
+  <path d="M0 556C146 520 288 566 438 546 594 526 714 572 866 552 1018 532 1146 574 1290 550 1420 528 1534 566 1600 550V1000H0Z" fill="#d4947a" opacity="0.8"/>
+  <path d="M0 614C154 578 296 624 448 606 606 588 726 632 878 614 1030 596 1156 636 1298 614 1430 594 1540 628 1600 614V1000H0Z" fill="#c07f66" opacity="0.86"/>
+  <path d="M0 678C158 644 302 686 456 670 614 654 736 694 890 678 1042 662 1170 698 1312 678 1442 660 1546 690 1600 678V1000H0Z" fill="#a4644f" opacity="0.9"/>
+  <path d="M0 748C160 716 306 754 462 740 620 726 742 762 896 748 1048 734 1176 766 1318 748 1448 732 1550 758 1600 748V1000H0Z" fill="#864e3c"/>
+
+  <path d="M0 818C150 790 296 822 448 810 604 798 726 828 880 816 1032 804 1160 832 1302 816 1436 802 1544 824 1600 816V1000H0Z" fill="#5f392d"/>
+  <path d="M0 876C150 854 298 878 450 868 606 858 728 882 882 872 1034 862 1162 884 1304 872 1438 860 1546 878 1600 872V1000H0Z" fill="#3f2820"/>
+
+  <rect x="0" y="888" width="1600" height="64" fill="url(#trees)"/>
+  <rect x="0" y="936" width="1600" height="64" fill="#241a17"/>
+</svg>

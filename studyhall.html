@@ -213,7 +213,32 @@
   .rail-foot { margin-top: auto; padding: 1rem 1.2rem; font-size: 0.8rem; }
   .rail-foot a { color: var(--pencil); text-decoration: none; }
   .rail-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-  .rail-clock { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+  /* the little chalk guy who lives at the foot of the rail */
+  .rail-guy {
+    position: fixed; left: 0; bottom: 0; z-index: 70; width: 34px; height: 46px;
+    touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+    will-change: transform; filter: drop-shadow(0 2px 3px rgba(31, 45, 68, 0.16));
+  }
+  .rail-guy svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .rail-guy .g {
+    fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+    transform-box: fill-box; transform-origin: top center;
+  }
+  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.6; }
+  .rail-guy.climb .arm-a { animation: guy-reach 0.62s ease-in-out infinite alternate; }
+  .rail-guy.climb .leg-a { animation: guy-step 0.62s ease-in-out infinite alternate; }
+  .rail-guy.climb .leg-b { animation: guy-step 0.62s ease-in-out infinite alternate-reverse; }
+  .rail-guy.wave .arm-b { animation: guy-wave 0.34s ease-in-out infinite alternate; }
+  .rail-guy.hang .body { animation: guy-sway 1.9s ease-in-out infinite alternate; }
+  .rail-guy.dragging { cursor: grabbing; filter: none; }
+  .rail-guy.dragging .g, .rail-guy.dragging .head { stroke: var(--accent); }
+  .rail-guy.fall { animation: guy-squish 0.42s ease-out; }
+  body.no-guy .rail-guy { display: none; }
+  @keyframes guy-reach { from { transform: rotate(-8deg); } to { transform: rotate(26deg); } }
+  @keyframes guy-step { from { transform: rotate(-6deg); } to { transform: rotate(18deg); } }
+  @keyframes guy-wave { from { transform: rotate(-30deg); } to { transform: rotate(-4deg); } }
+  @keyframes guy-sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+  @keyframes guy-squish { 0% { scale: 1 1; } 45% { scale: 1.2 0.8; } 100% { scale: 1 1; } }
   .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
 
 
@@ -785,8 +810,8 @@
       </div>
 
       <div class="rail-foot">
-        <p class="rail-clock" id="rail-clock">--:--</p>
-        <p class="rail-note">ChalkBored &middot; Study Hall</p>
+        <div class="rail-guy" id="rail-guy" aria-label="A little chalk figure"></div>
+        <p class="rail-note">ChalkBored &middot; made for fun</p>
       </div>
 
     </nav>
@@ -818,7 +843,7 @@
             </p>
           </div>
           <div class="home-start">
-            <p class="section-label">Start here</p>
+            <p class="section-label" id="home-label">Highlighted games</p>
             <div class="cards" id="home-games"></div>
           </div>
         </section>
@@ -877,6 +902,10 @@
               <div class="setting">
                 <div><h3>No New Tabs</h3><p>Games open on top of this page instead of a new tab.</p></div>
                 <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
+              </div>
+              <div class="setting">
+                <div><h3>The little guy</h3><p>A little chalk figure climbs the tab bar and does his own thing. Drag him around; turn him off for a still page.</p></div>
+                <button class="switch" id="show-guy" type="button" role="switch" aria-checked="true" aria-label="The little guy"></button>
               </div>
             </div>
 
@@ -999,16 +1028,16 @@
         { name: '.Run;~3?'                        , path: 'LESSONS/Space-Tunnel-3/index.html' },
         { name: '.G3om3try;D5sh?', path: 'LESSONS/Rhythm-Geometry-Lite/index.html' },
         { name: '.Cooki3;Click3r?'                , path: 'LESSONS/Pastry-Clicker/index.html' },
-        { name: ".B5ldi's;B5sics?"                , path: 'LESSONS/Study-Hall/index.html' },
+        { name: '.Moto;X~3M;2?'                   , path: 'LESSONS/moto/index.html' },
+        { name: '.Moto;X~3M;Pool;P5rty?'          , path: 'LESSONS/Motion-Lab-Pool/index.html' },
+        { name: '.Moto;X~3M;Spooky;L5nd?'         , path: 'LESSONS/Motion-Lab-Spooky/index.html' },
+        { name: '.Moto;X~3M;Wint3r?'              , path: 'LESSONS/Motion-Lab-Winter/index.html' },
         { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html' },
         { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html' },
         { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
         { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
         { name: '.FNAF:;Sist3r;Loc5tion?'         , path: 'LESSONS/Night-Shift-Logs-SL/index.html' },
-        { name: '.Moto;X~3M;2?'                   , path: 'LESSONS/moto/index.html' },
-        { name: '.Moto;X~3M;Pool;P5rty?'          , path: 'LESSONS/Motion-Lab-Pool/index.html' },
-        { name: '.Moto;X~3M;Spooky;L5nd?'         , path: 'LESSONS/Motion-Lab-Spooky/index.html' },
-        { name: '.Moto;X~3M;Wint3r?'              , path: 'LESSONS/Motion-Lab-Winter/index.html' },
+        { name: '.F35rs;to;F5thom?'                           , path: 'LESSONS/House-Sitting/index.html' },
         { name: '.Cut;th3;Rop3?'                  , path: 'LESSONS/Rope-Physics-1/index.html' },
         { name: '.Cut;th3;Rop3:;Holid5y;Gift?'    , path: 'LESSONS/Rope-Physics-Holiday/index.html' },
         { name: '.Cut;th3;Rop3:;Tim3;Tr5v3l?'     , path: 'LESSONS/Rope-Physics-Time/index.html' },
@@ -1042,7 +1071,6 @@
         { name: '.Sl3nd3r?'                       , path: 'LESSONS/Forest-Logs/index.html' },
         { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
         { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
-        { name: '.F35rs;to;F5thom?'                           , path: 'LESSONS/House-Sitting/index.html' },
         { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
         { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
         { name: '.V3x;~5?'                        , path: 'LESSONS/Room-Escape-5/index.html' },
@@ -1185,6 +1213,22 @@
 
     const $ = (id) => document.getElementById(id);
 
+    // newer covers from the picture drop: these win over the ones above
+    Object.assign(ART, {
+      'LESSONS/House-Sitting/index.html':                { src: 'LESSONS/art/fears-to-fathom.webp', bg: '#141c2b', fit: 'cover' },
+      'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html': { src: 'LESSONS/art/final-earth-2.webp', bg: '#1b1240', fit: 'cover' },
+      'LESSONS/City-Planning/index.html':                { src: 'LESSONS/art/townscaper.webp', bg: '#7ec8b0', fit: 'cover' },
+      'LESSONS/Empty-Lesson/index.html':                 { src: 'LESSONS/art/there-is-no-game.webp', bg: '#3a2f80', fit: 'cover' },
+      'LESSONS/Resource-Gathering/index.html':           { src: 'LESSONS/art/grindcraft.webp', bg: '#6a8f3a', fit: 'cover' },
+      'LESSONS/Ancient-Evolution/index.html':            { src: 'LESSONS/art/age-of-war.webp', bg: '#3a3a2a', fit: 'cover' },
+      'LESSONS/Parkour-Physics/index.html':              { src: 'LESSONS/art/ovo.webp', bg: '#20242c', fit: 'cover' },
+      'LESSONS/Plumber-Physics/Source/index.htm':        { src: 'LESSONS/art/full-screen-mario.webp', bg: '#5c94fc', fit: 'cover' },
+      'LESSONS/Siege-History/index.html':                { src: 'LESSONS/art/battle-for-gondor.webp', bg: '#2a2a33', fit: 'cover' },
+      'LESSONS/Polygon-Platformer/index.html':           { src: 'LESSONS/art/sm64.webp', bg: '#2b6ecb', fit: 'cover' },
+      'LESSONS/Fossil-Lab/index.html':                   { src: 'LESSONS/art/chrome-dino.webp', bg: '#f7f7f7', fit: 'cover' },
+      'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/chess-logo.webp', bg: '#2b2b26', fit: 'cover' },
+    });
+
     // ---- settings that stick (same storage as before, so nobody loses theirs) ----
     const SETTINGS_STORE = 'vault-settings';
     const SEEN_STORE = 'vault-seen-version';
@@ -1196,6 +1240,7 @@
     const BASIC_COLORS = [['mono', 'Mono']];
 
     const DEFAULT_SETTINGS = {
+      showGuy: true,
       setupDone: false, setupVersion: '', theme: 'basic', basic: 'mono',
       blockPopups: true,
       shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
@@ -1224,6 +1269,7 @@
     if (savedSettings && !savedSettings.shell) settings.shell = 'os';
     if (savedSettings && !savedSettings.basic) settings.basic = 'mono';
     settings.gameArt = true;   // card pictures are always on now
+    settings.showGuy = settings.showGuy !== false;   // he's on unless you turned him off
     // Plain look and Movie night are gone; Plain look users get Night instead
     if (settings.plain) settings.theme = 'night';
     delete settings.plain;
@@ -1514,13 +1560,94 @@
       openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
 
-    // clock at the foot of the rail
-    (function railClock() {
-      const el = document.getElementById('rail-clock');
+    // the little guy at the foot of the rail: he climbs, hangs about, and can be dragged
+    (function railGuy() {
+      const el = document.getElementById('rail-guy');
       if (!el) return;
-      const tick = () => { el.textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
-      tick();
-      setInterval(tick, 15000);
+      el.innerHTML =
+        '<svg viewBox="0 0 34 46" aria-hidden="true">' +
+        '<circle class="head" cx="17" cy="8.6" r="5.8"></circle>' +
+        '<path class="g dot" d="M15.2 8.4h.01M18.8 8.4h.01" stroke-width="2.4"></path>' +
+        '<path class="g body" d="M17 14.4v15.2"></path>' +
+        '<path class="g arm arm-a" d="M17 19.6 9.6 24.8"></path>' +
+        '<path class="g arm arm-b" d="M17 19.6 24.4 24.8"></path>' +
+        '<path class="g leg leg-a" d="M17 29.6 11.4 40"></path>' +
+        '<path class="g leg leg-b" d="M17 29.6 22.6 40"></path>' +
+        '</svg>';
+      const rail = document.querySelector('nav.rail') || document.querySelector('.rail');
+      const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let x = 8, y = 0, tx = 8, ty = 0, held = false, grabX = 0, grabY = 0;
+      const railW = () => (rail ? rail.getBoundingClientRect().width : 210);
+      const top = () => Math.max(40, window.innerHeight - 96);
+      const place = () => { el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (-y).toFixed(1) + 'px)'; };
+      const dropClasses = () => el.classList.remove('climb', 'wave', 'hang');
+
+      function wander() {
+        if (held) return;
+        dropClasses();
+        const r = Math.random();
+        if (r < 0.6) {                      // climbs the rail
+          ty = 10 + Math.random() * (top() - 20);
+          el.classList.add('climb');
+          if (Math.random() < 0.35) el.classList.add('wave');
+        } else if (r < 0.82) {              // back down to the floor
+          ty = 0;
+        } else {                            // shuffles along the bottom
+          ty = 0;
+          el.classList.add('wave');
+        }
+        tx = 4 + Math.random() * Math.max(8, railW() - 44);
+        if (ty > top() * 0.55) el.classList.add('hang');
+        setTimeout(() => { if (!held) el.classList.remove('wave'); }, 2200);
+      }
+
+      let last = performance.now();
+      function frame(now) {
+        const k = Math.min(3, (now - last) / 16.7);
+        last = now;
+        if (!held) {
+          x += (tx - x) * Math.min(1, 0.05 * k);
+          y += (ty - y) * Math.min(1, 0.075 * k);
+        }
+        place();
+        requestAnimationFrame(frame);
+      }
+
+      el.addEventListener('pointerdown', (e) => {
+        held = true;
+        el.classList.add('dragging');
+        el.classList.remove('fall');
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        grabX = e.clientX - x;
+        grabY = (window.innerHeight - e.clientY) - y;
+        dropClasses();
+        e.preventDefault();
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!held) return;
+        x = Math.max(0, Math.min(window.innerWidth - 34, e.clientX - grabX));
+        y = Math.max(0, Math.min(window.innerHeight - 46, (window.innerHeight - e.clientY) - grabY));
+        place();
+      });
+      const release = (e) => {
+        if (!held) return;
+        held = false;
+        el.classList.remove('dragging');
+        try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+        tx = x;
+        ty = 0;                              // he falls back to the floor
+        el.classList.remove('fall');
+        void el.offsetWidth;
+        el.classList.add('fall');
+        setTimeout(() => el.classList.remove('fall'), 500);
+        setTimeout(() => { if (!held) { tx = Math.max(6, x - 30) + Math.random() * 40; el.classList.add('wave'); } }, 950);
+        setTimeout(() => { if (!held) el.classList.remove('wave'); }, 2600);
+      };
+      el.addEventListener('pointerup', release);
+      el.addEventListener('pointercancel', release);
+
+      place();
+      if (!still) { requestAnimationFrame(frame); wander(); setInterval(wander, 5200); }
     })();
 
     // ---- building the lists ----
@@ -1710,11 +1837,24 @@
       }
     }
 
+    // with nothing starred, Home shows a few good ones
+    const HIGHLIGHTED = [
+      'LESSONS/Bloons Math Loader.html',
+      'LESSONS/forgecraft-26.3/index.html',
+      'LESSONS/Night-Shift-Logs-1/index.html',
+      'LESSONS/Study-Hall-Remake/index.html',
+    ];
+
     function buildLessons() {
-      // starred lessons come first, the rest stay in list order
-      const ordered = [...LIST.lessons.filter(isFav), ...LIST.lessons.filter((g) => !isFav(g))];
-      buildCards('games', ordered, 'Games', true, true);
-      buildCards('home-games', ordered.slice(0, 8), 'Games', false, false);
+      // Games always stays in list order: starring something never moves it up there.
+      buildCards('games', LIST.lessons, 'Games', true, true);
+      const starred = LIST.lessons.filter(isFav);
+      const picks = starred.length
+        ? starred.slice(0, 8)
+        : HIGHLIGHTED.map((path) => LIST.lessons.find((g) => g.path === path)).filter(Boolean);
+      const label = document.getElementById('home-label');
+      if (label) label.textContent = starred.length ? 'Your favorites' : 'Highlighted games';
+      buildCards('home-games', picks, 'Games', false, false);
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
@@ -2009,12 +2149,13 @@
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch']]
+      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch'], ['show-guy', 'showGuy']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
       document.body.classList.toggle('os', settings.shell === 'os');
       document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
+      document.body.classList.toggle('no-guy', !settings.showGuy);
       placeSearch();
       if (bgShownFor !== settings.shell + settings.wallpaper) { bgShownFor = settings.shell + settings.wallpaper; showBackground(); }
       $('wall-pick').replaceChildren(makeWallpapers());
@@ -2030,6 +2171,7 @@
     $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
     $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
+    $('show-guy').addEventListener('click', () => change('showGuy', !settings.showGuy));
 
     $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
 
