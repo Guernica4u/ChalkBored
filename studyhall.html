@@ -213,6 +213,8 @@
   .rail-foot { margin-top: auto; padding: 1rem 1.2rem; font-size: 0.8rem; }
   .rail-foot a { color: var(--pencil); text-decoration: none; }
   .rail-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .rail-clock { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
 
 
   /* ---------------- main sheet ---------------- */
@@ -782,6 +784,11 @@
         </button>
       </div>
 
+      <div class="rail-foot">
+        <p class="rail-clock" id="rail-clock">--:--</p>
+        <p class="rail-note">ChalkBored &middot; Study Hall</p>
+      </div>
+
     </nav>
 
     <div class="main">
@@ -963,10 +970,11 @@
         { name: '.Subw5y;Surf3rs?'                , path: 'LESSONS/Rail-Runner/index.html' },
         { name: '.Esc5p3;Ro5d?'                   , path: 'LESSONS/Learn-Car-Maintenance/index.html' },
         { name: '.Supr3m3;Du3list?'               , path: 'LESSONS/Duel-Physics/index.html' },
+        { name: '.E5gl3rcr5ft;1.~5?'                           , path: 'LESSONS/forgecraft.1.5.html' },
         { name: '.E5gl3rcr5ft;1.8?'               , path: 'LESSONS/forgecraft.html' },
         { name: '.E5gl3rcr5ft;1.12?'              , path: 'LESSONS/forgecraft.1.12.html' },
         { name: '.E5gl3rcr5ft;26.2?'              , path: 'LESSONS/forgecraft-26.2/index.html' },
-        { name: '.E5gl3rcr5ft;26.3?'              , path: 'LESSONS/forgecraft-26.3/index.html' },
+        { name: '.E5gl3rcr5ft;26.~3?'                         , path: 'LESSONS/forgecraft-26.3/index.html' },
         { name: '.R3tro;Bowl?'                    , path: 'LESSONS/rb-main/index.html' },
         { name: '.Footb5ll;Bros?'                 , path: 'LESSONS/football/index.html' },
         { name: '.B5sk3t;Bros?'                   , path: 'LESSONS/Court-Physics/index.html' },
@@ -1034,6 +1042,7 @@
         { name: '.Sl3nd3r?'                       , path: 'LESSONS/Forest-Logs/index.html' },
         { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
         { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
+        { name: '.F35rs;to;F5thom?'                           , path: 'LESSONS/House-Sitting/index.html' },
         { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
         { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
         { name: '.V3x;~5?'                        , path: 'LESSONS/Room-Escape-5/index.html' },
@@ -1061,7 +1070,15 @@
     // ---- card pictures ----
     // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
     // A lesson missing from here keeps its initials.
-    const ART = {
+    const ART = {      'LESSONS/forgecraft.1.5.html':                     { src: 'LESSONS/art/forgecraft.webp', bg: '#6b4a2f', fit: 'cover' },
+      'LESSONS/Crew-Mission/index.html':                 { src: 'LESSONS/art/crew-mission.webp', bg: '#3a2f4a', fit: 'cover' },
+      'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/board-games-club.webp', bg: '#2b2b26', fit: 'cover' },
+      'LESSONS/Line-Drawing-Physics/index.html':         { src: 'LESSONS/art/line-drawing-physics.webp', bg: '#1b2430', fit: 'cover' },
+      'LESSONS/Square-Platformer/index.html':            { src: 'LESSONS/art/square-platformer.webp', bg: '#2a1518', fit: 'cover' },
+      'LESSONS/Basement-Diary/index.html':               { src: 'LESSONS/art/basement-diary.webp', bg: '#171412', fit: 'cover' },
+      'LESSONS/Night-Watch/index.html':                  { src: 'LESSONS/art/night-watch.webp', bg: '#140f10', fit: 'cover' },
+      'LESSONS/Study-Hall-Remake/index.html':            { src: 'LESSONS/art/study-hall-remake.webp', bg: '#204020', fit: 'cover' },
+
       'LESSONS/City-Planning/index.html':             { src: 'LESSONS/City-Planning/img/cover.jpg', bg: '#0d1b2a', fit: 'contain' },
       'LESSONS/Grappling-Physics/index.html':        { src: 'LESSONS/art/grappling-physics.webp', bg: '#2a2f3a', fit: 'cover' },
       'LESSONS/Rhythm-Geometry/index.html':          { src: 'LESSONS/art/rhythm-geometry.webp', bg: '#0b2a4a', fit: 'contain' },
@@ -1496,6 +1513,15 @@
     function launch(item, mode) {
       openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
+
+    // clock at the foot of the rail
+    (function railClock() {
+      const el = document.getElementById('rail-clock');
+      if (!el) return;
+      const tick = () => { el.textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
+      tick();
+      setInterval(tick, 15000);
+    })();
 
     // ---- building the lists ----
     function closeAllMenus(except) {
