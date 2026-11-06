@@ -565,7 +565,15 @@ function usePublic(r) {
   setRelay(r);
   start();
 }
-usePublic(relay);
+/* fern.best is the boot server; if it stops answering, use motor-cycle-part.org */
+const FALLBACK_RELAY = "wss://motor-cycle-part.org/wisp/";
+async function bootRelay(preferred) {
+  if (preferred !== DEFAULT_RELAY) return preferred;
+  if (await reachesSite(preferred)) return preferred;
+  if (await reachesSite(FALLBACK_RELAY)) return FALLBACK_RELAY;
+  return preferred;
+}
+bootRelay(relay).then((r) => usePublic(r));
 </script>
 </body>
 </html>
