@@ -533,7 +533,7 @@
   </section>
 
   <footer>
-    ChalkBored <a class="secret-dot" id="secret-dot" href="studyhall.html" aria-label="Study Hall">&middot;</a> built for students, kept free
+    ChalkBored <a class="secret-dot" id="secret-dot" href="algebra.html" aria-label="A page">&middot;</a> built for students, kept free
   </footer>
 
   <div class="secret-flash" id="secret-flash" aria-hidden="true"></div>
@@ -542,24 +542,24 @@
   <div class="chooser" id="chooser" role="dialog" aria-modal="true" aria-labelledby="chooser-title" tabindex="-1">
     <div class="chooser-card">
       <p class="chooser-kicker">ChalkBored</p>
-      <h2 id="chooser-title">Which Study Hall?</h2>
-      <p>Pick a door. The last one you chose stays at the top.</p>
+      <h2 id="chooser-title">Choose a page</h2>
+      <p>Pick one. The last page you chose stays at the top.</p>
       <div class="chooser-grid" id="chooser-grid">
-        <a class="hall" href="studyhall-1.html">Study Hall 1</a>
-        <a class="hall" href="studyhall-2.html">Study Hall 2</a>
-        <a class="hall" href="studyhall-3.html">Study Hall 3</a>
-        <a class="hall" href="studyhall-4.html">Study Hall 4</a>
-        <a class="hall" href="studyhall-5.html">Study Hall 5</a>
-        <a class="hall" href="studyhall-6.html">Study Hall 6</a>
-        <a class="hall" href="studyhall-7.html">Study Hall 7</a>
-        <a class="hall" href="studyhall-8.html">Study Hall 8</a>
-        <a class="hall" href="studyhall-9.html">Study Hall 9</a>
-        <a class="hall" href="studyhall-10.html">Study Hall 10</a>
-        <a class="hall" href="studyhall-11.html">Study Hall 11</a>
-        <a class="hall" href="studyhall-12.html">Study Hall 12</a>
-        <a class="hall" href="studyhall-13.html">Study Hall 13</a>
-        <a class="hall" href="studyhall-14.html">Study Hall 14</a>
-        <a class="hall" href="studyhall-15.html">Study Hall 15</a>
+        <a class="hall" href="algebra.html">Algebra</a>
+        <a class="hall" href="biology.html">Biology</a>
+        <a class="hall" href="chemistry.html">Chemistry</a>
+        <a class="hall" href="earth-science.html">Earth Science</a>
+        <a class="hall" href="english.html">English</a>
+        <a class="hall" href="geometry.html">Geometry</a>
+        <a class="hall" href="government.html">Government</a>
+        <a class="hall" href="history.html">History</a>
+        <a class="hall" href="literature.html">Literature</a>
+        <a class="hall" href="physics.html">Physics</a>
+        <a class="hall" href="precalculus.html">Precalculus</a>
+        <a class="hall" href="psychology.html">Psychology</a>
+        <a class="hall" href="spanish.html">Spanish</a>
+        <a class="hall" href="statistics.html">Statistics</a>
+        <a class="hall" href="writing.html">Writing</a>
       </div>
       <p class="chooser-foot">Click outside this box to stay on the homepage.</p>
     </div>
@@ -632,7 +632,7 @@
     const flash = document.getElementById('secret-flash');
 
     function enterArcade(dest) {
-      dest = dest || 'studyhall.html';
+      dest = dest || 'algebra.html';
       if (prefersReducedMotion) { window.location.href = dest; return; }
       flash.classList.add('on');
       setTimeout(() => { window.location.href = dest; }, 450);
@@ -641,7 +641,7 @@
     // the dot opens Study Hall
     document.getElementById('secret-dot').addEventListener('click', (e) => {
       e.preventDefault();
-      enterArcade('studyhall.html');
+      enterArcade('algebra.html');
     });
 
     // typing "bored" anywhere on the page opens Study Hall too
@@ -651,7 +651,7 @@
       if (e.target.closest && e.target.closest('input, textarea, [contenteditable="true"]')) return;
       if (e.key.length !== 1) return;
       typed = (typed + e.key.toLowerCase()).slice(-WORD.length);
-      if (typed === WORD) { typed = ''; enterArcade('studyhall.html'); }
+      if (typed === WORD) { typed = ''; enterArcade('algebra.html'); }
     });
 
     // ...and for anyone who tries the old code
@@ -660,7 +660,7 @@
     document.addEventListener('keydown', (e) => {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       pos = (key === konami[pos]) ? pos + 1 : (key === konami[0] ? 1 : 0);
-      if (pos === konami.length) { pos = 0; enterArcade('studyhall.html'); }
+      if (pos === konami.length) { pos = 0; enterArcade('algebra.html'); }
     });
 
     // ---- which Study Hall did you pick last? keep it at the top ----
