@@ -999,10 +999,6 @@
               <h2>Advanced &amp; experimental</h2>
               <p>How things opened from here behave.</p>
               <div class="setting">
-                <div><h3>Open the site to the vault</h3><p>Going to the ChalkBored homepage brings you straight here.</p></div>
-                <button class="switch" id="auto-vault" type="button" role="switch" aria-checked="false" aria-label="Open the site to the vault"></button>
-              </div>
-              <div class="setting">
                 <div><h3>No New Tabs</h3><p>Games open on top of this page instead of a new tab.</p></div>
                 <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
               </div>
@@ -1366,7 +1362,6 @@
       shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
       railMini: false,         // OS look: sidebar folded down to icons
       wallpaper: 'hands',      // OS look background: one of WALLPAPERS, 'own' (your picture) or 'none'
-      autoVault: true,         // the homepage sends you straight here (on from the second visit)
       noNewTabs: false,        // experimental: open things on top of this page instead of a new tab
       gameArt: true,           // cards with their own art show it
       disguise: 'classroom',   // what this tab pretends to be
@@ -1428,7 +1423,6 @@
     // saves from before wallpapers keep what they had: their own picture, or plain dark without one
     if (savedSettings && !('wallpaper' in savedSettings)) settings.wallpaper = 'own';
     if (!['hands', 'mountains', 'ribbons', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
-    if (!settings.v11) { settings.autoVault = true; settings.v11 = true; }
 
     function saveSettings() {
       try { localStorage.setItem(SETTINGS_STORE, JSON.stringify(settings)); } catch (e) {}
@@ -2562,7 +2556,7 @@
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch'], ['show-guy', 'showGuy']]
+      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch'], ['show-guy', 'showGuy']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
@@ -2582,7 +2576,6 @@
 
     $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
     $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
-    $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
     $('show-guy').addEventListener('click', () => change('showGuy', !settings.showGuy));
     $('cloak-now').addEventListener('click', () => {

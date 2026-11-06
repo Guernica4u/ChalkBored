@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/studyhall.html",
-      "permanent": false
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",

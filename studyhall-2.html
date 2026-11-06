@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ChalkBored study notebook.
+  Brain exercises for study breaks and homework help
+  links and notes, all in one page. Settings stay in this browser.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChalkBored</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------------- themes ----------------
+     Basic (default): soft dark colors, in Night (blue-grey) or Mono
+     (plain black and white). Space: soft panels over a dim starry sky.
+     (The paper look
+     below in :root is only the base the themes build on.)                 */
+  :root {
+    --paper: #fbfbf7;
+    --paper-2: #f3f3ec;
+    --card: #ffffff;
+    --ink: #1f2d44;
+    --pencil: #66708a;
+    --rule-line: #dde6f2;
+    --margin-line: #ecb3ad;
+    --edge: #d9dde4;
+    --accent: #2c5fb8;         /* pen blue */
+    --highlight: #ffe680;      /* highlighter */
+    --highlight-ink: #1f2d44;
+    --danger: #c0473a;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --rail: #f1f2ec;
+    --rule: 28px;
+    --margin: 64px;
+    --hand: var(--body);
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --r: 3px;                  /* the one corner size: almost square, like the homepage */
+    color-scheme: light;
+  }
+
+  /* Basic: soft and dark, warm text, gentle accent. Easy on the eyes.
+     Night (blue-grey) is the base; Mono only swaps the colors. */
+  body[data-theme="basic"] {
+    --paper: #16181d;
+    --paper-2: #1f232a;
+    --card: #1c1f26;
+    --ink: #d9d5cc;
+    --pencil: #8b909a;
+    --rule-line: transparent;
+    --margin-line: transparent;
+    --edge: #2b3039;
+    --accent: #8fb3d9;
+    --highlight: #2f4157;
+    --highlight-ink: #e8e4db;
+    --danger: #d98b7f;
+    --shadow: none;
+    --rail: #14161a;
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  body[data-theme="basic"] .main { background-image: none; }
+  body[data-theme="basic"] .thumb { background-image: none; background: #20242c; }
+  body[data-theme="basic"] .mono { transform: none; font-size: 2rem; color: var(--accent); }
+  body[data-theme="basic"] .card:hover,
+  body[data-theme="basic"] .card-wrap.is-open .card { border-color: var(--accent); }
+  body[data-theme="basic"] h1 .scribble { background: none; padding: 0; color: var(--ink); }
+  body[data-theme="basic"] .btn.primary { color: var(--paper); }
+  body[data-theme="basic"] .tip::before { color: var(--accent); }
+  /* Mono: the same Basic layout in plain black and white */
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --highlight: #3a3a3a; --highlight-ink: #f2f2f2;
+    --danger: #e6e6e6; --rail: #080808;
+  }
+  body[data-basic="mono"] .thumb { background: #1a1a1a; }
+
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  button { font: inherit; color: inherit; }
+  button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------------- curtain ---------------- */
+  .curtain {
+    position: fixed; inset: 0; z-index: 50;
+    background: #0d1117;
+    pointer-events: none;
+    animation: lift 0.9s ease 0.1s forwards;
+  }
+  @keyframes lift { to { opacity: 0; } }
+
+  /* ---------------- shell ---------------- */
+  .shell { display: flex; height: 100%; }
+
+  .rail {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 20;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    background: var(--rail);
+    border-right: 1px solid var(--edge);
+  }
+
+  .rail-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0.9rem 1.1rem 1.2rem;
+  }
+
+
+  .brand { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 1.35rem; line-height: 1; }
+  .brand span { color: var(--accent); }
+
+  .icon-btn {
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    color: var(--pencil);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--ink); background: var(--paper-2); }
+  .icon-btn.active { color: var(--ink); border-color: var(--edge); background: var(--card); }
+  .icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* notebook tab dividers */
+  .nav { display: flex; flex-direction: column; gap: 3px; padding: 0.4rem 0.7rem; }
+
+  .nav-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.55rem 0.7rem 0.55rem 0.9rem;
+    background: none;
+    border: 0;
+    border-radius: var(--r);
+    color: var(--pencil);
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .nav-btn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--tab, var(--edge));
+    opacity: 0.55;
+    transition: opacity 0.15s ease, top 0.2s ease, bottom 0.2s ease;
+  }
+  .nav-btn:hover { color: var(--ink); background: var(--paper-2); }
+  .nav-btn.active { color: var(--ink); background: var(--card); box-shadow: var(--shadow); font-weight: 700; }
+  .nav-btn.active::before { opacity: 1; top: 5px; bottom: 5px; }
+  .nav-btn svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn .out { margin-left: auto; width: 13px; height: 13px; opacity: 0.6; }
+  .ping {
+    margin-left: auto;
+    min-width: 1.4em;
+    padding: 0 0.35rem;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+    border-radius: var(--r);
+  }
+  .ping + .out { margin-left: 0.4rem; }
+
+  .nb-toasts { position: fixed; right: 1.2rem; bottom: 4.2rem; z-index: 35; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+  .nb-toast {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    max-width: 340px;
+    padding: 0.75rem 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    font-size: 0.9rem;
+    animation: rise 0.3s ease;
+  }
+  .nb-toast .x { background: none; border: 0; color: var(--pencil); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+  .tally { margin-left: auto; font-size: 0.75rem; color: var(--pencil); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+  .rail-foot { margin-top: auto; padding: 1rem 1.2rem; font-size: 0.8rem; }
+  .rail-foot a { color: var(--pencil); text-decoration: none; }
+  .rail-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  /* the little chalk guy who lives at the foot of the rail */
+  .rail-guy {
+    position: fixed; left: 0; bottom: 0; z-index: 70; width: 38px; height: 50px;
+    touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+    will-change: transform; filter: drop-shadow(0 2px 3px rgba(31, 45, 68, 0.18));
+  }
+  .rail-guy svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .rail-guy .guy-body { transform-box: view-box; transform-origin: 22px 55px; animation: guy-breathe 3.8s ease-in-out infinite; }
+  .rail-guy .ink { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .rail-guy .face .ink { stroke-width: 1.8; }
+  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; }
+  .rail-guy .torso { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; }
+  .rail-guy .hood { stroke-width: 2.1; }
+  .rail-guy .hand { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
+  .rail-guy .shoe { fill: var(--ink); stroke: var(--ink); stroke-width: 1.4; opacity: 0.8; }
+  .rail-guy .blush { fill: var(--accent); opacity: 0.42; }
+  .rail-guy .glint { fill: var(--paper); }
+  .rail-guy .string, .rail-guy .pocket { stroke-width: 1.6; opacity: 0.6; }
+  .rail-guy .cap { fill: var(--accent); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; opacity: 0.92; }
+  .rail-guy .collar { stroke-width: 2; opacity: 0.4; }
+  .rail-guy .eye-dot { fill: var(--ink); }
+  .rail-guy .face { display: none; }
+  .rail-guy.f-calm .face-calm,
+  .rail-guy.f-happy .face-happy,
+  .rail-guy.f-scared .face-scared,
+  .rail-guy.f-hurt .face-hurt,
+  .rail-guy.f-dizzy .face-dizzy { display: block; }
+  .rail-guy.f-calm .eye-dot { animation: guy-blink 5.2s steps(1, end) infinite; transform-box: fill-box; transform-origin: center; }
+  .rail-guy .limb { transform-box: view-box; }
+  .rail-guy .arm-a-g { transform-origin: 18.4px 23.6px; }
+  .rail-guy .arm-b-g { transform-origin: 25.6px 23.6px; }
+  .rail-guy .leg-a-g { transform-origin: 19.5px 37.6px; }
+  .rail-guy .leg-b-g { transform-origin: 24.6px 37.6px; }
+  .rail-guy .head-g { transform-box: view-box; transform-origin: 22px 21.8px; transition: transform 0.25s ease; }
+  .rail-guy .stars { opacity: 0; transform-box: view-box; transform-origin: 22px 13px; }
+  .rail-guy.f-hurt .stars, .rail-guy.f-dizzy .stars { opacity: 1; animation: guy-stars 2.4s linear infinite; }
+  .rail-guy .star { stroke-width: 1.5; }
+
+  .rail-guy.f-happy .head-g { transform: rotate(-6deg); }
+  .rail-guy.f-scared .head-g { transform: rotate(5deg) scale(1.05); }
+  .rail-guy.f-hurt .head-g { transform: rotate(-11deg); }
+  .rail-guy.f-dizzy .head-g { transform: rotate(7deg); }
+  .rail-guy.hurt .ink, .rail-guy.hurt .head, .rail-guy.hurt .torso { stroke: var(--danger); }
+
+  .rail-guy.walk .leg-a-g { animation: guy-step 0.62s ease-in-out infinite alternate; }
+  .rail-guy.walk .leg-b-g { animation: guy-step 0.62s ease-in-out infinite alternate-reverse; }
+  .rail-guy.walk .arm-a-g { animation: guy-swing 0.62s ease-in-out infinite alternate-reverse; }
+  .rail-guy.walk .arm-b-g { animation: guy-swing 0.62s ease-in-out infinite alternate; }
+  .rail-guy.climb .arm-a-g { animation: guy-reach 0.5s ease-in-out infinite alternate; }
+  .rail-guy.climb .arm-b-g { animation: guy-reach 0.5s ease-in-out infinite alternate-reverse; }
+  .rail-guy.climb .leg-a-g { animation: guy-step 0.5s ease-in-out infinite alternate; }
+  .rail-guy.climb .leg-b-g { animation: guy-step 0.5s ease-in-out infinite alternate-reverse; }
+  .rail-guy.wave .arm-b-g { animation: guy-wave 0.3s ease-in-out infinite alternate; }
+  .rail-guy.held .arm-a-g { transform: rotate(152deg); }
+  .rail-guy.held .arm-b-g { transform: rotate(-152deg); }
+  .rail-guy.held .leg-a-g { animation: guy-dangle 0.7s ease-in-out infinite alternate; }
+  .rail-guy.held .leg-b-g { animation: guy-dangle 0.7s ease-in-out infinite alternate-reverse; }
+  .rail-guy.flail .arm-a-g { animation: guy-flail 0.16s linear infinite alternate; }
+  .rail-guy.flail .arm-b-g { animation: guy-flail 0.13s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-a-g { animation: guy-flail 0.15s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-b-g { animation: guy-flail 0.18s linear infinite alternate; }
+  .rail-guy.hit .guy-body { animation: guy-hit 0.3s ease-out; }
+  .rail-guy.land svg { animation: guy-squash 0.34s cubic-bezier(0.25, 0.9, 0.3, 1); }
+  .rail-guy.dragging, .rail-guy.held { cursor: grabbing; }
+
+  .rail-guy .guy-bubble {
+    position: absolute; left: 50%; bottom: 108%; transform: translateX(-50%) rotate(-4deg);
+    padding: 2px 7px; border-radius: 8px; background: var(--ink); color: var(--paper);
+    font: 700 11px/1.4 var(--body); white-space: nowrap; opacity: 0; transition: opacity 0.12s;
+    pointer-events: none;
+  }
+  .rail-guy .guy-bubble.on { opacity: 1; }
+
+  .rail-guy .guy-puff {
+    position: absolute; left: 50%; bottom: 2px; width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(31, 45, 68, 0.18); pointer-events: none;
+    animation: guy-puff 0.62s ease-out forwards;
+  }
+  .rail-guy .guy-puff.p1 { --dx: -15px; }
+  .rail-guy .guy-puff.p2 { --dx: 13px; }
+  .rail-guy .guy-puff.p3 { --dx: -6px; }
+  .rail-guy .guy-puff.p4 { --dx: 7px; }
+
+  /* how he is feeling, right above the footer note */
+  .guy-mood {
+    display: flex; align-items: center; gap: 7px; margin: 0 0 0.55rem;
+    font-size: 0.68rem; letter-spacing: 0.03em; color: var(--pencil);
+  }
+  .guy-mood-label { min-width: 3.4em; text-transform: lowercase; }
+  .guy-mood-track {
+    position: relative; flex: 1; height: 5px; border-radius: 99px;
+    background: rgba(31, 45, 68, 0.12); overflow: hidden;
+  }
+  .guy-mood-fill {
+    position: absolute; inset: 0 auto 0 0; width: 55%; border-radius: 99px;
+    background: #6b8fbf; transition: width 0.4s ease, background 0.4s ease;
+  }
+  .guy-mood[data-mood="calm"] .guy-mood-fill { width: 55%; background: #6b8fbf; }
+  .guy-mood[data-mood="happy"] .guy-mood-fill { width: 88%; background: #3f9d5a; }
+  .guy-mood[data-mood="scared"] .guy-mood-fill { width: 97%; background: #d08a2e; }
+  .guy-mood[data-mood="hurt"] .guy-mood-fill { width: 22%; background: var(--danger); }
+  .guy-mood[data-mood="dizzy"] .guy-mood-fill { width: 34%; background: #8f6bbf; }
+
+  body.no-guy .rail-guy { display: none; }
+  @keyframes guy-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.03); } }
+  @keyframes guy-blink { 0%, 93%, 100% { transform: scaleY(1); } 95%, 97% { transform: scaleY(0.08); } }
+  @keyframes guy-step { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+  @keyframes guy-swing { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+  @keyframes guy-reach { from { transform: rotate(-16deg); } to { transform: rotate(38deg); } }
+  @keyframes guy-wave { from { transform: rotate(-38deg); } to { transform: rotate(-6deg); } }
+  @keyframes guy-flail { from { transform: rotate(-64deg); } to { transform: rotate(68deg); } }
+  @keyframes guy-dangle { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+  @keyframes guy-hit { 0% { scale: 1.26 0.76; } 55% { scale: 0.92 1.08; } 100% { scale: 1 1; } }
+  @keyframes guy-squash { 0% { transform: scale(1.3, 0.72); } 55% { transform: scale(0.94, 1.06); } 100% { transform: scale(1, 1); } }
+  @keyframes guy-stars { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes guy-puff { from { opacity: 0.75; transform: translate(-50%, 0) scale(0.5); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), -16px) scale(1.6); } }
+  .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
+
+  /* ---------------- main sheet ---------------- */
+  .main {
+    flex: 1;
+    min-width: 0;
+    margin-left: 220px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(to right, transparent calc(var(--margin) - 2px), var(--margin-line) calc(var(--margin) - 2px), var(--margin-line) var(--margin), transparent var(--margin)),
+      repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), var(--rule-line) calc(var(--rule) - 1px) var(--rule));
+    background-attachment: local;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.4rem 2rem 0.8rem calc(var(--margin) + 1.5rem);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: 2.1rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  h1 .scribble {
+    background: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 90%, transparent 90%);
+    padding: 0 0.15em;
+  }
+
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* search */
+  .search-wrap { position: relative; }
+  .search {
+    width: 230px;
+    padding: 0.5rem 0.8rem 0.5rem 2.1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: width 0.25s ease, border-color 0.15s ease;
+  }
+  .search::placeholder { color: var(--pencil); }
+  .search:focus { width: 290px; border-color: var(--accent); }
+  .search-wrap svg { position: absolute; left: 0.75rem; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); fill: none; stroke: var(--pencil); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
+
+  .results {
+    position: absolute;
+    right: 0; top: calc(100% + 6px);
+    z-index: 30;
+    width: 320px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.4rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .res-group { margin: 0.5rem 0.6rem 0.2rem; font-family: var(--hand); font-size: 0.85rem; color: var(--pencil); }
+  .res-item {
+    display: flex; justify-content: space-between; gap: 0.8rem;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    background: none; border: 0; border-radius: var(--r);
+    text-align: left; cursor: pointer;
+  }
+  .res-item:hover, .res-item:focus-visible { background: var(--paper-2); }
+  .res-where { color: var(--pencil); font-size: 0.8rem; }
+  .res-empty { margin: 0.6rem; color: var(--pencil); font-size: 0.9rem; }
+
+  .content { flex: 1; overflow-y: auto; padding: 0.4rem 2rem 2.5rem calc(var(--margin) + 1.5rem); }
+
+  .panel { display: none; max-width: 1100px; }
+  .panel.active { display: block; animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  .panel.flush { max-width: none; height: 100%; }
+  .panel.flush.active { display: flex; }
+  @keyframes rise { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  .lead {
+    margin: 0.6rem 0 1.2rem;
+    font-family: var(--hand);
+    font-size: 1.35rem;
+    line-height: var(--rule);
+    color: var(--pencil);
+  }
+  .lead b { color: var(--ink); font-weight: 700; }
+
+  /* ---------------- index cards (brain exercises) ---------------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.2rem; }
+
+  .card-wrap { position: relative; }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    animation: deal 0.28s ease-out both;
+    animation-delay: calc(min(var(--i, 0), 16) * 16ms);
+    transition: border-color 0.15s ease;
+  }
+  .card:hover, .card-wrap.is-open .card { border-color: var(--accent); }
+  .cards.settled .card { animation: none; }
+  @keyframes deal { from { opacity: 0; transform: translateY(-14px); } }
+
+  .thumb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 10;
+    background-color: var(--card);
+    background-image:
+      linear-gradient(to bottom, transparent 22px, var(--margin-line) 22px, var(--margin-line) 24px, transparent 24px),
+      repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule-line) 23px 24px);
+    border-bottom: 1px solid var(--edge);
+    overflow: hidden;
+  }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mono { font-family: var(--hand); font-weight: 700; font-size: 2.4rem; color: var(--accent); }
+
+  .card-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.85rem; }
+  .card-name { font-weight: 700; min-width: 0; }
+  .card-arrow { color: var(--pencil); transition: transform 0.2s ease; }
+  .card:hover .card-arrow { transform: translateX(3px); color: var(--accent); }
+  .card-wrap.is-open .card-arrow { transform: rotate(90deg); color: var(--accent); }
+
+  .card.soon { cursor: default; box-shadow: none; border-style: dashed; background: transparent; }
+  .card.soon .thumb { background: transparent; border-bottom-style: dashed; }
+  .card.soon .mono { color: var(--pencil); font-size: 1.1rem; }
+  .card.soon:hover { border-color: var(--edge); }
+
+  /* favorite star, sits on the card's corner */
+  .fav {
+    position: absolute; top: 0.3rem; right: 0.45rem; z-index: 2;
+    padding: 0.1rem; background: none; border: 0; color: var(--pencil);
+    font-size: 1.35rem; line-height: 1; cursor: pointer;
+    text-shadow: 0 0 3px var(--card), 0 0 6px var(--card);
+    opacity: 0.8; transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  }
+  .card-wrap:hover .fav, .fav:focus-visible { opacity: 1; }
+  .fav:hover { transform: scale(1.15); color: var(--accent); }
+  .fav.on { opacity: 1; color: var(--accent); }
+
+  /* how-to-open menu */
+  .open-menu {
+    position: absolute;
+    left: 0.6rem; right: 0.6rem; top: calc(100% + 6px);
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    padding: 0.35rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .open-menu.open { display: flex; animation: rise 0.2s ease; }
+  .open-menu p { margin: 0.2rem 0.5rem 0.3rem; font-family: var(--hand); font-size: 0.85rem; color: var(--pencil); }
+  .open-menu button {
+    padding: 0.45rem 0.6rem;
+    background: none; border: 0; border-radius: var(--r);
+    text-align: left; cursor: pointer;
+  }
+  .open-menu button:hover, .open-menu button:focus-visible { background: var(--highlight); color: var(--highlight-ink); }
+
+
+  /* ---------------- tools ---------------- */
+  .tools { display: flex; flex-direction: column; gap: 0.9rem; }
+  .tool {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    animation: deal 0.28s ease-out both;
+    animation-delay: calc(min(var(--i, 0), 16) * 16ms);
+  }
+  .tool-icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--r); background: var(--highlight); color: var(--highlight-ink); font-family: var(--hand); font-weight: 700; font-size: 1.1rem; }
+  .tool-name { font-weight: 700; }
+  .tool-desc { color: var(--pencil); font-size: 0.9rem; }
+  .tool .card-wrap { margin-left: auto; }
+  .tool .open-menu { left: auto; right: 0; width: 190px; }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 700; }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  .empty-note { font-family: var(--hand); font-size: 1.15rem; color: var(--pencil); line-height: var(--rule); max-width: 52ch; }
+
+  /* ---------------- home ---------------- */
+  /* Home: the title is the one thing that moves, sliding in once when Notebook opens */
+  #panel-home { max-width: 980px; margin: 0 auto; }
+  #panel-home.active {
+    animation: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+  }
+  body.on-home .content { overflow: hidden; }
+  .home-hero { display: flex; flex-direction: column; align-items: center; gap: 1.3rem; padding: 2rem 0; text-align: center; }
+  .home-title { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .home-hero .search-wrap { width: min(560px, 82vw); }
+  .home-hero .search, .home-hero .search:focus { width: 100%; padding: 0.85rem 1rem 0.85rem 2.6rem; font-size: 1rem; }
+  .home-hero .results { left: 0; right: 0; width: auto; text-align: left; }
+  /* everything on Home rises into place and fades in, a little slower than before */
+  #panel-home.active .home-title { animation: home-rise 1.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  #panel-home.active .home-hero .search-wrap { animation: search-home 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  #panel-home.active .hello-meta > * { animation: home-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  #panel-home.active .hello-meta > *:first-child { animation-delay: 0.18s; }
+  #panel-home.active .hello-meta > *:last-child { animation-delay: 0.32s; }
+  @keyframes home-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  body.on-home .topbar h1 { display: none; }
+  .hello-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.3rem 1.2rem; margin: 0; font-size: 0.85rem; color: var(--pencil); }
+  .meta-link { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
+  .meta-link:hover { color: var(--ink); }
+  .meta-link.static { cursor: default; }
+  .meta-link.static:hover { color: inherit; }
+  .meta-link b { color: var(--ink); }
+  .stat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); }
+  .meta-link.good .stat-dot { background: #4cc38a; }
+  /* Home also carries a few cards, so it never looks blank */
+  body.on-home .content { overflow-y: auto; }
+  .home-start { width: 100%; margin: 1.5rem 0 0; text-align: left; }
+  .home-start .section-label { margin-bottom: 0.6rem; }
+  .home-start .cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
+
+  .section-label { margin: 0 0 0.7rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pencil); }
+  .quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.8rem; }
+  .tile {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.8rem 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease;
+  }
+  .tile:hover { border-color: var(--accent); }
+  .tile svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .fav-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.8rem; }
+  .chip {
+    padding: 0.4rem 0.85rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r);
+    cursor: pointer; font-size: 0.9rem;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .recents { display: flex; gap: 0.8rem; overflow-x: auto; padding-bottom: 0.4rem; margin-bottom: 1.8rem; scrollbar-width: thin; }
+  .rec {
+    display: flex; flex-direction: column; justify-content: center; gap: 0.2rem;
+    flex: 0 0 180px; padding: 0.7rem 0.9rem;
+    background: var(--card); border: 1px solid var(--edge); border-radius: var(--r);
+    cursor: pointer; text-align: left;
+    transition: border-color 0.15s ease;
+  }
+  .rec:hover { border-color: var(--accent); }
+  .rec > span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .rec-app { color: var(--pencil); font-size: 0.8rem; }
+
+  /* ---------------- settings ---------------- */
+  .settings { display: flex; flex-direction: column; gap: 1.6rem; max-width: 720px; }
+  .group {
+    padding: 1.1rem 1.3rem 0.4rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .group h2 { margin: 0; font-family: var(--hand); font-size: 1.35rem; line-height: 1.2; }
+  .group > p { margin: 0.1rem 0 0.4rem; color: var(--pencil); font-size: 0.9rem; }
+  .setting { display: flex; align-items: center; gap: 1.2rem; padding: 0.9rem 0; border-top: 1px solid var(--rule-line); }
+  .setting:first-of-type { border-top: 0; }
+  .setting h3 { margin: 0; font-size: 0.98rem; }
+  .setting p { margin: 0.1rem 0 0; color: var(--pencil); font-size: 0.86rem; max-width: 52ch; }
+  .setting > :last-child { margin-left: auto; flex: none; }
+  .setting-foot { display: flex; justify-content: space-between; gap: 1rem; padding: 0 0 0.8rem; font-size: 0.82rem; color: var(--pencil); }
+
+
+  .choice { display: inline-flex; flex-wrap: wrap; gap: 0.35rem; justify-content: flex-end; }
+  .choice button {
+    padding: 0.35rem 0.75rem;
+    background: var(--paper-2);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .choice button.on { background: var(--highlight); border-color: var(--highlight); color: var(--highlight-ink); font-weight: 700; }
+  /* Basic's colors sit just under Basic, and only while Basic is picked */
+  .theme-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+  .theme-stack .basic-colors[hidden] { display: none; }
+  .basic-colors button { padding: 0.2rem 0.6rem; font-size: 0.76rem; }
+
+  .switch {
+    position: relative;
+    width: 42px; height: 24px;
+    background: var(--edge);
+    border: 0;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 18px; height: 18px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform 0.2s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--accent); }
+  .switch[aria-checked="true"]::after { transform: translateX(18px); }
+
+  /* ---------------- footer ---------------- */
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1.5rem;
+    padding: 0.8rem 2rem 0.9rem calc(var(--margin) + 1.5rem);
+    border-top: 1px solid var(--edge);
+    background: var(--paper);
+    font-size: 0.82rem;
+    color: var(--pencil);
+  }
+  body.apps-here .nav-out .out { display: none; }
+  /* Music, TV and Browser get the whole height, so no footer there */
+  body.full-panel footer { display: none; }
+  .ver { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; }
+  .ver:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .tip {
+    margin: 0 0 0 auto;
+    max-width: 50ch;
+    text-align: right;
+    font-family: var(--hand);
+    font-size: 0.98rem;
+    color: var(--ink);
+    transition: opacity 0.4s ease;
+  }
+  .tip::before { content: '\2605  '; color: var(--danger); }
+  .tip.fade { opacity: 0; }
+
+  /* ---------------- dialogs ---------------- */
+  .modal {
+    position: fixed; inset: 0; z-index: 40;
+    display: grid; place-items: center;
+    padding: 1.5rem;
+    background: rgba(15, 20, 30, 0.45);
+  }
+  .modal[hidden] { display: none; }
+  .modal-box {
+    width: min(460px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem 1.6rem 1.3rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    animation: rise 0.3s ease;
+  }
+  .modal-step { margin: 0; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pencil); }
+  .modal-box h2 { margin: 0.2rem 0 0.4rem; font-family: var(--hand); font-size: 1.6rem; line-height: 1.2; }
+  .modal-box > p { margin: 0 0 1rem; color: var(--pencil); }
+  .modal-box ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+  .modal-box li { margin-bottom: 0.45rem; }
+  .modal-body { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
+  .modal-body .choice { justify-content: flex-start; }
+  .modal-body .setup-note { margin: 0; color: var(--pencil); }
+  /* the little guy turns up in setup as well */
+  .setup-guy { display: flex; justify-content: center; height: 62px; margin: -4px 0 8px; pointer-events: none; }
+  .setup-guy .rail-guy { position: static; width: 47px; height: 62px; cursor: default; filter: drop-shadow(0 3px 4px rgba(31, 45, 68, 0.16)); }
+  .modal-body > .btn { align-self: flex-start; }
+  /* setup's cloak choices get their own row, so every cloak fits */
+  .setup-cloak .setting { flex-wrap: wrap; }
+  .setup-cloak .setting > div:first-child { flex: 1 1 100%; }
+  .setup-cloak .choice { flex: 1 1 100%; margin-left: 0; justify-content: flex-start; }
+  /* first-load cloak ask */
+  .cloak-ask-choice { justify-content: flex-start; margin-bottom: 0.6rem; }
+  .cloak-ask-hint { margin-bottom: 0.8rem; font-size: 0.82rem; }
+  .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-actions { display: flex; gap: 0.5rem; align-items: center; }
+  body.os .modal-box { background: #14161b; }
+  .modal-actions .spacer { flex: 1; }
+
+  /* things opened in this tab instead of a new one */
+  .viewer { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--paper); }
+  .viewer-bar {
+    display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0.8rem;
+    background: var(--rail); border-bottom: 1px solid var(--edge); font-size: 0.9rem;
+  }
+  .viewer-bar b { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .viewer iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+
+  /* the advanced tools frame */
+  .frame { flex: 1; width: 100%; min-height: 70vh; border: 1px solid var(--edge); border-radius: var(--r); background: #0c0d10; }
+  .frame.blend { border: 0; background: transparent; min-height: 80vh; }
+  /* Music, TV and Browser fill the page: no title, search or buttons above them */
+  body.app-open .topbar { display: none; }
+  body.app-open .main { height: 100vh; }
+  body.app-open .content { height: 100vh; overflow: hidden; padding: 0; }
+  body.app-open .frame.blend { min-height: 0; height: 100%; border-radius: 0; }
+
+
+  /* ---------------- OS look: a sidebar desktop over your own picture ----------------
+     A layout choice on top of the color theme: square, see-through dark panels,
+     a slim sidebar with search, and Home as a big title with a big search. */
+  .os-only { display: none; }
+  body.os {
+    --r: 0px; --shadow: none;
+    --card: rgba(14, 16, 21, 0.74); --paper-2: rgba(255, 255, 255, 0.06); --rail: rgba(10, 12, 16, 0.82);
+    --edge: rgba(255, 255, 255, 0.1); --rule-line: rgba(255, 255, 255, 0.06); --highlight: rgba(255, 255, 255, 0.12);
+    background: #0e1014;
+  }
+  body.os.has-bg { background: #0e1014 var(--os-bg) center / cover no-repeat; }
+  body.os .main, body.os footer { background: transparent; }
+  body.os footer, body.os .topbar h1, body:not(.os) .os-setting { display: none; }
+  body.os .topbar { position: fixed; top: 0.8rem; right: 1rem; z-index: 25; padding: 0; }
+  body.os .content { padding-top: 3.4rem; }
+  body.os.app-open .content { padding-top: 0; }
+  body.os .nav-btn.os-only { display: flex; }
+  body.os .icon-btn.os-only { display: grid; }
+  body.os .nav-btn::before { display: none; }
+  body.os .nav-btn { padding-left: 0.75rem; }
+  body.os .nav-btn.active { background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+  .rail-search { padding: 0 0.9rem 0.7rem; }
+  body.os .rail-search .search, body.os .rail-search .search:focus { width: 100%; }
+  body.os .rail-search .results { left: 0; right: auto; width: 300px; }
+  .walls { display: grid; grid-template-columns: repeat(3, 96px); gap: 0.45rem; }
+  .wall { aspect-ratio: 16 / 9; padding: 0; background: var(--paper-2) center / cover; border: 2px solid var(--edge); border-radius: var(--r); cursor: pointer; }
+  .wall.on { border-color: var(--accent); }
+  .wall-text { display: grid; place-items: center; font-size: 0.78rem; color: var(--ink); }
+  .modal-body .walls { grid-template-columns: repeat(3, 1fr); }
+  body.os .rail-top { justify-content: flex-start; gap: 0.6rem; padding-left: 0.9rem; }
+  /* the sidebar folds down to its icons: the width eases, the words fade, the icons stay put */
+  body.os .rail { transition: width 0.22s ease; }
+  body.os .main { transition: margin-left 0.22s ease; }
+  body.os .brand, body.os .nav-btn span, body.os .rail-search, body.os .rail-foot { transition: opacity 0.15s ease; white-space: nowrap; }
+  body.os.rail-mini .rail { width: 64px; overflow: hidden; }
+  body.os.rail-mini .main { margin-left: 64px; }
+  body.os.rail-mini .brand, body.os.rail-mini .nav-btn span, body.os.rail-mini .nav-btn .out,
+  body.os.rail-mini .rail-foot, body.os.rail-mini .rail-search { opacity: 0; pointer-events: none; }
+  /* leaving Home, the search box drops into the sidebar */
+  .search-wrap.arrive { animation: search-in 0.25s ease; }
+  @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }
+  .nav.tabs-drop { animation: tabs-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-drop { from { opacity: 0.35; transform: translateY(-42px); } }
+  /* returning Home: the tabs and search rise together */
+  .nav.tabs-rise { animation: tabs-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-rise { from { opacity: 0.35; transform: translateY(42px); } }
+  @keyframes search-home { from { opacity: 0; transform: translateY(42px); } }
+
+  /* ---------------- small screens ---------------- */
+  @media (max-width: 760px) {
+    .home-hero { padding: 2rem 0; }
+    body.os.rail-mini .main { margin-left: 0; }
+    body.os.rail-mini .rail { width: auto; }
+    body { overflow: auto; }
+    .shell { display: block; height: auto; }
+    .rail { position: static; width: auto; border-right: 0; border-bottom: 1px solid var(--edge); }
+    .rail-top { display: none; }
+    .nav { padding-top: 0.7rem; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+    .mono { font-size: 1.8rem; }
+    .nav { flex-direction: row; overflow-x: auto; padding-bottom: 0.7rem; }
+    .nav-btn { width: auto; flex: none; }
+    .rail-foot { display: none; }
+    .main { margin-left: 0; height: auto; }
+    :root { --margin: 20px; }
+    .topbar { flex-wrap: wrap; padding: 1rem 1rem 0.5rem calc(var(--margin) + 1rem); }
+    .topbar-right { margin-left: 0; width: 100%; }
+    .search, .search:focus { width: 100%; }
+    .search-wrap { flex: 1; }
+    .results { width: 100%; }
+    .content { padding: 0.4rem 1rem 2rem calc(var(--margin) + 1rem); overflow: visible; }
+    footer { padding: 0.8rem 1rem 0.9rem calc(var(--margin) + 1rem); }
+    .tip { margin: 0; text-align: left; }
+    .setting { flex-wrap: wrap; }
+    .setting > :last-child { margin-left: 0; }
+    .choice { justify-content: flex-start; }
+    .theme-stack { align-items: flex-start; }
+  }
+
+  /* version milestone: a quiet reveal. A line draws, the number rises from
+     behind it, then a short note. Only transform and opacity move. */
+  .milestone { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 1.5rem; background: rgba(5, 7, 12, 0.94); cursor: pointer; animation: ms-fade 0.5s ease both; }
+  .milestone[hidden] { display: none; }
+  .milestone-inner { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; text-align: center; color: #f2f4f8; }
+  .ms-name { margin: 0; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.42em; text-transform: uppercase; color: rgba(242, 244, 248, 0.6); animation: ms-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both; }
+  .ms-mask { overflow: hidden; padding: 0 0.1em; }
+  .ms-num { margin: 0; font-size: clamp(4.5rem, 16vw, 8.5rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.04em; animation: ms-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s both; }
+  .ms-line { display: block; width: min(320px, 70vw); height: 1px; background: rgba(242, 244, 248, 0.5); animation: ms-draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both; }
+  @keyframes ms-fade { from { opacity: 0; } }
+  @keyframes ms-up { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes ms-rise { from { transform: translateY(105%); } }
+  @keyframes ms-draw { from { opacity: 0; transform: scaleX(0); } }
+  .milestone-msg { margin: 0.4rem 0 0; font-size: 1.05rem; font-weight: 700; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .milestone-msg.on { opacity: 1; transform: none; }
+  .milestone-hint { margin: 0; font-size: 0.8rem; color: rgba(242, 244, 248, 0.55); opacity: 0; transition: opacity 0.5s ease 0.3s; }
+  .milestone-msg.on + .milestone-hint { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .milestone-msg, .milestone-hint { opacity: 1; transform: none; }
+    .curtain { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="curtain" aria-hidden="true"></div>
+
+  <div class="shell">
+    <nav class="rail" aria-label="Sections">
+      <div class="rail-top">
+        <button class="icon-btn os-only" id="rail-collapse" type="button" aria-label="Fold the sidebar" title="Fold the sidebar">
+          <svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M6 2.5v11"/></svg>
+        </button>
+        <p class="brand">Chalk<span>Bored</span></p>
+      </div>
+      <div class="rail-search" id="rail-search-slot"></div>
+
+      <div class="nav">
+        <button class="nav-btn active" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
+          <svg viewBox="0 0 16 16"><path d="M2.5 7.2 8 2.5l5.5 4.7V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.8V9.2h3.2v4.6"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
+          <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
+          <span>Games</span><span class="tally" id="tally-games"></span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
+          <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
+          <span>Chalk Music</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="tv" id="nav-tv" style="--tab:#c9a45f">
+          <svg viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="9" rx="1.5"/><path d="M5.5 1.5 8 4l2.5-2.5"/></svg>
+          <span>Chalk TV</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="browser" id="nav-browser" style="--tab:#b18cd9">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2c1.8 1.7 2.7 3.8 2.7 6S9.8 12.3 8 14M8 2C6.2 3.7 5.3 5.8 5.3 8s.9 4.3 2.7 6"/></svg>
+          <span>Chalk Browser</span>
+        </button>
+      </div>
+
+      <div class="rail-foot">
+        <div class="rail-guy" id="rail-guy" aria-label="A little chalk figure"></div>
+        <p class="rail-note">ChalkBored &middot; made for fun</p>
+      </div>
+
+    </nav>
+
+    <div class="main">
+      <header class="topbar">
+        <h1><span class="scribble">ChalkBored</span></h1>
+        <div class="topbar-right">
+          <div class="search-wrap">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+            <input class="search" id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
+            <div class="results" id="results" hidden></div>
+          </div>
+          <button class="icon-btn" id="gear" type="button" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M10.3 2.6h3.4l.5 2.6c.7.3 1.3.6 1.9 1.1l2.5-.9 1.7 2.9-2 1.8c.1.7.1 1.4 0 2.1l2 1.8-1.7 2.9-2.5-.9c-.6.5-1.2.8-1.9 1.1l-.5 2.6h-3.4l-.5-2.6c-.7-.3-1.3-.6-1.9-1.1l-2.5.9-1.7-2.9 2-1.8a6.6 6.6 0 0 1 0-2.1l-2-1.8 1.7-2.9 2.5.9c.6-.5 1.2-.8 1.9-1.1z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- home: a place to start -->
+        <section class="panel active" id="panel-home">
+          <div class="home-hero">
+            <h2 class="home-title" id="home-title">ChalkBored</h2>
+            <div id="hero-search-slot"></div>
+            <p class="hello-meta">
+              <span class="meta-link static" id="stat-online" title="People online now"><span class="stat-dot"></span><b id="online-count" aria-live="polite">&hellip;</b> <span id="online-note">online now</span></span>
+              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2 Early Access</b> <span id="updated-when">updated Nov 6 · what’s new</span></button>
+            </p>
+          </div>
+          <div class="home-start">
+            <p class="section-label" id="home-label">Highlighted games</p>
+            <div class="cards" id="home-games"></div>
+          </div>
+        </section>
+
+        <!-- brain exercises: short practice activities for study breaks -->
+        <section class="panel" id="panel-games">
+          <div class="cards" id="games"></div>
+        </section>
+
+        <section class="panel flush" id="panel-music"></section>
+        <section class="panel flush" id="panel-tv"></section>
+        <section class="panel flush" id="panel-browser"></section>
+
+
+
+        <!-- settings: how the notebook looks and opens -->
+        <section class="panel" id="panel-settings">
+          <p class="lead"><b>Settings.</b> Saved in this browser only.</p>
+          <div class="settings">
+
+            
+            <div class="group">
+              <h2>Look</h2>
+              <p>How ChalkBored looks.</p>
+              <div class="setting os-setting">
+                <div><h3>Wallpaper</h3><p>Your own picture stays on this device.</p></div>
+                <div id="wall-pick"></div>
+                <input type="file" id="bg-file" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Tab cloak</h2>
+              <p>What this tab and opened games pretend to be.</p>
+              <div class="setting">
+                <div><h3>Subject</h3><p>Changes the tab name and icon.</p></div>
+                <div class="choice" id="disguise-choice"></div>
+              </div>
+              <div class="setting">
+                <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open a game card.</p></div>
+                <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
+              </div>
+              <div class="setting">
+                <div><h3>Open in a blank tab</h3><p>On launch, ChalkBored opens itself in a blank tab wearing the cloak, so the address bar never shows it.</p></div>
+                <button class="switch" id="blank-launch" type="button" role="switch" aria-checked="false" aria-label="Open in a blank tab"></button>
+              </div>
+              <div class="setting">
+                <div><h3>Cloak this page</h3><p>Open ChalkBored in a blank tab wearing the cloak right now.</p></div>
+                <button class="btn" id="cloak-now" type="button">Cloak this page</button>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Advanced &amp; experimental</h2>
+              <p>How things opened from here behave.</p>
+              <div class="setting">
+                <div><h3>No New Tabs</h3><p>Games open on top of this page instead of a new tab.</p></div>
+                <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
+              </div>
+              <div class="setting">
+                <div><h3>The little guy</h3><p>A little chalk figure climbs the tab bar and does his own thing. Drag him around; turn him off for a still page.</p></div>
+                <button class="switch" id="show-guy" type="button" role="switch" aria-checked="true" aria-label="The little guy"></button>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Setup</h2>
+              <div class="setting">
+                <div><h3>First-time setup</h3><p>Walk through setup again.</p></div>
+                <button class="btn" id="rerun-setup" type="button">Run setup again</button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.2 Early Access</button></span>
+        <p class="tip" id="tip"></p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- first-time setup -->
+  <div class="modal" id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
+    <div class="modal-box">
+      <div class="setup-guy" id="setup-guy" aria-hidden="true"></div>
+      <p class="modal-step" id="setup-step"></p>
+      <h2 id="setup-title"></h2>
+      <p id="setup-text"></p>
+      <div class="modal-body" id="setup-body"></div>
+      <div class="modal-actions">
+        <button class="btn" id="setup-back" type="button">Back</button>
+        <span class="spacer"></span>
+        <button class="btn primary" id="setup-next" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- first load: how games should open -->
+  <div class="modal" id="cloak-ask" hidden role="dialog" aria-modal="true" aria-labelledby="cloak-ask-title">
+    <div class="modal-box">
+      <p class="modal-step">Opening games</p>
+      <h2 id="cloak-ask-title">Open games cloaked?</h2>
+      <p>Pick a cloak and games open in a tab that looks like it. If your browser asks to allow pop-ups, allow them for ChalkBored &mdash; otherwise the cloaked tab can&rsquo;t open.</p>
+      <div class="choice cloak-ask-choice" id="cloak-ask-choice"></div>
+      <p class="cloak-ask-hint">You can change this any time in Settings.</p>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="cloak-ask-later" type="button">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- version milestone screen, shown once before what's new -->
+  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.2">
+    <div class="milestone-inner">
+      <p class="ms-name">ChalkBored</p>
+      <div class="ms-mask"><p class="ms-num">1.2</p></div>
+      <span class="ms-line" aria-hidden="true"></span>
+      <p class="milestone-msg" id="milestone-msg">A little guy with a lot of feelings.</p>
+      <p class="milestone-hint">Click anywhere to see what’s new</p>
+    </div>
+  </div>
+
+  <!-- patch notes -->
+  <div class="modal" id="notes" hidden role="dialog" aria-modal="true" aria-labelledby="notes-title">
+    <div class="modal-box">
+      <p class="modal-step">What's new</p>
+      <h2 id="notes-title">ChalkBored 1.2</h2>
+      <ul>
+        <li><b>The little guy has feelings now:</b> five faces, a mood meter above the footer, and a landing that settles instead of snapping.</li>
+        <li><b>He tags along through setup,</b> pulling a face at every step.</li>
+        <li><b>Home spotlights</b> Eaglercraft 1.5, Learn to Fly 3, Fears to Fathom and Speed Stars.</li>
+        <li><b>Learn to Fly 3</b> uses our own Flash player now, so no CDN can take it down.</li>
+      </ul>
+      <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
+    </div>
+  </div>
+
+  <!-- things opened here instead of in a new tab -->
+  <div class="viewer" id="viewer" hidden>
+    <div class="viewer-bar">
+      <button class="btn" id="viewer-back" type="button" hidden>&lsaquo; Back</button>
+      <b id="viewer-title"></b>
+      <button class="btn" id="viewer-full" type="button">Fullscreen</button>
+      <button class="btn" id="viewer-close" type="button">Close</button>
+    </div>
+  </div>
+
+  
+  
+  <script>
+    // ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card ----
+    const LIST = {
+      lessons: [
+        { name: '.BTD?'                           , path: 'LESSONS/Balloon-Math-1/index.html' },
+        { name: '.BTD2?'                          , path: 'LESSONS/Balloon-Math-2/index.html' },
+        { name: '.BTD~3?'                         , path: 'LESSONS/Balloon-Math-3/index.html' },
+        { name: '.BTD4?'                          , path: 'LESSONS/Bloons Math Loader.html' },
+        { name: '.BTD~5?'                         , path: 'LESSONS/Balloon-Math-5/index.html' },
+        { name: '.L35rn;to;Fly?'                  , path: 'LESSONS/AeroDynamics-1/index.html' },
+        { name: '.L35rn;to;Fly;2?'                , path: 'LESSONS/AeroDynamics-2/index.html' },
+        { name: '.L35rn;to;Fly;~3?'               , path: 'LESSONS/AeroDynamics-Loader.html' },
+        { name: '.R5gdoll;Arch3rs?'               , path: 'LESSONS/Learn-Archery.html' },
+        { name: '.R5gdoll;Hit?'                   , path: 'LESSONS/Ragdoll-Physics/index.html' },
+        { name: '.Slop3?'                         , path: 'LESSONS/Slope-main/Slope-main/index.html' },
+        { name: '.Slop3;2?'                       , path: 'LESSONS/Hill-Physics-2/index.html' },
+        { name: '.Subw5y;Surf3rs?'                , path: 'LESSONS/Rail-Runner/index.html' },
+        { name: '.Esc5p3;Ro5d?'                   , path: 'LESSONS/Learn-Car-Maintenance/index.html' },
+        { name: '.Supr3m3;Du3list?'               , path: 'LESSONS/Duel-Physics/index.html' },
+        { name: '.E5gl3rcr5ft;1.~5?'                           , path: 'LESSONS/forgecraft.1.5.html' },
+        { name: '.E5gl3rcr5ft;1.8?'               , path: 'LESSONS/forgecraft.html' },
+        { name: '.E5gl3rcr5ft;1.12?'              , path: 'LESSONS/forgecraft.1.12.html' },
+        { name: '.E5gl3rcr5ft;26.2?'              , path: 'LESSONS/forgecraft-26.2/index.html' },
+        { name: '.E5gl3rcr5ft;26.~3?'                         , path: 'LESSONS/forgecraft-26.3/index.html' },
+        { name: '.R3tro;Bowl?'                    , path: 'LESSONS/rb-main/index.html' },
+        { name: '.Footb5ll;Bros?'                 , path: 'LESSONS/football/index.html' },
+        { name: '.B5sk3t;Bros?'                   , path: 'LESSONS/Court-Physics/index.html' },
+        { name: '.Wr3stl3;Bros?'                  , path: 'LESSONS/Grappling-Physics/index.html' },
+        { name: '.B5sk3tb5ll;L3g3nds?'            , path: 'LESSONS/Court-Legends/index.html' },
+        { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html' },
+        { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html' },
+        { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
+        { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
+        { name: '.FNAF:;Sist3r;Loc5tion?'         , path: 'LESSONS/Night-Shift-Logs-SL/index.html' },
+        { name: '.F35rs;to;F5thom?'                           , path: 'LESSONS/House-Sitting/index.html' },
+        { name: '.Snow;Rid3r;~3D?'                , path: 'LESSONS/How-Sleds-Work/index.html' },
+        { name: '.Pig3on;Asc3nt?'                 , path: 'LESSONS/Pigeon/index.html' },
+        { name: '.Stickm5n;Dismount?'             , path: 'LESSONS/Motion-Lab-Dismount/index.html' },
+        { name: '.Th3;Fin5l;E5rth;2?'             , path: 'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html' },
+        { name: '.Townsc5p3r?'                    , path: 'LESSONS/City-Planning/index.html' },
+        { name: '.Grindcr5ft?'                    , path: 'LESSONS/Resource-Gathering/index.html' },
+        { name: '.S5ndbox3ls?'                    , path: 'LESSONS/Particle-Chemistry/index.html' },
+        { name: '.Th3r3;Is;No;G5m3?'              , path: 'LESSONS/Empty-Lesson/index.html' },
+        { name: '.Stick;W5r?'                     , path: 'LESSONS/Ancient-Warfare-History/index.html' },
+        { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
+        { name: '.OvO?'                           , path: 'LESSONS/Parkour-Physics/index.html' },
+        { name: '.Pl5nts;vs.;Zombi3s?'            , path: 'LESSONS/Botany-Defense-1/index.html' },
+        { name: '.Pl5nts;vs.;Zombi3s;2?'          , path: 'LESSONS/Botany-Defense-2/index.html' },
+        { name: '.Crossy;Ro5d?'                   , path: 'LESSONS/Road-Safety-Lab/index.html' },
+        { name: '.T3mpl3;Run;2?'                  , path: 'LESSONS/Temple-Architecture/index.html' },
+        { name: '.Dog3;Mining;Simul5tor?'         , path: 'LESSONS/Crypto-Economics/index.html' },
+        { name: '.Run;~3?'                        , path: 'LESSONS/Space-Tunnel-3/index.html' },
+        { name: '.G3om3try;D5sh?', path: 'LESSONS/Rhythm-Geometry-Lite/index.html' },
+        { name: '.Cooki3;Click3r?'                , path: 'LESSONS/Pastry-Clicker/index.html' },
+        { name: '.Moto;X~3M;2?'                   , path: 'LESSONS/moto/index.html' },
+        { name: '.Moto;X~3M;Pool;P5rty?'          , path: 'LESSONS/Motion-Lab-Pool/index.html' },
+        { name: '.Moto;X~3M;Spooky;L5nd?'         , path: 'LESSONS/Motion-Lab-Spooky/index.html' },
+        { name: '.Moto;X~3M;Wint3r?'              , path: 'LESSONS/Motion-Lab-Winter/index.html' },
+        { name: '.Cut;th3;Rop3?'                  , path: 'LESSONS/Rope-Physics-1/index.html' },
+        { name: '.Cut;th3;Rop3:;Holid5y;Gift?'    , path: 'LESSONS/Rope-Physics-Holiday/index.html' },
+        { name: '.Cut;th3;Rop3:;Tim3;Tr5v3l?'     , path: 'LESSONS/Rope-Physics-Time/index.html' },
+        { name: '.Duck;Lif3?'                     , path: 'LESSONS/Bird-Training-1/index.html' },
+        { name: '.Duck;Lif3;2?'                   , path: 'LESSONS/Bird-Training-2/index.html' },
+        { name: '.Duck;Lif3;~3?'                  , path: 'LESSONS/Bird-Training-3/index.html' },
+        { name: '.Duck;Lif3;4?'                   , path: 'LESSONS/Bird-Training-4/index.html' },
+        { name: '.Duck;Lif3;~5?'                  , path: 'LESSONS/Bird-Training-5/index.html' },
+        { name: '.Among;Us?'                      , path: 'LESSONS/Crew-Mission/index.html' },
+        { name: '.Bitlif3?'                       , path: 'LESSONS/Life-Skills/index.html' },
+        { name: '.Bloxors?'                       , path: 'LESSONS/Block-Logic/index.html' },
+        { name: '.Ch3ss?'                         , path: 'LESSONS/Board-Games-Club/index.html' },
+        { name: '.Chrom3;Dino?'                   , path: 'LESSONS/Fossil-Lab/index.html' },
+        { name: '.Fl5ppy;Bird?'                   , path: 'LESSONS/Flap-Physics/index.html' },
+        { name: '.Frid5y;Night;Funkin?'           , path: 'LESSONS/Rhythm-Crew/index.html' },
+        { name: '.Fruit;Ninj5?'                   , path: 'LESSONS/Fruit-Slicing/index.html' },
+        { name: '.G3org3;5nd;th3;Print3r?'        , path: 'LESSONS/Print-Shop/index.html' },
+        { name: '.Full;Scr33n;M5rio?'             , path: 'LESSONS/Plumber-Physics/Source/index.htm' },
+        { name: '.Gunspin?'                       , path: 'LESSONS/Momentum-Lab/index.html' },
+        { name: '.Idl3;Br35kout?'                 , path: 'LESSONS/Brick-Clicker/index.html' },
+        { name: '.H5ppy;Wh33ls?'                  , path: 'LESSONS/Crash-Test-Lab/index.html' },
+        { name: '.Lin3;Rid3r?'                    , path: 'LESSONS/Line-Drawing-Physics/index.html' },
+        { name: '.M35t;Boy?'                      , path: 'LESSONS/Square-Platformer/index.html' },
+        { name: '.Roofstop;Snip3rs?'              , path: 'LESSONS/Rooftop-Angles/index.html' },
+        { name: '.SM64?'                          , path: 'LESSONS/Polygon-Platformer/index.html' },
+        { name: '.B5ttl3;for;Gondor?'             , path: 'LESSONS/Siege-History/index.html' },
+        { name: '.Big;R3d;Button?'                , path: 'LESSONS/Emergency-Drill/index.html' },
+        { name: '.Binding;of;Is55c?'              , path: 'LESSONS/Basement-Diary/index.html' },
+        { name: '.Sp33d;St5rs?'                   , path: 'LESSONS/Track-Sprints/index.html' },
+        { name: '.R5ft?'                          , path: 'LESSONS/Ocean-Survival/index.html' },
+        { name: '.Sl3nd3r?'                       , path: 'LESSONS/Forest-Logs/index.html' },
+        { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
+        { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
+        { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
+        { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
+        { name: '.V3x;~5?'                        , path: 'LESSONS/Room-Escape-5/index.html' },
+        { name: '.V3x;6?'                         , path: 'LESSONS/Room-Escape-6/index.html' },
+        { name: '.V3x;7?'                         , path: 'LESSONS/Room-Escape-7/index.html' },
+        { name: ".P5p5's;B5k3ri5?"                , path: 'LESSONS/Kitchen-Math-Baking/index.html' },
+        { name: ".P5p5's;Burg3ri5?"               , path: 'LESSONS/Kitchen-Math-Burgers/index.html' },
+        { name: ".P5p5's;Ch33s3ri5?"              , path: 'LESSONS/Kitchen-Math-Cheese/index.html' },
+        { name: ".P5p5's;Cupc5k3ri5?"             , path: 'LESSONS/Kitchen-Math-Cupcakes/index.html' },
+        { name: ".P5p5's;Donut3ri5?"              , path: 'LESSONS/Kitchen-Math-Donuts/index.html' },
+        { name: ".P5p5's;Fr33z3ri5?"              , path: 'LESSONS/Kitchen-Math-Frozen-Desserts/index.html' },
+        { name: ".P5p5's;Hot;Dogg3ri5?"           , path: 'LESSONS/Kitchen-Math-Hot-Dogs/index.html' },
+        { name: ".P5p5's;P5nc5k3ri5?"             , path: 'LESSONS/Kitchen-Math-Pancakes/index.html' },
+        { name: ".P5p5's;P5st5ri5?"               , path: 'LESSONS/Kitchen-Math-Pasta/index.html' },
+        { name: ".P5p5's;Pizz3ri5?"               , path: 'LESSONS/Kitchen-Math-Pizza/index.html' },
+        { name: ".P5p5's;Scoop3ri5?"              , path: 'LESSONS/Kitchen-Math-Ice-Cream/index.html' },
+        { name: ".P5p5's;Sushiri5?"               , path: 'LESSONS/Kitchen-Math-Sushi/index.html' },
+        { name: ".P5p5's;T5co;Mi5?"               , path: 'LESSONS/Kitchen-Math-Tacos/index.html' },
+        { name: ".P5p5's;Wing3ri5?"               , path: 'LESSONS/Kitchen-Math-Wings/index.html' },
+        { name: ".World's;H5rd3st;G5m3?"          , path: 'LESSONS/Hardest-Path-1/index.html' },
+        { name: ".World's;H5rd3st;G5m3;2?"        , path: 'LESSONS/Hardest-Path-2/index.html' },
+      ],
+    };
+
+    // ---- card pictures ----
+    // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
+    // A lesson missing from here keeps its initials.
+    const ART = {      'LESSONS/forgecraft.1.5.html':                     { src: 'LESSONS/art/forgecraft.webp', bg: '#6b4a2f', fit: 'cover' },
+      'LESSONS/Crew-Mission/index.html':                 { src: 'LESSONS/art/crew-mission.webp', bg: '#3a2f4a', fit: 'cover' },
+      'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/board-games-club.webp', bg: '#2b2b26', fit: 'cover' },
+      'LESSONS/Line-Drawing-Physics/index.html':         { src: 'LESSONS/art/line-drawing-physics.webp', bg: '#1b2430', fit: 'cover' },
+      'LESSONS/Square-Platformer/index.html':            { src: 'LESSONS/art/square-platformer.webp', bg: '#2a1518', fit: 'cover' },
+      'LESSONS/Basement-Diary/index.html':               { src: 'LESSONS/art/basement-diary.webp', bg: '#171412', fit: 'cover' },
+      'LESSONS/Night-Watch/index.html':                  { src: 'LESSONS/art/night-watch.webp', bg: '#140f10', fit: 'cover' },
+      'LESSONS/Study-Hall-Remake/index.html':            { src: 'LESSONS/art/study-hall-remake.webp', bg: '#204020', fit: 'cover' },
+
+      'LESSONS/City-Planning/index.html':             { src: 'LESSONS/City-Planning/img/cover.jpg', bg: '#0d1b2a', fit: 'contain' },
+      'LESSONS/Grappling-Physics/index.html':        { src: 'LESSONS/art/grappling-physics.webp', bg: '#2a2f3a', fit: 'cover' },
+      'LESSONS/Rhythm-Geometry/index.html':          { src: 'LESSONS/art/rhythm-geometry.webp', bg: '#0b2a4a', fit: 'contain' },
+      'LESSONS/Rhythm-Geometry-Lite/index.html':     { src: 'LESSONS/art/rhythm-geometry-lite.webp', bg: '#0b2a4a', fit: 'cover' },
+      'LESSONS/Hill-Physics-2/index.html':             { src: 'LESSONS/art/hill-physics-2.webp', bg: '#f4f2ee', fit: 'cover' },
+      'LESSONS/Motion-Lab-Dismount/index.html':        { src: 'LESSONS/art/motion-lab-dismount.webp', bg: '#f4f2ee', fit: 'cover' },
+      'LESSONS/Pastry-Clicker/index.html':             { src: 'LESSONS/Pastry-Clicker/img/perfectCookie.png', bg: '#2a1a10', fit: 'contain' },
+      'LESSONS/Study-Hall/index.html':                 { src: 'LESSONS/Study-Hall/icon.png', bg: '#087F0B', fit: 'contain' },
+      'LESSONS/Slope-main/Slope-main/index.html':      { src: 'LESSONS/Slope-main/Slope-main/slope.png', bg: '#000', fit: 'contain' },
+      'LESSONS/rb-main/index.html':                    { src: 'LESSONS/rb-main/img/icon.jpg', bg: '#5b9a2f', fit: 'contain' },
+      'LESSONS/How-Sleds-Work/index.html':             { src: 'LESSONS/How-Sleds-Work/TemplateData/snow-rider-logo.png', bg: '#bfe3f5', fit: 'contain' },
+      'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html':
+        { src: 'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/icons/favicon.png', bg: '#0d1530', fit: 'contain', pixel: true },
+      'LESSONS/Learn-Car-Maintenance/index.html':      { src: 'LESSONS/Learn-Car-Maintenance/loading.png', bg: '#f5c518', fit: 'cover' },
+      'LESSONS/Rail-Runner/index.html':                { src: 'LESSONS/art/rail-runner.webp', bg: '#3a8fd6', fit: 'cover' },
+      'LESSONS/Pigeon/index.html':                     { src: 'LESSONS/art/pigeon-ascent.png', bg: '#3b9e64', fit: 'cover', pixel: true },
+      'LESSONS/AeroDynamics-Loader.html':              { src: 'LESSONS/art/learn-to-fly-3.webp', bg: '#7cc4f2', fit: 'cover', pos: 'center 80%' },
+      'LESSONS/Bloons Math Loader.html':               { src: 'LESSONS/art/btd4.png', bg: '#8fd16a', fit: 'cover', pos: 'center 0%' },
+      'LESSONS/Learn-Archery.html':                    { src: 'LESSONS/art/learn-archery.jpg', bg: '#2a2a2a', fit: 'cover', pos: 'center 12%' },
+      'LESSONS/football/index.html':                   { src: 'LESSONS/art/field-physics.webp', bg: '#3f9b3a', fit: 'cover', pos: 'center 0%' },
+      'LESSONS/moto/index.html':                       { src: 'LESSONS/art/motion-lab-2.webp', bg: '#ff9f43', fit: 'cover', pos: 'center 30%' },
+      'LESSONS/forgecraft.html':                       { src: 'LESSONS/art/forgecraft.webp', bg: '#87ceeb', fit: 'cover' },
+      'LESSONS/AeroDynamics-1/index.html':             { src: 'LESSONS/art/aerodynamics-1.webp', bg: '#bfe6f7', fit: 'cover' },
+      'LESSONS/AeroDynamics-2/index.html':             { src: 'LESSONS/art/aerodynamics-2.webp', bg: '#bfe6f7', fit: 'cover' },
+      'LESSONS/Motion-Lab-Pool/index.html':            { src: 'LESSONS/art/motion-lab-pool.webp', bg: '#7fd3f0', fit: 'cover' },
+      'LESSONS/Motion-Lab-Spooky/index.html':          { src: 'LESSONS/art/motion-lab-spooky.webp', bg: '#1d2340', fit: 'cover' },
+      'LESSONS/Motion-Lab-Winter/index.html':          { src: 'LESSONS/art/motion-lab-winter.webp', bg: '#cfe6f5', fit: 'cover' },
+      'LESSONS/Night-Shift-Logs-1/index.html':         { src: 'LESSONS/art/night-shift-logs-1.webp', bg: '#000', fit: 'cover', pos: '60% 50%' },
+      'LESSONS/Night-Shift-Logs-2/index.html':         { src: 'LESSONS/art/night-shift-logs-2.webp', bg: '#000', fit: 'cover' },
+      'LESSONS/Night-Shift-Logs-3/index.html':         { src: 'LESSONS/art/night-shift-logs-3.webp', bg: '#000', fit: 'cover' },
+      'LESSONS/Night-Shift-Logs-4/index.html':         { src: 'LESSONS/art/night-shift-logs-4.webp', bg: '#8b0000', fit: 'cover' },
+      'LESSONS/Night-Shift-Logs-SL/index.html':        { src: 'LESSONS/art/night-shift-logs-sl.webp', bg: '#1a1240', fit: 'cover' },
+      'LESSONS/Particle-Chemistry/index.html':         { src: 'LESSONS/art/particle-chemistry.webp', bg: '#000', fit: 'contain', pixel: true },
+      'LESSONS/Empty-Lesson/index.html':               { src: 'LESSONS/art/empty-lesson.webp', bg: '#000', fit: 'contain' },
+      'LESSONS/Ancient-Warfare-History/index.html':    { src: 'LESSONS/art/ancient-warfare-history.webp', bg: '#f5d000', fit: 'cover' },
+      'LESSONS/Parkour-Physics/index.html':            { src: 'LESSONS/art/parkour-physics.webp', bg: '#000', fit: 'contain', pixel: true },
+      'LESSONS/Botany-Defense-1/index.html':           { src: 'LESSONS/art/botany-defense-1.webp', bg: '#f5a623', fit: 'cover' },
+      'LESSONS/Botany-Defense-2/index.html':           { src: 'LESSONS/art/botany-defense-2.webp', bg: '#5a3d8a', fit: 'cover' },
+      'LESSONS/Road-Safety-Lab/index.html':            { src: 'LESSONS/art/road-safety-lab.webp', bg: '#4a7d4f', fit: 'contain' },
+      'LESSONS/Temple-Architecture/index.html':        { src: 'LESSONS/art/temple-architecture.webp', bg: '#2f7a2f', fit: 'cover' },
+      'LESSONS/Crypto-Economics/index.html':           { src: 'LESSONS/art/crypto-economics.webp', bg: '#f3e2b3', fit: 'cover' },
+      'LESSONS/Room-Escape-3/index.html':              { src: 'LESSONS/art/room-escape-3.webp', bg: '#fff', fit: 'cover' },
+      'LESSONS/Room-Escape-4/index.html':              { src: 'LESSONS/art/room-escape-4.webp', bg: '#fff', fit: 'cover' },
+      'LESSONS/Room-Escape-5/index.html':              { src: 'LESSONS/art/room-escape-5.webp', bg: '#fff', fit: 'cover' },
+      'LESSONS/Room-Escape-6/index.html':              { src: 'LESSONS/art/room-escape-6.webp', bg: '#fff', fit: 'cover' },
+      'LESSONS/Room-Escape-7/index.html':              { src: 'LESSONS/art/room-escape-7.webp', bg: '#fff', fit: 'cover' },
+      'LESSONS/Court-Physics/index.html':              { src: 'LESSONS/art/court-physics.webp', bg: '#ff8a00', fit: 'cover' },
+      'LESSONS/Court-Legends/index.html':              { src: 'LESSONS/art/court-legends.webp', bg: '#1d3a8a', fit: 'cover' },
+      'LESSONS/Rope-Physics-1/index.html':             { src: 'LESSONS/art/rope-physics-1.webp', bg: '#f5d58a', fit: 'cover' },
+      'LESSONS/Rope-Physics-Holiday/index.html':       { src: 'LESSONS/art/rope-physics-holiday.webp', bg: '#ffffff', fit: 'cover' },
+      'LESSONS/Rope-Physics-Time/index.html':          { src: 'LESSONS/art/rope-physics-time.webp', bg: '#f2c6d8', fit: 'cover' },
+      'LESSONS/Resource-Gathering/index.html':         { src: 'LESSONS/art/resource-gathering.webp', bg: '#6a8f3a', fit: 'cover' },
+      'LESSONS/Hardest-Path-1/index.html':             { src: 'LESSONS/art/hardest-path-1.webp', bg: '#b5b5ff', fit: 'cover' },
+      'LESSONS/Hardest-Path-2/index.html':             { src: 'LESSONS/art/hardest-path-2.webp', bg: '#b5b5ff', fit: 'cover' },
+      'LESSONS/Space-Tunnel-3/index.html':             { src: 'LESSONS/art/space-tunnel-3.webp', bg: '#0b2e0b', fit: 'cover' },
+      'LESSONS/Ragdoll-Physics/index.html':            { src: 'LESSONS/art/ragdoll-physics.webp', bg: '#3a3a3a', fit: 'cover' },
+      'LESSONS/Duel-Physics/index.html':               { src: 'LESSONS/art/duel-physics.webp', bg: '#1d5a8f', fit: 'cover' },
+      'LESSONS/Balloon-Math-1/index.html':             { src: 'LESSONS/art/balloon-math-1.webp', bg: '#7cc4f2', fit: 'cover' },
+      'LESSONS/Balloon-Math-2/index.html':             { src: 'LESSONS/art/balloon-math-2.webp', bg: '#3e8ee8', fit: 'cover' },
+      'LESSONS/Bird-Training-1/index.html':            { src: 'LESSONS/art/bird-training-1.webp', bg: '#7ec8f5', fit: 'cover' },
+      'LESSONS/Bird-Training-2/index.html':            { src: 'LESSONS/art/bird-training-2.webp', bg: '#7ec8f5', fit: 'cover' },
+      'LESSONS/Bird-Training-4/index.html':            { src: 'LESSONS/art/bird-training-4.webp', bg: '#7ec8f5', fit: 'cover' },
+      'LESSONS/Ancient-Evolution/index.html':          { src: 'LESSONS/art/ancient-evolution.webp', bg: '#5a7a3a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Burgers/index.html':       { src: 'LESSONS/art/kitchen-math-burgers.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Pizza/index.html':         { src: 'LESSONS/art/kitchen-math-pizza.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Balloon-Math-3/index.html':             { src: 'LESSONS/art/balloon-math-3.webp', bg: '#f2e6b8', fit: 'cover' },
+      'LESSONS/Balloon-Math-5/index.html':             { src: 'LESSONS/art/balloon-math-5.webp', bg: '#6aa84f', fit: 'cover' },
+      'LESSONS/Bird-Training-3/index.html':            { src: 'LESSONS/art/bird-training-3.webp', bg: '#111', fit: 'cover' },
+      'LESSONS/Bird-Training-5/index.html':            { src: 'LESSONS/art/bird-training-5.webp', bg: '#f5a623', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Baking/index.html':        { src: 'LESSONS/art/kitchen-math-baking.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Cheese/index.html':        { src: 'LESSONS/art/kitchen-math-cheese.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Pancakes/index.html':      { src: 'LESSONS/art/kitchen-math-pancakes.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Cupcakes/index.html':      { src: 'LESSONS/art/kitchen-math-cupcakes.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Donuts/index.html':        { src: 'LESSONS/art/kitchen-math-donuts.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Hot-Dogs/index.html':      { src: 'LESSONS/art/kitchen-math-hot-dogs.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Frozen-Desserts/index.html': { src: 'LESSONS/art/kitchen-math-frozen-desserts.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Pasta/index.html':         { src: 'LESSONS/art/kitchen-math-pasta.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Ice-Cream/index.html':     { src: 'LESSONS/art/kitchen-math-ice-cream.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Sushi/index.html':         { src: 'LESSONS/art/kitchen-math-sushi.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Tacos/index.html':         { src: 'LESSONS/art/kitchen-math-tacos.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/Kitchen-Math-Wings/index.html':         { src: 'LESSONS/art/kitchen-math-wings.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/forgecraft.1.12.html':                { src: 'LESSONS/art/forgecraft.webp', bg: '#87ceeb', fit: 'cover' },
+      'LESSONS/forgecraft-26.2/index.html':          { src: 'LESSONS/art/forgecraft.webp', bg: '#5a8f3a', fit: 'cover' },
+      'LESSONS/forgecraft-26.3/index.html':          { src: 'LESSONS/art/forgecraft.webp', bg: '#c48b4a', fit: 'cover' },
+      'LESSONS/Siege-History/index.html': { src: 'LESSONS/art/siege-history.webp', fit: 'cover' },
+      'LESSONS/Emergency-Drill/index.html': { src: 'LESSONS/art/emergency-drill.webp', fit: 'cover' },
+      'LESSONS/Life-Skills/index.html': { src: 'LESSONS/art/life-skills.webp', fit: 'cover' },
+      'LESSONS/Block-Logic/index.html': { src: 'LESSONS/art/block-logic.webp', fit: 'cover' },
+      'LESSONS/Fossil-Lab/index.html': { src: 'LESSONS/art/fossil-lab.webp', fit: 'cover' },
+      'LESSONS/Flap-Physics/index.html': { src: 'LESSONS/art/flap-physics.webp', fit: 'cover' },
+      'LESSONS/Rhythm-Crew/index.html': { src: 'LESSONS/art/rhythm-crew.webp', fit: 'cover' },
+      'LESSONS/Fruit-Slicing/index.html': { src: 'LESSONS/art/fruit-slicing.webp', fit: 'cover' },
+      'LESSONS/Print-Shop/index.html': { src: 'LESSONS/art/print-shop.webp', fit: 'cover' },
+      'LESSONS/Plumber-Physics/Source/index.htm': { src: 'LESSONS/art/plumber-physics.webp', fit: 'cover' },
+      'LESSONS/Momentum-Lab/index.html': { src: 'LESSONS/art/momentum-lab.webp', fit: 'cover' },
+      'LESSONS/Brick-Clicker/index.html': { src: 'LESSONS/art/brick-clicker.webp', fit: 'cover' },
+      'LESSONS/Crash-Test-Lab/index.html': { src: 'LESSONS/art/crash-test-lab.webp', fit: 'cover' },
+      'LESSONS/Rooftop-Angles/index.html': { src: 'LESSONS/art/rooftop-angles.webp', fit: 'cover' },
+      'LESSONS/Polygon-Platformer/index.html': { src: 'LESSONS/art/polygon-platformer.webp', fit: 'cover' },
+      'LESSONS/Track-Sprints/index.html': { src: 'LESSONS/art/track-sprints.webp', fit: 'cover' },
+      'LESSONS/Ocean-Survival/index.html': { src: 'LESSONS/art/ocean-survival.webp', fit: 'cover' },
+      'LESSONS/Forest-Logs/index.html': { src: 'LESSONS/art/forest-logs.webp', fit: 'cover' },
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    // newer covers from the picture drop: these win over the ones above
+    Object.assign(ART, {
+      'LESSONS/House-Sitting/index.html':                { src: 'LESSONS/art/fears-to-fathom.webp', bg: '#141c2b', fit: 'cover' },
+      'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html': { src: 'LESSONS/art/final-earth-2.webp', bg: '#1b1240', fit: 'cover' },
+      'LESSONS/City-Planning/index.html':                { src: 'LESSONS/art/townscaper.webp', bg: '#7ec8b0', fit: 'cover' },
+      'LESSONS/Empty-Lesson/index.html':                 { src: 'LESSONS/art/there-is-no-game.webp', bg: '#3a2f80', fit: 'cover' },
+      'LESSONS/Resource-Gathering/index.html':           { src: 'LESSONS/art/grindcraft.webp', bg: '#6a8f3a', fit: 'cover' },
+      'LESSONS/Ancient-Evolution/index.html':            { src: 'LESSONS/art/age-of-war.webp', bg: '#3a3a2a', fit: 'cover' },
+      'LESSONS/Parkour-Physics/index.html':              { src: 'LESSONS/art/ovo.webp', bg: '#20242c', fit: 'cover' },
+      'LESSONS/Plumber-Physics/Source/index.htm':        { src: 'LESSONS/art/full-screen-mario.webp', bg: '#5c94fc', fit: 'cover' },
+      'LESSONS/Siege-History/index.html':                { src: 'LESSONS/art/battle-for-gondor.webp', bg: '#2a2a33', fit: 'cover' },
+      'LESSONS/Polygon-Platformer/index.html':           { src: 'LESSONS/art/sm64.webp', bg: '#2b6ecb', fit: 'cover' },
+      'LESSONS/Fossil-Lab/index.html':                   { src: 'LESSONS/art/chrome-dino.webp', bg: '#f7f7f7', fit: 'cover' },
+      'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/chess-logo.webp', bg: '#2b2b26', fit: 'cover' },
+    });
+
+    // ---- settings that stick (same storage as before, so nobody loses theirs) ----
+    const SETTINGS_STORE = 'vault-settings';
+    const SEEN_STORE = 'vault-seen-version';
+    const FAVS_STORE = 'vault-favorites';
+    const VERSION = '1.2';
+    const VERSION_LABEL = 'v1.2 Early Access';   // what the footer shows
+    const SETUP_VERSION = '1.2';   // bump this when everyone should see setup again
+    const THEMES = ['basic'];
+    const BASIC_COLORS = [['mono', 'Mono']];
+
+    const DEFAULT_SETTINGS = {
+      showGuy: true,
+      setupDone: false, setupVersion: '', theme: 'basic', basic: 'mono',
+      blockPopups: true,
+      shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
+      railMini: false,         // OS look: sidebar folded down to icons
+      wallpaper: 'hands',      // OS look background: one of WALLPAPERS, 'own' (your picture) or 'none'
+      noNewTabs: false,        // experimental: open things on top of this page instead of a new tab
+      gameArt: true,           // cards with their own art show it
+      disguise: 'classroom',   // what this tab pretends to be
+      askCloak: true,          // ask which cloak to use before opening a game
+      cloakMode: 'classroom',  // the cloak picked last
+      cloakDefaults: false,    // one-time migration for the restored cloak settings
+      cloakAsked: false,       // the first-load cloak question has been shown
+      blankLaunch: false,      // open ChalkBored itself in a cloaked about:blank tab on launch
+    };
+    let settings = Object.assign({}, DEFAULT_SETTINGS);
+    let savedSettings = null;
+    let returningVisitor = false;
+
+    try {
+      savedSettings = JSON.parse(localStorage.getItem(SETTINGS_STORE) || 'null');
+      if (savedSettings) settings = Object.assign(settings, savedSettings);
+      returningVisitor = !!savedSettings;
+    } catch (e) {}
+    if (returningVisitor && !(savedSettings && 'setupDone' in savedSettings)) settings.setupDone = true;
+    // OS look and Mono are the defaults for new people only: older saves keep Classic and Night
+    if (savedSettings && !savedSettings.shell) settings.shell = 'os';
+    if (savedSettings && !savedSettings.basic) settings.basic = 'mono';
+    settings.gameArt = true;   // card pictures are always on now
+    settings.showGuy = settings.showGuy !== false;   // he's on unless you turned him off
+    // Plain look and Movie night are gone; Plain look users get Night instead
+    if (settings.plain) settings.theme = 'night';
+    delete settings.plain;
+    delete settings.layout;
+    delete settings.dev;
+    delete settings.junk;
+    // the AI app and the panic key are gone
+    delete settings.tutor;
+    delete settings.tutorAsked;
+    try { localStorage.removeItem('vault-panic-key'); } catch (e) {}
+    // one look only now: Basic Mono over the OS layout
+    settings.theme = 'basic';
+    if (!BASIC_COLORS.some(([k]) => k === settings.basic)) settings.basic = 'mono';
+    // Chalkboard and Notebook are gone; anything unknown becomes Basic
+    if (!THEMES.includes(settings.theme)) settings.theme = 'basic';
+    // Glass is called Space now, and has no background choices
+    delete settings.glassBg;
+    // the old Home preference is gone
+    delete settings.home;
+    delete settings.rail;
+    // the tide key is always remembered now
+    delete settings.rememberTide;
+    // 1.1: new tabs from games are always blocked, and the homepage opens the vault for everyone once
+    settings.blockPopups = true;
+    // cloaking is back: Google Classroom by default, and ask before opening a game
+    if (!settings.cloakDefaults) {
+      settings.disguise = 'classroom';
+      settings.askCloak = true;
+      settings.cloakMode = 'classroom';
+      settings.cloakDefaults = true;
+    }
+    delete settings.skipMenu;
+    delete settings.openMode;
+    settings.shell = 'os';
+    // saves from before wallpapers keep what they had: their own picture, or plain dark without one
+    if (savedSettings && !('wallpaper' in savedSettings)) settings.wallpaper = 'own';
+    if (!['hands', 'mountains', 'ribbons', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
+
+    function saveSettings() {
+      try { localStorage.setItem(SETTINGS_STORE, JSON.stringify(settings)); } catch (e) {}
+    }
+    // a change made in another tab or app (a look picked in Chat, say) wins over what this page holds
+    window.addEventListener('storage', (e) => {
+      if (e.key !== SETTINGS_STORE || !e.newValue) return;
+      try { Object.assign(settings, JSON.parse(e.newValue)); } catch (err) { return; }
+      applySettings();
+    });
+
+    // typing in a box should never trigger a shortcut
+    function isTyping(e) {
+      const el = e.target;
+      return !!(el && el.closest && el.closest('input, textarea, select, [contenteditable="true"]'));
+    }
+
+    // Stop a window we opened from opening more tabs: no window.open, and links
+    // that try to open elsewhere do nothing. Safe to call more than once.
+    function noNewTabs(w) {
+      try {
+        if (!w || w.__chalkNoTabs) return;
+        w.__chalkNoTabs = true;
+        w.open = function () { return null; };
+        w.document.addEventListener('click', (e) => {
+          const a = e.target && e.target.closest && e.target.closest('a[target], form[target]');
+          if (a && a.target && a.target !== '_self') { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+      } catch (e) { /* cross-origin page: can't reach it */ }
+    }
+
+    // Lessons are same-origin pages, so we can reach inside them to block new tabs.
+    function armWindow(win, blockTabs) {
+      if (!win || !blockTabs) return;
+      const attach = () => {
+        try {
+          noNewTabs(win);
+          win.document.querySelectorAll('iframe').forEach((f) => {
+            noNewTabs(f.contentWindow);
+            f.addEventListener('load', () => noNewTabs(f.contentWindow));
+          });
+        } catch (e) { /* cross-origin page: out of reach */ }
+      };
+      attach();
+      try { win.addEventListener('load', attach); } catch (e) {}
+      [400, 1200, 3000].forEach((t) => setTimeout(attach, t));
+    }
+
+    // Sandbox rules for embedded games when new tabs are blocked: everything a
+    // lesson needs, but no pop-ups and no taking over the tab.
+    const NO_POPUPS_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-downloads allow-orientation-lock allow-presentation';
+
+    // ---- tab cloaks ----
+    const DOCS_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">' +
+        '<path d="M12 4h17l11 11v27a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#4285f4"/>' +
+        '<path d="M29 4v9a2 2 0 0 0 2 2h9z" fill="#a1c2fa"/>' +
+        '<path d="M17 24h14M17 29h14M17 34h9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>' +
+      '</svg>'
+    );
+    const DRIVE_ICON = 'https://www.gstatic.com/images/branding/productlogos/drive_2026/v2/web-32dp/logo_drive_2026_color_1x_web_32dp.png';
+    const CLASSROOM_ICON = 'https://ssl.gstatic.com/classroom/favicon.png';
+
+    // what this tab says it is, and what a cloaked game tab says
+    const DISGUISES = {
+      classroom: { label: 'Google Classroom', title: 'Home - Classroom', icon: CLASSROOM_ICON },
+      docs:      { label: 'Google Docs', title: 'Untitled document - Google Docs', icon: DOCS_ICON },
+      drive:     { label: 'Google Drive', title: 'Home - Google Drive', icon: DRIVE_ICON },
+      google:    { label: 'Google', title: 'Google', icon: 'https://www.google.com/favicon.ico' },
+      off:       null,
+    };
+    const OPEN_MODES = [
+      ['classroom', 'Google Classroom'],
+      ['docs', 'Google Docs'],
+      ['drive', 'Google Drive'],
+      ['google', 'Google'],
+      ['normal', 'Normal tab'],
+    ];
+    const ORIGINAL_TITLE = document.title;
+
+    function setTabLook(doc, title, icon) {
+      doc.title = title;
+      doc.querySelectorAll('link[rel~="icon"]').forEach((l) => l.remove());
+      if (!icon) return;
+      const link = doc.createElement('link');
+      link.rel = 'icon';
+      link.href = icon;
+      doc.head.appendChild(link);
+    }
+
+    function applyDisguise() {
+      const d = DISGUISES[settings.disguise];
+      setTabLook(document, d ? d.title : ORIGINAL_TITLE, d ? d.icon : new URL('favicon.svg', location.href).href);
+    }
+
+    function openCloakedTab(fullUrl, mode, title) {
+      const win = window.open('about:blank', '_blank');
+      if (!win) {
+        alert('Your browser blocked the new tab. Allow pop-ups for this site, then try again.');
+        return false;
+      }
+      const d = DISGUISES[mode] || DISGUISES.classroom;
+      const doc = win.document;
+      doc.body.style.margin = '0';
+      doc.body.style.background = '#fff';
+      setTabLook(doc, d.title, d.icon);
+      const frame = doc.createElement('iframe');
+      frame.src = fullUrl;
+      frame.title = title || 'Game';
+      frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;background:#fff;';
+      frame.setAttribute('allow', 'fullscreen; autoplay; gamepad; clipboard-read; clipboard-write');
+      frame.setAttribute('allowfullscreen', '');
+      if (settings.blockPopups) frame.setAttribute('sandbox', NO_POPUPS_SANDBOX);
+      doc.body.appendChild(frame);
+      armWindow(win, settings.blockPopups);
+      return true;
+    }
+
+    // Experimental "Nothing opens in a new tab": the page opens on top of this one,
+    // and anything in it that asks for a new tab replaces it instead.
+    // Back goes to the page before.
+    let viewerFrame = null;
+    let viewerDepth = 0;        // pages you can go Back to
+    let viewerGoingBack = false;
+
+    function keepHere(frame) {
+      const go = (url) => { frame.src = url; };
+      const patchWin = (win) => {
+        let doc;
+        try { doc = win.document; } catch (e) { return; }   // a frame from elsewhere: out of reach
+        if (!doc) return;
+        // pages that manage their own tabs keep them
+        if (String(win.location.href).includes('/tide/go/')) return;
+        try { for (let i = 0; i < win.frames.length; i++) patchWin(win.frames[i]); } catch (e) {}
+        if (win.__chalkHere) return;
+        win.__chalkHere = true;
+        const realUrl = (raw) => {
+          try {
+            const u = new URL(String(raw), win.location.href);
+            return /^https?:$/.test(u.protocol) ? u.href : null;
+          } catch (e) { return null; }
+        };
+        const opensElsewhere = (target) => !!target && !/^_(self|parent|top)$/i.test(target);
+        win.open = function (url) {
+          const real = url === undefined || url === null || String(url) === '' ? null : realUrl(url);
+          const clicked = !win.navigator.userActivation || win.navigator.userActivation.isActive;
+          if (real && clicked) go(real);   // ads that pop up on their own are dropped
+          return null;
+        };
+        const onClick = (e) => {
+          const a = e.target && e.target.closest && e.target.closest('a[href], area[href]');
+          if (!a) return;
+          const extra = e.type === 'auxclick' ? e.button === 1 : (e.ctrlKey || e.metaKey || e.shiftKey);
+          if (!extra && !opensElsewhere(a.getAttribute('target'))) return;
+          const real = realUrl(a.getAttribute('href'));
+          if (!real) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          go(real);
+        };
+        doc.addEventListener('click', onClick, true);
+        doc.addEventListener('auxclick', onClick, true);
+        doc.addEventListener('submit', (e) => {
+          const form = e.target, by = e.submitter;
+          if (by && opensElsewhere(by.getAttribute('formtarget'))) by.setAttribute('formtarget', 'chalk-viewer');
+          if (form && opensElsewhere(form.getAttribute('target'))) form.setAttribute('target', 'chalk-viewer');
+        }, true);
+      };
+      const patch = () => { try { patchWin(frame.contentWindow); } catch (e) {} };
+      let first = true;
+      frame.addEventListener('load', () => {
+        if (first) first = false;
+        else if (viewerGoingBack) viewerGoingBack = false;
+        else viewerDepth++;
+        $('viewer-back').hidden = viewerDepth < 1;
+        patch();
+      });
+      const timer = setInterval(() => { if (!frame.isConnected) clearInterval(timer); else patch(); }, 700);
+    }
+    // the iframe's pages are part of this tab's history, so Back walks back through them
+    $('viewer-back').addEventListener('click', () => {
+      if (!viewerFrame || viewerDepth < 1) return;
+      viewerDepth--;
+      viewerGoingBack = true;
+      history.back();
+    });
+    function openHere(fullUrl, title, blockTabs) {
+      closeHere();
+      const frame = document.createElement('iframe');
+      frame.src = fullUrl;
+      frame.title = title || 'Open page';
+      frame.name = 'chalk-viewer';
+      frame.setAttribute('allow', 'fullscreen; autoplay; gamepad; clipboard-read; clipboard-write');
+      frame.setAttribute('allowfullscreen', '');
+      if (blockTabs) frame.setAttribute('sandbox', NO_POPUPS_SANDBOX);
+      $('viewer-title').textContent = title || '';
+      viewerDepth = 0;
+      viewerGoingBack = false;
+      $('viewer-back').hidden = true;
+      keepHere(frame);
+      $('viewer').appendChild(frame);
+      $('viewer').hidden = false;
+      viewerFrame = frame;
+    }
+    function closeHere() {
+      if (viewerFrame) viewerFrame.remove();
+      viewerFrame = null;
+      $('viewer').hidden = true;
+    }
+
+    function openTab(url, opts) {
+      // resolve against this page so relative paths still work
+      const fullUrl = new URL(url, window.location.href).href;
+      const blockTabs = !!settings.blockPopups && !(opts && opts.allowTabs);
+
+      if (settings.noNewTabs) {
+        openHere(fullUrl, opts && opts.title, blockTabs);
+        return;
+      }
+
+      const cloak = opts && opts.cloak;
+      if (cloak && cloak !== 'normal') {
+        openCloakedTab(fullUrl, cloak, opts.title);
+        return;
+      }
+
+      armWindow(window.open(fullUrl, '_blank'), blockTabs);
+    }
+
+    // ---- open ChalkBored itself in a blank tab ----
+    // Some schools watch the address bar. With this on, ChalkBored opens a blank
+    // tab wearing the tab cloak and runs inside it, so the bar never shows this site.
+    function openInBlankTab() {
+      if (!settings.blankLaunch) return false;
+      try { if (new URLSearchParams(location.search).get('blank') === '1') return false; } catch (e) {}
+      try {
+        if (sessionStorage.getItem('cb-blank-opened') === '1') return false;
+        sessionStorage.setItem('cb-blank-opened', '1');
+      } catch (e) {}
+      const url = new URL(location.href);
+      url.searchParams.set('blank', '1');
+      const mode = settings.disguise === 'off' ? 'normal' : settings.disguise;
+      const opened = openCloakedTab(url.href, mode, 'ChalkBored');
+      if (opened) location.replace('about:blank');
+      return opened;
+    }
+    try { if (settings.setupDone) setTimeout(openInBlankTab, 400); } catch (e) {}
+
+    function launch(item, mode) {
+      openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
+    }
+
+    // the little guy: walks the floor, climbs the rail, ragdolls when thrown
+    (function railGuy() {
+      const el = document.getElementById('rail-guy');
+      if (!el) return;
+
+      const FACE = '<g class="head-g">' +
+        '<ellipse class="head" cx="22" cy="13.1" rx="8.3" ry="8.6"></ellipse>' +
+        '<path class="cap" d="M15.2 9.6 q0.6 -5.4 6.8 -5.4 q6.2 0 6.8 5.4 q-6.8 -1.9 -13.6 0 z"></path>' +
+        '<path class="cap" d="M28.4 8.9 q4.8 0.1 5.2 2.3 q-2.8 1.4 -5.5 0.4 z"></path>' +
+        '<g class="face face-calm">' +
+          '<circle class="eye-dot" cx="19.1" cy="13" r="1.45"></circle>' +
+          '<circle class="glint" cx="18.7" cy="12.55" r="0.45"></circle>' +
+          '<circle class="eye-dot" cx="24.9" cy="13" r="1.45"></circle>' +
+          '<circle class="glint" cx="24.5" cy="12.55" r="0.45"></circle>' +
+          '<ellipse class="blush" cx="16.4" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
+          '<ellipse class="blush" cx="27.6" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
+          '<path class="ink mouth" d="M20.4 16.8 q1.6 1.2 3.2 0"></path>' +
+        '</g>' +
+        '<g class="face face-happy">' +
+          '<path class="ink eye" d="M17.6 13.6 q1.5 -2.1 3 0"></path>' +
+          '<path class="ink eye" d="M23.4 13.6 q1.5 -2.1 3 0"></path>' +
+          '<ellipse class="blush" cx="16.3" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
+          '<ellipse class="blush" cx="27.7" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
+          '<path class="ink mouth" d="M18.8 16.3 q3.2 3.4 6.4 0"></path>' +
+        '</g>' +
+        '<g class="face face-scared">' +
+          '<circle class="eye-dot" cx="19" cy="12.7" r="1.85"></circle>' +
+          '<circle class="glint" cx="18.5" cy="12.15" r="0.5"></circle>' +
+          '<circle class="eye-dot" cx="25" cy="12.7" r="1.85"></circle>' +
+          '<circle class="glint" cx="24.5" cy="12.15" r="0.5"></circle>' +
+          '<ellipse class="ink mouth-o" cx="22" cy="18" rx="1.85" ry="2.3"></ellipse>' +
+        '</g>' +
+        '<g class="face face-hurt">' +
+          '<path class="ink eye" d="M17.4 11.6 l3 3 M20.4 11.6 l-3 3"></path>' +
+          '<path class="ink eye" d="M23.6 11.6 l3 3 M26.6 11.6 l-3 3"></path>' +
+          '<path class="ink mouth" d="M18.9 18.3 q1.55 -1.5 3.1 0 q1.55 1.5 3.1 0"></path>' +
+        '</g>' +
+        '<g class="face face-dizzy">' +
+          '<path class="ink eye" d="M19.5 10.9 a2.3 2.3 0 1 1 -2.3 2.4"></path>' +
+          '<path class="ink eye" d="M24.5 10.9 a2.3 2.3 0 1 0 2.3 2.4"></path>' +
+          '<path class="ink mouth" d="M19 17.7 q1.5 1.2 3 0 q1.5 -1.2 3 0"></path>' +
+        '</g>' +
+      '</g>';
+
+      el.innerHTML = '<svg viewBox="0 0 44 58" aria-hidden="true">' +
+        '<g class="guy-body">' +
+          '<g class="limb leg-a-g">' +
+            '<path class="ink leg" d="M19.5 37.6 q-0.9 6.4 -1.2 15.2"></path>' +
+            '<ellipse class="shoe" cx="17.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
+          '</g>' +
+          '<g class="limb leg-b-g">' +
+            '<path class="ink leg" d="M24.5 37.6 q0.9 6.4 1.2 15.2"></path>' +
+            '<ellipse class="shoe" cx="26.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
+          '</g>' +
+          '<g class="limb arm-a-g">' +
+            '<path class="ink arm" d="M18.4 23.6 q-3.4 3.2 -4.9 8.4"></path>' +
+            '<circle class="hand" cx="13.2" cy="32.6" r="1.75"></circle>' +
+          '</g>' +
+          '<g class="limb arm-b-g">' +
+            '<path class="ink arm" d="M25.6 23.6 q3.4 3.2 4.9 8.4"></path>' +
+            '<circle class="hand" cx="30.8" cy="32.6" r="1.75"></circle>' +
+          '</g>' +
+          '<path class="torso hood" d="M17.8 22.2 q4.2 -4.2 8.4 0 q-4.2 3.1 -8.4 0 z"></path>' +
+          '<path class="torso" d="M17.9 21.4 q4.1 -2.2 8.2 0 q1.1 3.4 1.2 7.4 q0.2 4.8 -0.9 9.1 q-4.4 1.3 -8.8 0 q-1.1 -4.3 -0.9 -9.1 q0.1 -4 1.2 -7.4 z"></path>' +
+          '<path class="ink collar" d="M19.6 22.7 q2.4 2.1 4.8 0"></path>' +
+          '<path class="ink string" d="M20.9 24.2 l-0.4 3.1 M23.1 24.2 l0.4 3.1"></path>' +
+          '<path class="ink pocket" d="M19.4 32.5 q2.6 1.3 5.2 0"></path>' +
+          FACE +
+        '</g>' +
+        '<g class="stars">' +
+          '<path class="ink star" d="M11 6.1 l0.9 1.9 2.1 0.2 -1.6 1.5 0.4 2.1 -1.8 -1 -1.8 1 0.4 -2.1 -1.6 -1.5 2.1 -0.2z"></path>' +
+          '<path class="ink star" d="M33 7.6 l0.8 1.7 1.9 0.2 -1.5 1.3 0.4 1.9 -1.6 -0.9 -1.6 0.9 0.4 -1.9 -1.5 -1.3 1.9 -0.2z"></path>' +
+        '</g>' +
+      '</svg>';
+
+      const bubble = document.createElement('span');
+      bubble.className = 'guy-bubble';
+      el.appendChild(bubble);
+
+      /* the meter that sits above "ChalkBored · made for fun" */
+      const foot = el.parentElement;
+      let moodBox = null, moodText = null;
+      if (foot) {
+        moodBox = document.createElement('div');
+        moodBox.className = 'guy-mood';
+        moodBox.setAttribute('role', 'status');
+        moodBox.setAttribute('aria-live', 'polite');
+        moodBox.dataset.mood = 'calm';
+        moodBox.innerHTML = '<span class="guy-mood-label">calm</span>' +
+          '<span class="guy-mood-track"><span class="guy-mood-fill"></span></span>';
+        moodText = moodBox.querySelector('.guy-mood-label');
+        const note = foot.querySelector('.rail-note');
+        foot.insertBefore(moodBox, note || null);
+      }
+
+      const W = 38, H = 50, GRAVITY = 1900;
+      const rail = document.querySelector('nav.rail') || document.querySelector('.rail');
+      const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const railW = () => (rail ? rail.getBoundingClientRect().width : 210);
+      const maxX = () => Math.max(0, window.innerWidth - W);
+      const maxY = () => Math.max(0, window.innerHeight - H);
+      const pick = (a) => a[(Math.random() * a.length) | 0];
+
+      let x = 8, y = 0, vx = 0, vy = 0, angle = 0, spin = 0;
+      let mode = 'ground';                 // ground | walk | climb | held | air | land | hurt
+      let held = false, grabX = 0, grabY = 0;
+      let walkTo = x, climbTo = 0, climbDir = 1, hurtFor = 0, landFor = 0;
+      let lastX = 0, lastY = 0, lastT = 0, flickX = 0, flickY = 0;
+
+      const set = (name, on) => el.classList.toggle(name, !!on);
+      const place = () => {
+        el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (-y).toFixed(1) + 'px) rotate(' + angle.toFixed(2) + 'deg)';
+      };
+
+      function mood(name, label) {
+        el.dataset.mood = name;
+        el.classList.remove('f-calm', 'f-happy', 'f-scared', 'f-hurt', 'f-dizzy');
+        el.classList.add('f-' + name);
+        if (moodBox) { moodBox.dataset.mood = name; moodText.textContent = label || name; }
+      }
+
+      /* tiny sounds made on the spot, so there is no file to load */
+      let ac = null;
+      function beep(kind) {
+        try {
+          ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+          if (ac.state === 'suspended') ac.resume();
+          const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+          const scream = kind === 'scream';
+          o.type = scream ? 'sawtooth' : 'triangle';
+          o.frequency.setValueAtTime(scream ? 900 : 170, t);
+          o.frequency.exponentialRampToValueAtTime(scream ? 250 : 55, t + (scream ? 0.42 : 0.12));
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(scream ? 0.06 : 0.1, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + (scream ? 0.46 : 0.16));
+          o.connect(g).connect(ac.destination);
+          o.start(t);
+          o.stop(t + (scream ? 0.5 : 0.18));
+        } catch (e) {}
+      }
+
+      let bubbleTimer = 0;
+      function say(text, ms) {
+        bubble.textContent = text;
+        bubble.classList.add('on');
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(() => bubble.classList.remove('on'), ms || 1200);
+      }
+
+      function calm() { set('climb', false); set('wave', false); set('flail', false); set('walk', false); }
+
+      function puff() {
+        for (let i = 1; i <= 4; i++) {
+          const p = document.createElement('span');
+          p.className = 'guy-puff p' + i;
+          el.appendChild(p);
+          setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 650);
+        }
+      }
+
+      let squashTimer = 0;
+      function squash() {
+        set('land', true);
+        clearTimeout(squashTimer);
+        squashTimer = setTimeout(() => set('land', false), 360);
+      }
+
+      function impactFx(impact) {
+        squash();
+        if (impact > 60) { puff(); beep('thump'); }
+        if (impact > 240) mood('hurt', 'oof'); else mood('calm');
+      }
+
+      function getUp() {
+        mode = 'land';
+        landFor = 260;
+        vx = 0; vy = 0;
+        set('hurt', false);
+        calm();
+        mood('calm');
+        walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10);
+      }
+
+      function bonk() {
+        mode = 'hurt';
+        hurtFor = 900;
+        angle = 0; spin = 0; vx = 0; vy = 0;
+        set('flail', false);
+        set('hurt', true);
+        set('hit', true);
+        setTimeout(() => { set('hit', false); if (mode === 'hurt') mood('dizzy', 'dizzy'); }, 420);
+        squash();
+        puff();
+        beep('thump');
+        mood('hurt', 'OW!');
+        say('OW!', 1000);
+      }
+
+      function thrown() {
+        calm();
+        set('flail', true);
+        mode = 'air';
+        mood('scared', 'AAAH!');
+        say('AAAH!', 1100);
+        beep('scream');
+      }
+
+      function hop() {
+        if (mode !== 'ground' && mode !== 'walk') return;
+        calm();
+        mode = 'air';
+        vy = 430;
+        vx = (Math.random() - 0.5) * 90;
+        mood('happy', 'wee');
+      }
+
+      function wander() {
+        if (held || mode === 'air' || mode === 'hurt' || mode === 'land' || mode === 'climb') return;
+        const r = Math.random();
+        if (r < 0.38) {
+          calm(); mode = 'walk';
+          walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10);
+          mood('calm');
+        } else if (r < 0.6) {
+          calm(); set('wave', true); mood('happy', 'hii');
+          say(pick(['hi', 'hello', 'oh!']), 800);
+          setTimeout(() => set('wave', false), 1800);
+        } else if (r < 0.84) {
+          calm(); mode = 'climb'; climbDir = 1;
+          climbTo = 30 + Math.random() * Math.max(40, window.innerHeight - 190);
+          set('climb', true);
+          mood('happy', 'up we go');
+        } else hop();
+      }
+
+      let last = performance.now();
+      function frame(now) {
+        const dt = Math.min(0.04, (now - last) / 1000);
+        last = now;
+
+        if (held) { set('held', true); place(); requestAnimationFrame(frame); return; }
+        set('held', false);
+
+        if (mode === 'air' || mode === 'hurt') {
+          vy -= GRAVITY * dt;
+          x += vx * dt;
+          y += vy * dt;
+          angle += spin * dt;
+
+          if (x < 0) {
+            x = 0;
+            if (Math.abs(vx) > 260) bonk(); else vx = Math.abs(vx) * 0.5;
+            spin *= 0.4;
+          } else if (x > maxX()) {
+            x = maxX();
+            if (Math.abs(vx) > 260) bonk(); else vx = -Math.abs(vx) * 0.5;
+            spin *= 0.4;
+          }
+
+          if (y <= 0) {
+            const impact = -vy;
+            y = 0;
+            if (mode === 'hurt') {
+              vy = 0; vx *= 0.5;
+            } else if (impact > 420) {
+              bonk();
+            } else if (impact > 90) {
+              impactFx(impact);
+              vy = impact * 0.34;
+              vx *= 0.72;
+              spin *= 0.55;
+              if (impact > 240) say('oof', 600);
+            } else {
+              vx *= 0.6;
+              vy = 0;
+              impactFx(impact);
+              mode = 'land';
+              landFor = 210;
+            }
+          }
+          if (y > maxY()) { y = maxY(); vy = -Math.abs(vy) * 0.3; }
+        } else if (mode === 'land') {
+          // settle gently instead of snapping upright on contact
+          angle = ((angle % 360) + 540) % 360 - 180;
+          angle *= Math.max(0, 1 - 11 * dt);
+          x += vx * dt;
+          vx *= Math.max(0, 1 - 7 * dt);
+          y = 0;
+          landFor -= dt * 1000;
+          if (landFor <= 0) { mode = 'ground'; angle = 0; calm(); mood('calm'); }
+        } else if (mode === 'climb') {
+          y += 130 * dt * climbDir;
+          x += (4 - x) * Math.min(1, 6 * dt);
+          if (y >= climbTo) climbDir = -1;
+          if (y <= 0) { y = 0; mode = 'ground'; calm(); mood('calm'); }
+        } else {
+          const gap = walkTo - x;
+          const moving = Math.abs(gap) > 1.2;
+          set('walk', moving);
+          if (moving) {
+            x += Math.sign(gap) * Math.min(Math.abs(gap), 90 * dt);
+            angle = Math.sin(now / 90) * 3;
+          } else { angle = 0; }
+        }
+
+        if (mode === 'hurt') {
+          hurtFor -= dt * 1000;
+          if (hurtFor <= 0) getUp();
+        }
+        place();
+        requestAnimationFrame(frame);
+      }
+
+      el.addEventListener('pointerdown', (e) => {
+        if (mode === 'hurt') return;
+        held = true;
+        set('held', true);
+        mode = 'held';
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        grabX = e.clientX - x;
+        grabY = (window.innerHeight - e.clientY) - y;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = performance.now();
+        flickX = 0;
+        flickY = 0;
+        calm();
+        set('flail', true);
+        mood('scared', pick(['!', 'eek', 'whoa']));
+        say(pick(['hey!', 'whoa!', 'put me down']), 900);
+        e.preventDefault();
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!held) return;
+        const now = performance.now();
+        const dt = Math.max(8, now - lastT) / 1000;
+        flickX = (e.clientX - lastX) / dt;
+        flickY = (lastY - e.clientY) / dt;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = now;
+        x = Math.max(0, Math.min(maxX(), e.clientX - grabX));
+        y = Math.max(0, Math.min(maxY(), (window.innerHeight - e.clientY) - grabY));
+        angle = Math.max(-22, Math.min(22, -flickX * 0.02));
+        place();
+      });
+      const release = (e) => {
+        if (!held) return;
+        held = false;
+        set('held', false);
+        try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+        const speed = Math.hypot(flickX, flickY);
+        vx = flickX * 0.85;
+        vy = flickY * 0.85;
+        if (speed < 90) { vx = 0; vy = 0; }
+        spin = (vx >= 0 ? 1 : -1) * Math.min(760, 120 + speed * 0.7);
+        if (speed < 240) { calm(); set('flail', true); mode = 'air'; }
+        else thrown();
+      };
+      el.addEventListener('pointerup', release);
+      el.addEventListener('pointercancel', release);
+
+      mood('calm');
+      place();
+      requestAnimationFrame(frame);
+      setTimeout(wander, 1400);
+      if (!still) setInterval(wander, 4200);
+    })();
+
+    // ---- building the lists ----
+    function closeAllMenus(except) {
+      document.querySelectorAll('.card-wrap.is-open').forEach((w) => {
+        if (w === except) return;
+        w.classList.remove('is-open');
+        w.querySelector('.open-menu').classList.remove('open');
+        const card = w.querySelector('.card');
+        if (card) card.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    // names written as .lik3;th1s? are shown plainly: drop the . and ?, ; is a space, 3 is e, 5 is a,
+    // and ~ keeps the next character as it is
+    const shown = (item) => /^\..*\?$/.test(item.name)
+      ? item.name.slice(1, -1).replace(/~(.)|[;35]/g, (m, keep) => keep || { ';': ' ', '3': 'e', '5': 'a' }[m])
+      : item.name;
+    const coded = (item) => /^\..*\?$/.test(item.name);
+    // coded names are drawn as a picture, so the page holds no words for them.
+    // Each picture is made once (cards, Home, search share it), and the browser
+    // turns it into an image off to the side (toBlob) instead of holding up the page.
+    const namePics = new Map();
+    let nameCanvas = null;
+    const nameFonts = {};   // the font only changes with the theme; asking every time redoes the page's styles
+    function namePic(text) {
+      const look = document.body.dataset.theme;
+      const font = nameFonts[look] || (nameFonts[look] = '700 40px ' + getComputedStyle(document.body).fontFamily);
+      const key = font + '|' + text;
+      if (namePics.has(key)) return namePics.get(key);
+      const c = nameCanvas || (nameCanvas = document.createElement('canvas'));
+      const x = c.getContext('2d', { willReadFrequently: true });   // kept off the graphics card: it's read back right away
+      x.font = font;
+      const width = Math.ceil(x.measureText(text).width) + 4;
+      let url = null;
+      const pic = {
+        ratio: width / 52,
+        // drawn the first time it's needed, then shared
+        url: () => url || (url = new Promise((done) => {
+          c.width = width;
+          c.height = 52;
+          x.font = font;
+          x.fillText(text, 2, 39);
+          c.toBlob((blob) => done(blob ? URL.createObjectURL(blob) : c.toDataURL()));
+        })),
+      };
+      namePics.set(key, pic);
+      return pic;
+    }
+    // names further down the list are drawn only when they're about to scroll into view
+    const namesToDraw = new WeakMap();
+    const nameWatch = 'IntersectionObserver' in window && new IntersectionObserver((seen) => seen.forEach((e) => {
+      if (!e.isIntersecting) return;
+      nameWatch.unobserve(e.target);
+      namesToDraw.get(e.target)();
+    }), { rootMargin: '400px' });
+    function putName(el, item, before) {
+      el.textContent = before || '';
+      if (!coded(item)) { el.append(item.name); return; }
+      const made = namePic(shown(item));
+      const pic = document.createElement('span');
+      pic.style.cssText = 'display:inline-block;vertical-align:-0.3em;max-width:100%;height:1.3em;width:' + (made.ratio * 1.3).toFixed(2) + 'em';
+      const draw = () => made.url().then((src) => {
+        const url = 'url(' + src + ') center / contain no-repeat';
+        pic.style.background = 'currentColor';
+        pic.style.webkitMask = url;
+        pic.style.mask = url;
+      });
+      // drawn straight away: waiting for a card to scroll in could leave the name blank
+      draw();
+      el.append(pic);
+    }
+
+    function initials(name) {
+      return name.replace(/[^A-Za-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 2)
+        .map((w) => w[0].toUpperCase()).join('');
+    }
+
+    function buildMenu(item) {
+      const menu = document.createElement('div');
+      menu.className = 'open-menu';
+      const label = document.createElement('p');
+      label.textContent = 'Open as…';
+      menu.appendChild(label);
+      OPEN_MODES.forEach(([mode, text]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = text;
+        b.addEventListener('click', () => {
+          settings.cloakMode = mode;
+          saveSettings();
+          closeAllMenus();
+          launch(item, mode);
+        });
+        menu.appendChild(b);
+      });
+      return menu;
+    }
+
+    function wire(wrap, trigger, menu, item) {
+      trigger.setAttribute('aria-haspopup', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.addEventListener('click', () => {
+        if (!settings.askCloak || settings.noNewTabs) { closeAllMenus(); launch(item, settings.cloakMode); return; }
+        const opening = !wrap.classList.contains('is-open');
+        closeAllMenus(wrap);
+        wrap.classList.toggle('is-open', opening);
+        menu.classList.toggle('open', opening);
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) menu.querySelector('button').focus();
+      });
+    }
+
+    // ---- favorites (saved by path, so renaming a lesson keeps it starred) ----
+    let favs = [];
+    try { favs = JSON.parse(localStorage.getItem(FAVS_STORE) || '[]'); } catch (e) {}
+    if (!Array.isArray(favs)) favs = [];
+    // the activities folder was renamed; keep old stars pointing at the right place
+    favs = favs.map((p) => String(p).replace(/^GAMES\//, 'LESSONS/'));
+    const isFav = (item) => favs.includes(item.path);
+    function toggleFav(item) {
+      favs = isFav(item) ? favs.filter((p) => p !== item.path) : [...favs, item.path];
+      try { localStorage.setItem(FAVS_STORE, JSON.stringify(favs)); } catch (e) {}
+      $('games').classList.add('settled');   // the cards already came in once; don't play that again
+      buildLessons();
+    }
+
+    function buildCards(gridId, items, appName, soonCard, canFav) {
+      const grid = $(gridId);
+      grid.innerHTML = '';
+
+      items.forEach((item, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'card-wrap';
+
+        const card = document.createElement('button');
+        card.className = 'card';
+        card.type = 'button';
+        card.style.setProperty('--i', i);
+        card.innerHTML =
+          '<span class="thumb"><span class="mono"></span></span>' +
+          '<span class="card-body"><span class="card-name"></span><span class="card-arrow">&rsaquo;</span></span>';
+        card.querySelector('.mono').textContent = initials(shown(item));
+        putName(card.querySelector('.card-name'), item);
+
+        const art = item.img ? { src: item.img } : (settings.gameArt && ART[item.path]);
+        if (art) {
+          const img = new Image();
+          img.alt = '';
+          img.loading = 'lazy';
+          img.addEventListener('error', () => img.remove());   // a missing file keeps the initials
+          img.src = art.src;
+          if (art.fit) img.style.objectFit = art.fit;
+          if (art.pos) img.style.objectPosition = art.pos;   // which part of a cropped picture to keep
+          if (art.pixel) img.style.imageRendering = 'pixelated';
+          if (art.bg) card.querySelector('.thumb').style.background = art.bg;
+          card.querySelector('.thumb').appendChild(img);
+        }
+
+        const menu = buildMenu(item);
+        wire(wrap, card, menu, item);
+        wrap.append(card, menu);
+
+        if (canFav) {
+          const on = isFav(item);
+          const star = document.createElement('button');
+          star.type = 'button';
+          star.className = 'fav' + (on ? ' on' : '');
+          star.textContent = on ? '★' : '☆';
+          star.title = on ? 'Remove from favorites' : 'Add to favorites';
+          star.setAttribute('aria-label', (on ? 'Unfavorite ' : 'Favorite ') + (coded(item) ? 'this' : item.name));
+          star.setAttribute('aria-pressed', String(on));
+          star.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(item); });
+          wrap.appendChild(star);
+        }
+
+        grid.appendChild(wrap);
+      });
+
+      if (soonCard) {
+        const soon = document.createElement('div');
+        soon.className = 'card soon';
+        soon.style.setProperty('--i', items.length);
+        soon.innerHTML = '<span class="thumb"><span class="mono">more soon…</span></span>' +
+          '<span class="card-body"><span class="card-name">Coming soon</span></span>';
+        grid.appendChild(soon);
+      }
+    }
+
+    // with nothing starred, Home shows a few good ones
+    const HIGHLIGHTED = [
+      'LESSONS/Bloons Math Loader.html',
+      'LESSONS/forgecraft.1.5.html',
+      'LESSONS/AeroDynamics-Loader.html',
+      'LESSONS/House-Sitting/index.html',
+      'LESSONS/Track-Sprints/index.html',
+      'LESSONS/Night-Shift-Logs-1/index.html',
+      'LESSONS/Study-Hall-Remake/index.html',
+    ];
+
+    function buildLessons() {
+      // Games always stays in list order: starring something never moves it up there.
+      buildCards('games', LIST.lessons, 'Games', true, true);
+      const starred = LIST.lessons.filter(isFav);
+      const picks = starred.length
+        ? starred.slice(0, 8)
+        : HIGHLIGHTED.map((path) => LIST.lessons.find((g) => g.path === path)).filter(Boolean);
+      const label = document.getElementById('home-label');
+      if (label) label.textContent = starred.length ? 'Your favorites' : 'Highlighted games';
+      buildCards('home-games', picks, 'Games', false, false);
+      $('tally-games').textContent = String(LIST.lessons.length);
+    }
+
+    // the Games cards are made the first time Games opens, or once the page is
+    // idle, so opening Games doesn't wait for every card
+    let lessonsBuilt = false;
+    function ensureLessons() {
+      if (lessonsBuilt) return;
+      lessonsBuilt = true;
+      buildLessons();
+    }
+    $('tally-games').textContent = String(LIST.lessons.length);
+    if (window.requestIdleCallback) requestIdleCallback(ensureLessons, { timeout: 3000 });
+    else setTimeout(ensureLessons, 1500);
+
+    document.addEventListener('click', (e) => { if (!e.target.closest('.card-wrap')) closeAllMenus(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllMenus(); });
+
+    // ---- search across games ----
+    const search = $('search');
+    const results = $('results');
+
+    function searchRows() {
+      const rows = [];
+      LIST.lessons.forEach((g) => rows.push({ app: 'Games', item: g }));
+      return rows;
+    }
+
+    function closeResults() { results.hidden = true; }
+
+    function runSearch() {
+      const q = search.value.trim().toLowerCase();
+      if (!q) return closeResults();
+      const hits = searchRows().filter((r) => shown(r.item).toLowerCase().includes(q));
+      results.innerHTML = '';
+
+      if (!hits.length) {
+        const none = document.createElement('p');
+        none.className = 'res-empty';
+        none.textContent = 'Nothing matches “' + search.value.trim() + '”.';
+        results.appendChild(none);
+      }
+
+      ['Games'].forEach((app) => {
+        const group = hits.filter((h) => h.app === app);
+        if (!group.length) return;
+        const label = document.createElement('p');
+        label.className = 'res-group';
+        label.textContent = app;
+        results.appendChild(label);
+        group.forEach((hit) => {
+          const b = document.createElement('button');
+          b.className = 'res-item';
+          b.type = 'button';
+          b.innerHTML = '<span></span><span class="res-where">' + (settings.noNewTabs ? 'opens here' : 'opens in a new tab') + '</span>';
+          putName(b.querySelector('span'), hit.item);
+          b.addEventListener('click', () => {
+            search.value = '';
+            closeResults();
+            launch(hit.item);
+          });
+          results.appendChild(b);
+        });
+      });
+      results.hidden = false;
+    }
+
+    search.addEventListener('input', runSearch);
+    search.addEventListener('focus', () => { if (search.value.trim()) runSearch(); });
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { search.value = ''; closeResults(); search.blur(); }
+      if (e.key === 'Enter') {
+        const first = results.querySelector('.res-item');
+        if (first) first.click();
+      }
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.search-wrap')) closeResults(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !isTyping(e)) { e.preventDefault(); search.focus(); }
+    });
+
+    // ---- study tips (bottom right) ----
+    const TIPS = [
+      'Being bullied? You can submit an anonymous tip to your school.',
+      'Make sure to turn in your missing assignments. Late is better than never.',
+      'Stuck on something? Ask your teacher before the test, not after.',
+      'Write assignments down the moment they’re given.',
+      'Check your grades once a week, not the night before report cards.',
+      'Read the rubric before you start, not after you finish.',
+      'Study in short bursts: 25 minutes on, 5 minutes off.',
+      'Sleep beats cramming. Tired brains don’t remember much.',
+      'Need someone to talk to? Your school counselor is there for that.',
+      'Struggling? In the US you can call or text 988, any time.',
+    ];
+    const tipEl = $('tip');
+    let tipAt = Math.floor(Math.random() * TIPS.length);
+    tipEl.textContent = TIPS[tipAt];
+    setInterval(() => {
+      if (document.hidden || document.body.classList.contains('full-panel')) return;   // nobody is reading it
+      tipEl.classList.add('fade');
+      setTimeout(() => {
+        tipAt = (tipAt + 1) % TIPS.length;
+        tipEl.textContent = TIPS[tipAt];
+        tipEl.classList.remove('fade');
+      }, 400);
+    }, 15000);
+
+    // ---- switching apps ----
+
+    let musicFrame = null;
+    let tvFrame = null;
+    let browserFrame = null;
+
+    function showPanel(name) {
+      closeAllMenus();
+      closeResults();
+      document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', (b.dataset.panel || b.dataset.app) === name));
+      document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
+      $('gear').classList.toggle('active', name === 'settings');
+      document.body.classList.toggle('on-home', name === 'home');
+      window.dispatchEvent(new CustomEvent('chalk-home', { detail: name === 'home' }));
+      document.body.classList.toggle('app-open', name === 'music' || name === 'tv' || name === 'browser');
+      document.body.classList.toggle('full-panel', name === 'music' || name === 'tv' || name === 'browser');
+      placeSearch();
+      if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
+      if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
+      if (name !== 'browser' && browserFrame) { browserFrame.remove(); browserFrame = null; }
+      if (name === 'music' && !musicFrame) {
+        musicFrame = document.createElement('iframe');
+        musicFrame.className = 'frame blend';
+        musicFrame.title = 'Chalk Music';
+        musicFrame.src = 'listening.html';
+        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
+        $('panel-music').appendChild(musicFrame);
+      }
+      if (name === 'tv' && !tvFrame) {
+        tvFrame = document.createElement('iframe');
+        tvFrame.className = 'frame blend';
+        tvFrame.title = 'Chalk TV';
+        tvFrame.src = 'chalk-tv.html';
+        tvFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture');
+        tvFrame.setAttribute('allowfullscreen', '');
+        $('panel-tv').appendChild(tvFrame);
+      }
+      if (name === 'browser' && !browserFrame) {
+        browserFrame = document.createElement('iframe');
+        browserFrame.className = 'frame blend';
+        browserFrame.title = 'Chalk Browser';
+        browserFrame.src = 'chalk-browser.html';
+        browserFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write');
+        $('panel-browser').appendChild(browserFrame);
+      }
+    }
+
+    document.querySelectorAll('.nav-btn[data-panel]').forEach((b) => b.addEventListener('click', () => showPanel(b.dataset.panel)));
+
+
+    $('gear').addEventListener('click', () => showPanel('settings'));
+    $('viewer-close').addEventListener('click', closeHere);
+    const viewerEl = $('viewer');
+    if (!viewerEl.requestFullscreen) $('viewer-full').remove();
+    else $('viewer-full').addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else viewerEl.requestFullscreen().catch(() => {});
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const btn = $('viewer-full');
+      if (btn) btn.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+    });
+
+
+    // ---- OS look ----
+    // the search box lives in the sidebar
+    const searchWrap = $('search').closest('.search-wrap');
+    function placeSearch() {
+      const to = $('panel-home').classList.contains('active') ? $('hero-search-slot') : $('rail-search-slot');
+      if (searchWrap.parentNode === to) return;
+      const fromHero = searchWrap.parentNode === $('hero-search-slot');
+      const fromRail = searchWrap.parentNode === $('rail-search-slot');
+      const nav = document.querySelector('.nav');
+      searchWrap.classList.remove('arrive');
+      to.appendChild(searchWrap);
+      if (to.id === 'rail-search-slot') {
+        void searchWrap.offsetWidth;
+        searchWrap.classList.add('arrive');
+        if (fromHero && nav) {
+          nav.classList.remove('tabs-drop', 'tabs-rise');
+          void nav.offsetWidth;
+          nav.classList.add('tabs-drop');
+        }
+      } else if (nav) {
+        nav.classList.remove('tabs-drop', 'tabs-rise');
+        if (fromRail) {
+          void nav.offsetWidth;
+          nav.classList.add('tabs-rise');
+        }
+      }
+    }
+
+    // your background picture stays in this browser (IndexedDB); it's never uploaded
+    function bgStore(mode, act) {
+      return new Promise((done) => {
+        let open;
+        try { open = indexedDB.open('chalk-look', 1); } catch (e) { done(null); return; }
+        open.onupgradeneeded = () => open.result.createObjectStore('files');
+        open.onerror = () => done(null);
+        open.onsuccess = () => {
+          try {
+            const tx = open.result.transaction('files', mode);
+            const req = act(tx.objectStore('files'));
+            tx.oncomplete = () => done(req.result === undefined ? null : req.result);
+            tx.onerror = () => done(null);
+          } catch (e) { done(null); }
+        };
+      });
+    }
+    const WALLPAPERS = [['hands', 'Hands'], ['mountains', 'Mountains'], ['ribbons', 'Ribbons'], ['moon', 'Moon']];
+    let bgShownFor = null;
+    let bgUrl = '';
+    async function showBackground() {
+      const os = settings.shell === 'os';
+      const blob = os && settings.wallpaper === 'own' ? await bgStore('readonly', (s) => s.get('background')) : null;
+      if (bgUrl) URL.revokeObjectURL(bgUrl);
+      bgUrl = blob ? URL.createObjectURL(blob) : '';
+      const url = bgUrl || (os && WALLPAPERS.some(([k]) => k === settings.wallpaper) ? 'look/backdrops/' + settings.wallpaper + '.webp' : '');
+      document.body.style.setProperty('--os-bg', url ? 'url("' + url + '")' : 'none');
+      document.body.classList.toggle('has-bg', !!url);
+    }
+    // the four pictures, your own, or none (Settings and setup share this)
+    function makeWallpapers(after) {
+      const box = document.createElement('div');
+      box.className = 'walls';
+      const pick = (key) => { change('wallpaper', key); if (after) after(); };
+      WALLPAPERS.forEach(([key, label]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wall' + (settings.wallpaper === key ? ' on' : '');
+        b.style.backgroundImage = 'url(look/backdrops/' + key + '-small.webp)';
+        b.title = label;
+        b.setAttribute('aria-label', label);
+        b.addEventListener('click', () => pick(key));
+        box.appendChild(b);
+      });
+      const own = document.createElement('button');
+      own.type = 'button';
+      own.className = 'wall wall-text' + (settings.wallpaper === 'own' ? ' on' : '');
+      own.textContent = 'Your picture';
+      own.addEventListener('click', () => { afterOwn = after; $('bg-file').click(); });
+      const none = document.createElement('button');
+      none.type = 'button';
+      none.className = 'wall wall-text' + (settings.wallpaper === 'none' ? ' on' : '');
+      none.textContent = 'None';
+      none.addEventListener('click', () => pick('none'));
+      box.append(own, none);
+      return box;
+    }
+    let afterOwn = null;
+    // big photos are shrunk first, so the page stays quick and the picture fits in the browser's storage
+    $('bg-file').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      let blob = file;
+      try {
+        const img = await createImageBitmap(file);
+        const scale = Math.min(1, 2560 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        blob = (await new Promise((ok) => c.toBlob(ok, 'image/jpeg', 0.86))) || file;
+      } catch (err) {}
+      await bgStore('readwrite', (s) => s.put(blob, 'background'));
+      bgShownFor = null;   // same choice, new picture: show it again
+      change('wallpaper', 'own');
+      if (afterOwn) afterOwn();
+    });
+
+    function makeDisguiseButtons() {
+      const box = $('disguise-choice');
+      box.innerHTML = '';
+      Object.entries(DISGUISES).forEach(([key, d]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.disguise = key;
+        b.textContent = d ? d.label : 'None';
+        b.classList.toggle('on', settings.disguise === key);
+        b.addEventListener('click', () => {
+          settings.disguise = key;
+          settings.cloakMode = key === 'off' ? 'normal' : key;
+          saveSettings();
+          applySettings();
+        });
+        box.appendChild(b);
+      });
+    }
+    makeDisguiseButtons();
+
+    // ---- applying settings to the page ----
+    function applySettings() {
+      document.body.dataset.theme = THEMES.includes(settings.theme) ? settings.theme : 'basic';
+      if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
+      else delete document.body.dataset.basic;
+
+      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch'], ['show-guy', 'showGuy']]
+        .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
+      document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      applyDisguise();
+      document.body.classList.toggle('os', settings.shell === 'os');
+      document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
+      document.body.classList.toggle('no-guy', !settings.showGuy);
+      placeSearch();
+      if (bgShownFor !== settings.shell + settings.wallpaper) { bgShownFor = settings.shell + settings.wallpaper; showBackground(); }
+      $('wall-pick').replaceChildren(makeWallpapers());
+    }
+
+    function change(key, value) {
+      settings[key] = value;
+      saveSettings();
+      applySettings();
+    }
+
+    $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
+    $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
+    $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
+    $('show-guy').addEventListener('click', () => change('showGuy', !settings.showGuy));
+    $('cloak-now').addEventListener('click', () => {
+      const url = new URL(location.href);
+      url.searchParams.set('blank', '1');
+      const mode = settings.disguise === 'off' ? 'classroom' : settings.disguise;
+      if (openCloakedTab(url.href, mode, 'ChalkBored')) location.replace('about:blank');
+    });
+
+    $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
+
+    // ---- first-time setup ----
+    const setupEl = $('setup');
+    let setupStep = 0;
+
+    // setup borrows the same cloak controls as Settings, so the two always match
+    function makeCloakSetup() {
+      const wrap = document.createElement('div');
+      wrap.className = 'settings setup-cloak';
+
+      const row = document.createElement('div');
+      row.className = 'setting';
+      const text = document.createElement('div');
+      text.innerHTML = '<h3>Subject</h3><p>Changes the tab name and icon.</p>';
+      const choice = document.createElement('div');
+      choice.className = 'choice';
+      const paint = () => choice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      Object.entries(DISGUISES).forEach(([key, d]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.disguise = key;
+        b.textContent = d ? d.label : 'Normal tab';
+        b.addEventListener('click', () => {
+          settings.disguise = key;
+          settings.cloakMode = key === 'off' ? 'normal' : key;
+          saveSettings();
+          applySettings();
+          paint();
+        });
+        choice.appendChild(b);
+      });
+      paint();
+      row.append(text, choice);
+      wrap.appendChild(row);
+
+      const addSwitch = (title, note, key, label) => {
+        const line = document.createElement('div');
+        line.className = 'setting';
+        line.innerHTML = '<div><h3></h3><p></p></div>';
+        line.querySelector('h3').textContent = title;
+        line.querySelector('p').textContent = note;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'switch';
+        btn.setAttribute('role', 'switch');
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('aria-checked', String(!!settings[key]));
+        btn.addEventListener('click', () => {
+          change(key, !settings[key]);
+          btn.setAttribute('aria-checked', String(!!settings[key]));
+        });
+        line.appendChild(btn);
+        wrap.appendChild(line);
+      };
+      addSwitch('Ask to cloak', 'Pick a cloak each time you open a game card.', 'askCloak', 'Ask to cloak');
+      addSwitch('Open in a blank tab', 'ChalkBored opens in a blank tab wearing the cloak, so the address bar hides it.', 'blankLaunch', 'Open in a blank tab');
+      return wrap;
+    }
+
+    const SETUP_STEPS = [
+      {
+        step: 'Welcome',
+        title: 'Let\u2019s set up your notebook',
+        text: 'It takes about a minute.',
+        body: () => null,
+        next: 'Let\u2019s go',
+        skip: 'Skip setup',
+      },
+      {
+        step: 'Wallpaper',
+        title: 'Choose wallpaper',
+        text: 'It sits behind everything in the OS look.',
+        body: () => makeWallpapers(renderSetup),
+      },
+      {
+        step: 'Tab cloak',
+        title: 'Pick a tab cloak',
+        text: 'What this tab and the games you open pretend to be. You can change it later in Settings.',
+        body: () => makeCloakSetup(),
+      },
+      {
+        step: 'All set',
+        title: 'You\u2019re ready',
+        text: 'Click the version at the bottom any time to see what’s new in 1.2.',
+        body: () => null,
+        next: 'Done',
+      },
+    ];
+
+    /* the little guy stands in the setup box and pulls a face for each step */
+    const SETUP_MOODS = ['happy', 'calm', 'scared', 'happy'];
+    function setupGuy(mood) {
+      const box = $('setup-guy');
+      if (!box) return;
+      if (!box.firstChild) {
+        const src = document.getElementById('rail-guy');
+        const svg = src && src.querySelector('svg');
+        if (!svg) return;
+        const fig = document.createElement('div');
+        fig.className = 'rail-guy';
+        fig.appendChild(svg.cloneNode(true));
+        box.appendChild(fig);
+      }
+      const fig = box.firstChild;
+      fig.classList.remove('f-calm', 'f-happy', 'f-scared', 'f-hurt', 'f-dizzy');
+      fig.classList.add('f-' + (mood || 'calm'));
+    }
+
+    function renderSetup() {
+      const st = SETUP_STEPS[setupStep];
+      setupGuy(SETUP_MOODS[setupStep] || 'calm');
+      const steps = SETUP_STEPS.length - 2;   // Welcome and All set aren't numbered
+      $('setup-step').textContent = setupStep > 0 && setupStep <= steps ? setupStep + ' of ' + steps + ' \u00b7 ' + st.step : st.step;
+      $('setup-title').textContent = st.title;
+      $('setup-text').textContent = st.text;
+      const body = $('setup-body');
+      body.innerHTML = '';
+      const content = st.body();
+      if (content) body.appendChild(content);
+      $('setup-back').hidden = setupStep === 0;
+      $('setup-next').textContent = st.next || 'Next';
+    }
+
+    function openSetup() {
+      setupStep = 0;
+      renderSetup();
+      setupEl.hidden = false;
+      $('setup-next').focus();
+    }
+
+    function closeSetup() {
+      setupEl.hidden = true;
+      if (notesPending) { notesPending = false; setTimeout(showNewNotes, 300); }
+      else setTimeout(maybeAskCloak, 600);
+      settings.setupVersion = SETUP_VERSION;
+      change('setupDone', true);
+    }
+
+    $('setup-back').addEventListener('click', () => { if (setupStep > 0) { setupStep--; renderSetup(); } });
+    $('setup-next').addEventListener('click', () => {
+      if (setupStep < SETUP_STEPS.length - 1) { setupStep++; renderSetup(); return; }
+      closeSetup();
+      showPanel('home');
+    });
+    $('rerun-setup').addEventListener('click', openSetup);
+
+    // ---- patch notes: once per version, then behind the version number ----
+    const notesEl = $('notes');
+    $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
+    $('updated-ver').textContent = VERSION_LABEL;
+    $('updated-when').textContent = 'updated Nov 6 · what’s new';
+    $('ver').addEventListener('click', () => { notesEl.hidden = false; });
+    $('notes-close').addEventListener('click', () => { notesEl.hidden = true; setTimeout(maybeAskCloak, 300); });
+
+    // the first time someone sees a new version: the quiet reveal, a note, then what's new
+    function showMilestone() {
+      const box = $('milestone');
+      const msg = $('milestone-msg');
+      const quiet = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      box.hidden = false;
+      msg.classList.remove('on');
+      let done = false;
+      const timers = [];
+      const finish = () => {
+        if (done) return;
+        done = true;
+        timers.forEach(clearTimeout);
+        box.hidden = true;
+        notesEl.hidden = false;
+        $('notes-close').focus();
+      };
+      box.onclick = finish;
+      box.onkeydown = (e) => { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') finish(); };
+      box.tabIndex = -1;
+      box.focus();
+      if (quiet) { msg.classList.add('on'); return; }
+      timers.push(setTimeout(() => msg.classList.add('on'), 1700));
+      timers.push(setTimeout(finish, 5600));
+    }
+
+    // what's new for a version you haven't seen, after the milestone screen
+    function showNewNotes() {
+      if (VERSION === '1.2') showMilestone();
+      else notesEl.hidden = false;
+    }
+
+    // ---- first load: ask how games should open ----
+    function buildCloakAsk() {
+      const box = $('cloak-ask-choice');
+      if (!box || box.childElementCount) return;
+      OPEN_MODES.forEach(([mode, label]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          settings.cloakMode = mode;
+          if (mode === 'normal') settings.askCloak = false;
+          else settings.disguise = mode;
+          settings.cloakAsked = true;
+          saveSettings();
+          applySettings();
+          $('cloak-ask').hidden = true;
+        });
+        box.appendChild(b);
+      });
+    }
+    function maybeAskCloak() {
+      if (settings.cloakAsked || settings.noNewTabs || !settings.setupDone) return;
+      if (!$('setup').hidden || !$('milestone').hidden || !$('notes').hidden || !$('cloak-ask').hidden) return;
+      buildCloakAsk();
+      $('cloak-ask').hidden = false;
+      $('cloak-ask-later').focus();
+    }
+    $('cloak-ask-later').addEventListener('click', () => {
+      settings.cloakAsked = true;
+      saveSettings();
+      $('cloak-ask').hidden = true;
+    });
+
+    // ---- people online ----
+    const ONLINE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
+    const ONLINE_KEY = 'sb_publishable_0NGQlBRZ08bdTFpT4aRw6Q_T_DBsAby';
+    let onlineClient = null;
+    let onlineLoading = null;
+    let onlineTimer = null;
+
+    function loadOnline() {
+      if (onlineClient) return Promise.resolve(onlineClient);
+      if (onlineLoading) return onlineLoading;
+      onlineLoading = (window.supabase ? Promise.resolve(window.supabase) : new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'vendor/supabase-js-2.117.1.js';
+        s.integrity = 'sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz';
+        s.onload = () => window.supabase ? resolve(window.supabase) : reject(new Error('Supabase did not load'));
+        s.onerror = () => reject(new Error('Supabase did not load'));
+        document.head.appendChild(s);
+      })).then((lib) => {
+        if (!lib || !lib.createClient) throw new Error('Supabase did not load');
+        onlineClient = lib.createClient(ONLINE_URL, ONLINE_KEY);
+        return onlineClient;
+      }).catch((err) => { onlineLoading = null; throw err; });
+      return onlineLoading;
+    }
+
+    function setOnline(n) {
+      const count = n === null || n === undefined || n === '' || !Number.isFinite(Number(n)) ? null : Number(n);
+      $('online-count').textContent = count === null ? '—' : String(count);
+      $('online-note').textContent = count === null ? 'count unavailable' : 'online now';
+      $('stat-online').classList.toggle('good', count !== null && count > 0);
+    }
+
+    async function countOnline() {
+      try {
+        const db = await loadOnline();
+        const { data, error } = await db.rpc('online_count');
+        setOnline(error ? null : data);
+      } catch (e) {
+        setOnline(null);
+      }
+    }
+
+    function watchOnline(on) {
+      clearInterval(onlineTimer);
+      onlineTimer = null;
+      if (!on) return;
+      countOnline();
+      onlineTimer = setInterval(() => { if (!document.hidden) countOnline(); }, 30000);
+    }
+
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && onlineTimer) countOnline(); });
+    window.addEventListener('chalk-home', (e) => { watchOnline(e.detail); });
+
+    // ---- arrival ----
+    let notesPending = false;
+    let seenVersion = null;
+    try { seenVersion = localStorage.getItem(SEEN_STORE); } catch (e) {}
+    try { localStorage.setItem(SEEN_STORE, VERSION); } catch (e) {}
+
+    saveSettings();
+    applySettings();
+    showPanel('home');
+
+    // everyone walks through the new setup once per big update
+    if (settings.setupVersion !== SETUP_VERSION) {
+      notesPending = seenVersion !== VERSION && returningVisitor;
+      openSetup();
+    }
+    else if (seenVersion !== VERSION && returningVisitor) showNewNotes();
+    else setTimeout(maybeAskCloak, 1200);
+
+    setTimeout(() => { const c = document.querySelector('.curtain'); if (c) c.remove(); }, 1200);
+  </script>
+</body>
+</html>
