@@ -465,6 +465,11 @@
   .meta-link b { color: var(--ink); }
   .stat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); }
   .meta-link.good .stat-dot { background: #4cc38a; }
+  /* Home also carries a few cards, so it never looks blank */
+  body.on-home .content { overflow-y: auto; }
+  .home-start { width: 100%; margin: 1.5rem 0 0; text-align: left; }
+  .home-start .section-label { margin-bottom: 0.6rem; }
+  .home-start .cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
 
   .section-label { margin: 0 0 0.7rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pencil); }
   .quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.8rem; }
@@ -805,6 +810,10 @@
               <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.1 Early Access</b> <span id="updated-when">updated Nov 5 · what’s new</span></button>
             </p>
           </div>
+          <div class="home-start">
+            <p class="section-label">Start here</p>
+            <div class="cards" id="home-games"></div>
+          </div>
         </section>
 
         <!-- brain exercises: short practice activities for study breaks -->
@@ -844,6 +853,10 @@
               <div class="setting">
                 <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open a game card.</p></div>
                 <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
+              </div>
+              <div class="setting">
+                <div><h3>Open in a blank tab</h3><p>On launch, ChalkBored opens itself in a blank tab wearing the cloak, so the address bar never shows it.</p></div>
+                <button class="switch" id="blank-launch" type="button" role="switch" aria-checked="false" aria-label="Open in a blank tab"></button>
               </div>
             </div>
 
@@ -935,86 +948,113 @@
     // ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card ----
     const LIST = {
       lessons: [
-        { name: '.BTD?',           path: 'LESSONS/Balloon-Math-1/index.html' },
-        { name: '.BTD2?',          path: 'LESSONS/Balloon-Math-2/index.html' },
-        { name: '.BTD~3?',         path: 'LESSONS/Balloon-Math-3/index.html' },
-        { name: '.BTD4?',          path: 'LESSONS/Bloons Math Loader.html' },
-        { name: '.BTD~5?',         path: 'LESSONS/Balloon-Math-5/index.html' },
-        { name: '.L35rn;to;Fly?',  path: 'LESSONS/AeroDynamics-1/index.html' },
-        { name: '.L35rn;to;Fly;2?', path: 'LESSONS/AeroDynamics-2/index.html' },
-        { name: '.L35rn;to;Fly;~3?', path: 'LESSONS/AeroDynamics-Loader.html' },
-        { name: '.R5gdoll;Arch3rs?', path: 'LESSONS/Learn-Archery.html' },
-        { name: '.R5gdoll;Hit?',   path: 'LESSONS/Ragdoll-Physics/index.html' },
-        { name: '.Forg3cr5ft?',    path: 'LESSONS/forgecraft.html' },
-        { name: '.Slop3?',         path: 'LESSONS/Slope-main/Slope-main/index.html' },
-        { name: '.Slop3;2?',       path: 'LESSONS/Hill-Physics-2/index.html' },
-        { name: '.Subw5y;Surf3rs?', path: 'LESSONS/Rail-Runner/index.html' },
-        { name: '.Esc5p3;Ro5d?',   path: 'LESSONS/Learn-Car-Maintenance/index.html' },
-        { name: '.R3tro;Bowl?',    path: 'LESSONS/rb-main/index.html' },
-        { name: '.Footb5ll;Bros?', path: 'LESSONS/football/index.html' },
-        { name: '.B5sk3t;Bros?',   path: 'LESSONS/Court-Physics/index.html' },
-        { name: '.Wr3stl3;Bros?',  path: 'LESSONS/Grappling-Physics/index.html' },
-        { name: '.B5sk3tb5ll;L3g3nds?', path: 'LESSONS/Court-Legends/index.html' },
-        { name: '.Supr3m3;Du3list?', path: 'LESSONS/Duel-Physics/index.html' },
-        { name: '.Snow;Rid3r;~3D?', path: 'LESSONS/How-Sleds-Work/index.html' },
-        { name: '.Pig3on;Asc3nt?', path: 'LESSONS/Pigeon/index.html' },
-        { name: '.Stickm5n;Dismount?', path: 'LESSONS/Motion-Lab-Dismount/index.html' },
-        { name: '.Th3;Fin5l;E5rth;2?', path: 'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html' },
-        { name: '.Townsc5p3r?',    path: 'LESSONS/City-Planning/index.html' },
-        { name: '.Grindcr5ft?',    path: 'LESSONS/Resource-Gathering/index.html' },
-        { name: '.S5ndbox3ls?',    path: 'LESSONS/Particle-Chemistry/index.html' },
-        { name: '.Th3r3;Is;No;G5m3?', path: 'LESSONS/Empty-Lesson/index.html' },
-        { name: '.Stick;W5r?',     path: 'LESSONS/Ancient-Warfare-History/index.html' },
-        { name: '.Ag3;of;W5r?',    path: 'LESSONS/Ancient-Evolution/index.html' },
-        { name: '.OvO?',           path: 'LESSONS/Parkour-Physics/index.html' },
-        { name: '.Pl5nts;vs.;Zombi3s?', path: 'LESSONS/Botany-Defense-1/index.html' },
-        { name: '.Pl5nts;vs.;Zombi3s;2?', path: 'LESSONS/Botany-Defense-2/index.html' },
-        { name: '.Crossy;Ro5d?',   path: 'LESSONS/Road-Safety-Lab/index.html' },
-        { name: '.T3mpl3;Run;2?',  path: 'LESSONS/Temple-Architecture/index.html' },
-        { name: '.Dog3;Mining;Simul5tor?', path: 'LESSONS/Crypto-Economics/index.html' },
-        { name: '.Run;~3?',        path: 'LESSONS/Space-Tunnel-3/index.html' },
-        { name: '.G3om3try;D5sh?', path: 'LESSONS/Rhythm-Geometry/index.html' },
-        { name: '.G3om3try;D5sh;Lit3?', path: 'LESSONS/Rhythm-Geometry-Lite/index.html' },
-        { name: '.Cooki3;Click3r?', path: 'LESSONS/Pastry-Clicker/index.html' },
-        { name: ".B5ldi's;B5sics?", path: 'LESSONS/Study-Hall/index.html' },
-        { name: '.FNAF?',          path: 'LESSONS/Night-Shift-Logs-1/index.html' },
-        { name: '.FNAF;2?',        path: 'LESSONS/Night-Shift-Logs-2/index.html' },
-        { name: '.FNAF;~3?',       path: 'LESSONS/Night-Shift-Logs-3/index.html' },
-        { name: '.FNAF;4?',        path: 'LESSONS/Night-Shift-Logs-4/index.html' },
-        { name: '.FNAF:;Sist3r;Loc5tion?', path: 'LESSONS/Night-Shift-Logs-SL/index.html' },
-        { name: '.Moto;X~3M;2?',   path: 'LESSONS/moto/index.html' },
-        { name: '.Moto;X~3M;Pool;P5rty?', path: 'LESSONS/Motion-Lab-Pool/index.html' },
-        { name: '.Moto;X~3M;Spooky;L5nd?', path: 'LESSONS/Motion-Lab-Spooky/index.html' },
-        { name: '.Moto;X~3M;Wint3r?', path: 'LESSONS/Motion-Lab-Winter/index.html' },
-        { name: '.Cut;th3;Rop3?',  path: 'LESSONS/Rope-Physics-1/index.html' },
-        { name: '.Cut;th3;Rop3:;Holid5y;Gift?', path: 'LESSONS/Rope-Physics-Holiday/index.html' },
-        { name: '.Cut;th3;Rop3:;Tim3;Tr5v3l?', path: 'LESSONS/Rope-Physics-Time/index.html' },
-        { name: '.Duck;Lif3?',     path: 'LESSONS/Bird-Training-1/index.html' },
-        { name: '.Duck;Lif3;2?',   path: 'LESSONS/Bird-Training-2/index.html' },
-        { name: '.Duck;Lif3;~3?',  path: 'LESSONS/Bird-Training-3/index.html' },
-        { name: '.Duck;Lif3;4?',   path: 'LESSONS/Bird-Training-4/index.html' },
-        { name: '.Duck;Lif3;~5?',  path: 'LESSONS/Bird-Training-5/index.html' },
-        { name: '.V3x;~3?',        path: 'LESSONS/Room-Escape-3/index.html' },
-        { name: '.V3x;4?',         path: 'LESSONS/Room-Escape-4/index.html' },
-        { name: '.V3x;~5?',        path: 'LESSONS/Room-Escape-5/index.html' },
-        { name: '.V3x;6?',         path: 'LESSONS/Room-Escape-6/index.html' },
-        { name: '.V3x;7?',         path: 'LESSONS/Room-Escape-7/index.html' },
-        { name: ".P5p5's;B5k3ri5?", path: 'LESSONS/Kitchen-Math-Baking/index.html' },
-        { name: ".P5p5's;Burg3ri5?", path: 'LESSONS/Kitchen-Math-Burgers/index.html' },
-        { name: ".P5p5's;Ch33s3ri5?", path: 'LESSONS/Kitchen-Math-Cheese/index.html' },
-        { name: ".P5p5's;Cupc5k3ri5?", path: 'LESSONS/Kitchen-Math-Cupcakes/index.html' },
-        { name: ".P5p5's;Donut3ri5?", path: 'LESSONS/Kitchen-Math-Donuts/index.html' },
-        { name: ".P5p5's;Fr33z3ri5?", path: 'LESSONS/Kitchen-Math-Frozen-Desserts/index.html' },
-        { name: ".P5p5's;Hot;Dogg3ri5?", path: 'LESSONS/Kitchen-Math-Hot-Dogs/index.html' },
-        { name: ".P5p5's;P5nc5k3ri5?", path: 'LESSONS/Kitchen-Math-Pancakes/index.html' },
-        { name: ".P5p5's;P5st5ri5?", path: 'LESSONS/Kitchen-Math-Pasta/index.html' },
-        { name: ".P5p5's;Pizz3ri5?", path: 'LESSONS/Kitchen-Math-Pizza/index.html' },
-        { name: ".P5p5's;Scoop3ri5?", path: 'LESSONS/Kitchen-Math-Ice-Cream/index.html' },
-        { name: ".P5p5's;Sushiri5?", path: 'LESSONS/Kitchen-Math-Sushi/index.html' },
-        { name: ".P5p5's;T5co;Mi5?", path: 'LESSONS/Kitchen-Math-Tacos/index.html' },
-        { name: ".P5p5's;Wing3ri5?", path: 'LESSONS/Kitchen-Math-Wings/index.html' },
-        { name: ".World's;H5rd3st;G5m3?", path: 'LESSONS/Hardest-Path-1/index.html' },
-        { name: ".World's;H5rd3st;G5m3;2?", path: 'LESSONS/Hardest-Path-2/index.html' },
+        { name: '.BTD?'                           , path: 'LESSONS/Balloon-Math-1/index.html' },
+        { name: '.BTD2?'                          , path: 'LESSONS/Balloon-Math-2/index.html' },
+        { name: '.BTD~3?'                         , path: 'LESSONS/Balloon-Math-3/index.html' },
+        { name: '.BTD4?'                          , path: 'LESSONS/Bloons Math Loader.html' },
+        { name: '.BTD~5?'                         , path: 'LESSONS/Balloon-Math-5/index.html' },
+        { name: '.L35rn;to;Fly?'                  , path: 'LESSONS/AeroDynamics-1/index.html' },
+        { name: '.L35rn;to;Fly;2?'                , path: 'LESSONS/AeroDynamics-2/index.html' },
+        { name: '.L35rn;to;Fly;~3?'               , path: 'LESSONS/AeroDynamics-Loader.html' },
+        { name: '.R5gdoll;Arch3rs?'               , path: 'LESSONS/Learn-Archery.html' },
+        { name: '.R5gdoll;Hit?'                   , path: 'LESSONS/Ragdoll-Physics/index.html' },
+        { name: '.Slop3?'                         , path: 'LESSONS/Slope-main/Slope-main/index.html' },
+        { name: '.Slop3;2?'                       , path: 'LESSONS/Hill-Physics-2/index.html' },
+        { name: '.Subw5y;Surf3rs?'                , path: 'LESSONS/Rail-Runner/index.html' },
+        { name: '.Esc5p3;Ro5d?'                   , path: 'LESSONS/Learn-Car-Maintenance/index.html' },
+        { name: '.Supr3m3;Du3list?'               , path: 'LESSONS/Duel-Physics/index.html' },
+        { name: '.E5gl3rcr5ft;1.8?'               , path: 'LESSONS/forgecraft.html' },
+        { name: '.E5gl3rcr5ft;1.12?'              , path: 'LESSONS/forgecraft.1.12.html' },
+        { name: '.E5gl3rcr5ft;26.2?'              , path: 'LESSONS/forgecraft-26.2/index.html' },
+        { name: '.E5gl3rcr5ft;26.3?'              , path: 'LESSONS/forgecraft-26.3/index.html' },
+        { name: '.R3tro;Bowl?'                    , path: 'LESSONS/rb-main/index.html' },
+        { name: '.Footb5ll;Bros?'                 , path: 'LESSONS/football/index.html' },
+        { name: '.B5sk3t;Bros?'                   , path: 'LESSONS/Court-Physics/index.html' },
+        { name: '.Wr3stl3;Bros?'                  , path: 'LESSONS/Grappling-Physics/index.html' },
+        { name: '.B5sk3tb5ll;L3g3nds?'            , path: 'LESSONS/Court-Legends/index.html' },
+        { name: '.Snow;Rid3r;~3D?'                , path: 'LESSONS/How-Sleds-Work/index.html' },
+        { name: '.Pig3on;Asc3nt?'                 , path: 'LESSONS/Pigeon/index.html' },
+        { name: '.Stickm5n;Dismount?'             , path: 'LESSONS/Motion-Lab-Dismount/index.html' },
+        { name: '.Th3;Fin5l;E5rth;2?'             , path: 'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html' },
+        { name: '.Townsc5p3r?'                    , path: 'LESSONS/City-Planning/index.html' },
+        { name: '.Grindcr5ft?'                    , path: 'LESSONS/Resource-Gathering/index.html' },
+        { name: '.S5ndbox3ls?'                    , path: 'LESSONS/Particle-Chemistry/index.html' },
+        { name: '.Th3r3;Is;No;G5m3?'              , path: 'LESSONS/Empty-Lesson/index.html' },
+        { name: '.Stick;W5r?'                     , path: 'LESSONS/Ancient-Warfare-History/index.html' },
+        { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
+        { name: '.OvO?'                           , path: 'LESSONS/Parkour-Physics/index.html' },
+        { name: '.Pl5nts;vs.;Zombi3s?'            , path: 'LESSONS/Botany-Defense-1/index.html' },
+        { name: '.Pl5nts;vs.;Zombi3s;2?'          , path: 'LESSONS/Botany-Defense-2/index.html' },
+        { name: '.Crossy;Ro5d?'                   , path: 'LESSONS/Road-Safety-Lab/index.html' },
+        { name: '.T3mpl3;Run;2?'                  , path: 'LESSONS/Temple-Architecture/index.html' },
+        { name: '.Dog3;Mining;Simul5tor?'         , path: 'LESSONS/Crypto-Economics/index.html' },
+        { name: '.Run;~3?'                        , path: 'LESSONS/Space-Tunnel-3/index.html' },
+        { name: '.G3om3try;D5sh?', path: 'LESSONS/Rhythm-Geometry-Lite/index.html' },
+        { name: '.Cooki3;Click3r?'                , path: 'LESSONS/Pastry-Clicker/index.html' },
+        { name: ".B5ldi's;B5sics?"                , path: 'LESSONS/Study-Hall/index.html' },
+        { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html' },
+        { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html' },
+        { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
+        { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
+        { name: '.FNAF:;Sist3r;Loc5tion?'         , path: 'LESSONS/Night-Shift-Logs-SL/index.html' },
+        { name: '.Moto;X~3M;2?'                   , path: 'LESSONS/moto/index.html' },
+        { name: '.Moto;X~3M;Pool;P5rty?'          , path: 'LESSONS/Motion-Lab-Pool/index.html' },
+        { name: '.Moto;X~3M;Spooky;L5nd?'         , path: 'LESSONS/Motion-Lab-Spooky/index.html' },
+        { name: '.Moto;X~3M;Wint3r?'              , path: 'LESSONS/Motion-Lab-Winter/index.html' },
+        { name: '.Cut;th3;Rop3?'                  , path: 'LESSONS/Rope-Physics-1/index.html' },
+        { name: '.Cut;th3;Rop3:;Holid5y;Gift?'    , path: 'LESSONS/Rope-Physics-Holiday/index.html' },
+        { name: '.Cut;th3;Rop3:;Tim3;Tr5v3l?'     , path: 'LESSONS/Rope-Physics-Time/index.html' },
+        { name: '.Duck;Lif3?'                     , path: 'LESSONS/Bird-Training-1/index.html' },
+        { name: '.Duck;Lif3;2?'                   , path: 'LESSONS/Bird-Training-2/index.html' },
+        { name: '.Duck;Lif3;~3?'                  , path: 'LESSONS/Bird-Training-3/index.html' },
+        { name: '.Duck;Lif3;4?'                   , path: 'LESSONS/Bird-Training-4/index.html' },
+        { name: '.Duck;Lif3;~5?'                  , path: 'LESSONS/Bird-Training-5/index.html' },
+        { name: '.Among;Us?'                      , path: 'LESSONS/Crew-Mission/index.html' },
+        { name: '.Bitlif3?'                       , path: 'LESSONS/Life-Skills/index.html' },
+        { name: '.Bloxors?'                       , path: 'LESSONS/Block-Logic/index.html' },
+        { name: '.Ch3ss?'                         , path: 'LESSONS/Board-Games-Club/index.html' },
+        { name: '.Chrom3;Dino?'                   , path: 'LESSONS/Fossil-Lab/index.html' },
+        { name: '.Fl5ppy;Bird?'                   , path: 'LESSONS/Flap-Physics/index.html' },
+        { name: '.Frid5y;Night;Funkin?'           , path: 'LESSONS/Rhythm-Crew/index.html' },
+        { name: '.Fruit;Ninj5?'                   , path: 'LESSONS/Fruit-Slicing/index.html' },
+        { name: '.G3org3;5nd;th3;Print3r?'        , path: 'LESSONS/Print-Shop/index.html' },
+        { name: '.Full;Scr33n;M5rio?'             , path: 'LESSONS/Plumber-Physics/Source/index.htm' },
+        { name: '.Gunspin?'                       , path: 'LESSONS/Momentum-Lab/index.html' },
+        { name: '.Idl3;Br35kout?'                 , path: 'LESSONS/Brick-Clicker/index.html' },
+        { name: '.H5ppy;Wh33ls?'                  , path: 'LESSONS/Crash-Test-Lab/index.html' },
+        { name: '.Lin3;Rid3r?'                    , path: 'LESSONS/Line-Drawing-Physics/index.html' },
+        { name: '.M35t;Boy?'                      , path: 'LESSONS/Square-Platformer/index.html' },
+        { name: '.Roofstop;Snip3rs?'              , path: 'LESSONS/Rooftop-Angles/index.html' },
+        { name: '.SM64?'                          , path: 'LESSONS/Polygon-Platformer/index.html' },
+        { name: '.B5ttl3;for;Gondor?'             , path: 'LESSONS/Siege-History/index.html' },
+        { name: '.Big;R3d;Button?'                , path: 'LESSONS/Emergency-Drill/index.html' },
+        { name: '.Binding;of;Is55c?'              , path: 'LESSONS/Basement-Diary/index.html' },
+        { name: '.Sp33d;St5rs?'                   , path: 'LESSONS/Track-Sprints/index.html' },
+        { name: '.R5ft?'                          , path: 'LESSONS/Ocean-Survival/index.html' },
+        { name: '.Sl3nd3r?'                       , path: 'LESSONS/Forest-Logs/index.html' },
+        { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
+        { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
+        { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
+        { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
+        { name: '.V3x;~5?'                        , path: 'LESSONS/Room-Escape-5/index.html' },
+        { name: '.V3x;6?'                         , path: 'LESSONS/Room-Escape-6/index.html' },
+        { name: '.V3x;7?'                         , path: 'LESSONS/Room-Escape-7/index.html' },
+        { name: ".P5p5's;B5k3ri5?"                , path: 'LESSONS/Kitchen-Math-Baking/index.html' },
+        { name: ".P5p5's;Burg3ri5?"               , path: 'LESSONS/Kitchen-Math-Burgers/index.html' },
+        { name: ".P5p5's;Ch33s3ri5?"              , path: 'LESSONS/Kitchen-Math-Cheese/index.html' },
+        { name: ".P5p5's;Cupc5k3ri5?"             , path: 'LESSONS/Kitchen-Math-Cupcakes/index.html' },
+        { name: ".P5p5's;Donut3ri5?"              , path: 'LESSONS/Kitchen-Math-Donuts/index.html' },
+        { name: ".P5p5's;Fr33z3ri5?"              , path: 'LESSONS/Kitchen-Math-Frozen-Desserts/index.html' },
+        { name: ".P5p5's;Hot;Dogg3ri5?"           , path: 'LESSONS/Kitchen-Math-Hot-Dogs/index.html' },
+        { name: ".P5p5's;P5nc5k3ri5?"             , path: 'LESSONS/Kitchen-Math-Pancakes/index.html' },
+        { name: ".P5p5's;P5st5ri5?"               , path: 'LESSONS/Kitchen-Math-Pasta/index.html' },
+        { name: ".P5p5's;Pizz3ri5?"               , path: 'LESSONS/Kitchen-Math-Pizza/index.html' },
+        { name: ".P5p5's;Scoop3ri5?"              , path: 'LESSONS/Kitchen-Math-Ice-Cream/index.html' },
+        { name: ".P5p5's;Sushiri5?"               , path: 'LESSONS/Kitchen-Math-Sushi/index.html' },
+        { name: ".P5p5's;T5co;Mi5?"               , path: 'LESSONS/Kitchen-Math-Tacos/index.html' },
+        { name: ".P5p5's;Wing3ri5?"               , path: 'LESSONS/Kitchen-Math-Wings/index.html' },
+        { name: ".World's;H5rd3st;G5m3?"          , path: 'LESSONS/Hardest-Path-1/index.html' },
+        { name: ".World's;H5rd3st;G5m3;2?"        , path: 'LESSONS/Hardest-Path-2/index.html' },
       ],
     };
 
@@ -1103,6 +1143,27 @@
       'LESSONS/Kitchen-Math-Sushi/index.html':         { src: 'LESSONS/art/kitchen-math-sushi.webp', bg: '#f6d27a', fit: 'cover' },
       'LESSONS/Kitchen-Math-Tacos/index.html':         { src: 'LESSONS/art/kitchen-math-tacos.webp', bg: '#f6d27a', fit: 'cover' },
       'LESSONS/Kitchen-Math-Wings/index.html':         { src: 'LESSONS/art/kitchen-math-wings.webp', bg: '#f6d27a', fit: 'cover' },
+      'LESSONS/forgecraft.1.12.html':                { src: 'LESSONS/art/forgecraft.webp', bg: '#87ceeb', fit: 'cover' },
+      'LESSONS/forgecraft-26.2/index.html':          { src: 'LESSONS/art/forgecraft.webp', bg: '#5a8f3a', fit: 'cover' },
+      'LESSONS/forgecraft-26.3/index.html':          { src: 'LESSONS/art/forgecraft.webp', bg: '#c48b4a', fit: 'cover' },
+      'LESSONS/Siege-History/index.html': { src: 'LESSONS/art/siege-history.webp', fit: 'cover' },
+      'LESSONS/Emergency-Drill/index.html': { src: 'LESSONS/art/emergency-drill.webp', fit: 'cover' },
+      'LESSONS/Life-Skills/index.html': { src: 'LESSONS/art/life-skills.webp', fit: 'cover' },
+      'LESSONS/Block-Logic/index.html': { src: 'LESSONS/art/block-logic.webp', fit: 'cover' },
+      'LESSONS/Fossil-Lab/index.html': { src: 'LESSONS/art/fossil-lab.webp', fit: 'cover' },
+      'LESSONS/Flap-Physics/index.html': { src: 'LESSONS/art/flap-physics.webp', fit: 'cover' },
+      'LESSONS/Rhythm-Crew/index.html': { src: 'LESSONS/art/rhythm-crew.webp', fit: 'cover' },
+      'LESSONS/Fruit-Slicing/index.html': { src: 'LESSONS/art/fruit-slicing.webp', fit: 'cover' },
+      'LESSONS/Print-Shop/index.html': { src: 'LESSONS/art/print-shop.webp', fit: 'cover' },
+      'LESSONS/Plumber-Physics/Source/index.htm': { src: 'LESSONS/art/plumber-physics.webp', fit: 'cover' },
+      'LESSONS/Momentum-Lab/index.html': { src: 'LESSONS/art/momentum-lab.webp', fit: 'cover' },
+      'LESSONS/Brick-Clicker/index.html': { src: 'LESSONS/art/brick-clicker.webp', fit: 'cover' },
+      'LESSONS/Crash-Test-Lab/index.html': { src: 'LESSONS/art/crash-test-lab.webp', fit: 'cover' },
+      'LESSONS/Rooftop-Angles/index.html': { src: 'LESSONS/art/rooftop-angles.webp', fit: 'cover' },
+      'LESSONS/Polygon-Platformer/index.html': { src: 'LESSONS/art/polygon-platformer.webp', fit: 'cover' },
+      'LESSONS/Track-Sprints/index.html': { src: 'LESSONS/art/track-sprints.webp', fit: 'cover' },
+      'LESSONS/Ocean-Survival/index.html': { src: 'LESSONS/art/ocean-survival.webp', fit: 'cover' },
+      'LESSONS/Forest-Logs/index.html': { src: 'LESSONS/art/forest-logs.webp', fit: 'cover' },
     };
 
     const $ = (id) => document.getElementById(id);
@@ -1130,6 +1191,7 @@
       askCloak: true,          // ask which cloak to use before opening a game
       cloakMode: 'classroom',  // the cloak picked last
       cloakDefaults: false,    // one-time migration for the restored cloak settings
+      blankLaunch: false,      // open ChalkBored itself in a cloaked about:blank tab on launch
     };
     let settings = Object.assign({}, DEFAULT_SETTINGS);
     let savedSettings = null;
@@ -1412,6 +1474,25 @@
       armWindow(window.open(fullUrl, '_blank'), blockTabs);
     }
 
+    // ---- open ChalkBored itself in a blank tab ----
+    // Some schools watch the address bar. With this on, ChalkBored opens a blank
+    // tab wearing the tab cloak and runs inside it, so the bar never shows this site.
+    function openInBlankTab() {
+      if (!settings.blankLaunch) return false;
+      try { if (new URLSearchParams(location.search).get('blank') === '1') return false; } catch (e) {}
+      try {
+        if (sessionStorage.getItem('cb-blank-opened') === '1') return false;
+        sessionStorage.setItem('cb-blank-opened', '1');
+      } catch (e) {}
+      const url = new URL(location.href);
+      url.searchParams.set('blank', '1');
+      const mode = settings.disguise === 'off' ? 'normal' : settings.disguise;
+      const opened = openCloakedTab(url.href, mode, 'ChalkBored');
+      if (opened) location.replace('about:blank');
+      return opened;
+    }
+    try { if (settings.setupDone) setTimeout(openInBlankTab, 400); } catch (e) {}
+
     function launch(item, mode) {
       openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
@@ -1482,8 +1563,8 @@
         pic.style.webkitMask = url;
         pic.style.mask = url;
       });
-      if (nameWatch) { namesToDraw.set(pic, draw); nameWatch.observe(pic); }
-      else draw();
+      // drawn straight away: waiting for a card to scroll in could leave the name blank
+      draw();
       el.append(pic);
     }
 
@@ -1605,7 +1686,9 @@
 
     function buildLessons() {
       // starred lessons come first, the rest stay in list order
-      buildCards('games', [...LIST.lessons.filter(isFav), ...LIST.lessons.filter((g) => !isFav(g))], 'Games', true, true);
+      const ordered = [...LIST.lessons.filter(isFav), ...LIST.lessons.filter((g) => !isFav(g))];
+      buildCards('games', ordered, 'Games', true, true);
+      buildCards('home-games', ordered.slice(0, 8), 'Games', false, false);
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
@@ -1900,7 +1983,7 @@
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs']]
+      [['ask-cloak', 'askCloak'], ['auto-vault', 'autoVault'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
@@ -1918,6 +2001,7 @@
     }
 
     $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
+    $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
     $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
 
@@ -1926,6 +2010,60 @@
     // ---- first-time setup ----
     const setupEl = $('setup');
     let setupStep = 0;
+
+    // setup borrows the same cloak controls as Settings, so the two always match
+    function makeCloakSetup() {
+      const wrap = document.createElement('div');
+      wrap.className = 'settings setup-cloak';
+
+      const row = document.createElement('div');
+      row.className = 'setting';
+      const text = document.createElement('div');
+      text.innerHTML = '<h3>Subject</h3><p>Changes the tab name and icon.</p>';
+      const choice = document.createElement('div');
+      choice.className = 'choice';
+      const paint = () => choice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      Object.entries(DISGUISES).forEach(([key, d]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.disguise = key;
+        b.textContent = d ? d.label : 'None';
+        b.addEventListener('click', () => {
+          settings.disguise = key;
+          settings.cloakMode = key === 'off' ? 'normal' : key;
+          saveSettings();
+          applySettings();
+          paint();
+        });
+        choice.appendChild(b);
+      });
+      paint();
+      row.append(text, choice);
+      wrap.appendChild(row);
+
+      const addSwitch = (title, note, key, label) => {
+        const line = document.createElement('div');
+        line.className = 'setting';
+        line.innerHTML = '<div><h3></h3><p></p></div>';
+        line.querySelector('h3').textContent = title;
+        line.querySelector('p').textContent = note;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'switch';
+        btn.setAttribute('role', 'switch');
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('aria-checked', String(!!settings[key]));
+        btn.addEventListener('click', () => {
+          change(key, !settings[key]);
+          btn.setAttribute('aria-checked', String(!!settings[key]));
+        });
+        line.appendChild(btn);
+        wrap.appendChild(line);
+      };
+      addSwitch('Ask to cloak', 'Pick a cloak each time you open a game card.', 'askCloak', 'Ask to cloak');
+      addSwitch('Open in a blank tab', 'ChalkBored opens in a blank tab wearing the cloak, so the address bar hides it.', 'blankLaunch', 'Open in a blank tab');
+      return wrap;
+    }
 
     const SETUP_STEPS = [
       {
@@ -1941,6 +2079,12 @@
         title: 'Choose wallpaper',
         text: 'It sits behind everything in the OS look.',
         body: () => makeWallpapers(renderSetup),
+      },
+      {
+        step: 'Tab cloak',
+        title: 'Pick a tab cloak',
+        text: 'What this tab and the games you open pretend to be. You can change it later in Settings.',
+        body: () => makeCloakSetup(),
       },
       {
         step: 'All set',

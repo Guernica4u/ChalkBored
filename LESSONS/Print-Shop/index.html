@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Print Shop</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script src="/js/main.js"></script>
+    <script>
+      function mergeParts(path, count) {
+        const buffers = [];
+        const next = (i) => {
+          if (i > count) return Promise.resolve(URL.createObjectURL(new Blob(buffers)));
+          return fetch(path + '.part' + i).then((r) => {
+            if (!r.ok) throw new Error('part ' + i + ' did not load');
+            return r.arrayBuffer();
+          }).then((b) => { buffers.push(b); return next(i + 1); });
+        };
+        return next(1);
+      }
+
+      // the data file is stored in parts, so join it and hand Unity a config that points at it
+      var unityInstance;
+      var here = location.href.replace(/[^/]*$/, "");
+      mergeParts("Build/WebGL.data.unityweb", 3).then(function (dataUrl) {
+        return fetch("Build/WebGL.json").then(function (r) { return r.json(); }).then(function (cfg) {
+          cfg.dataUrl = dataUrl;
+          cfg.wasmCodeUrl = here + "Build/" + cfg.wasmCodeUrl;
+          cfg.wasmFrameworkUrl = here + "Build/" + cfg.wasmFrameworkUrl;
+          var blob = new Blob([JSON.stringify(cfg)], { type: "application/json" });
+          unityInstance = UnityLoader.instantiate("unityContainer", URL.createObjectURL(blob), { onProgress: UnityProgress });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="webgl-content">
+      <div id="unityContainer" style="width: 960px; height: 600px"></div>
+      <div class="footer">
+        <div class="webgl-logo"></div>
+        <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+        <div class="title">George and the Printer</div>
+      </div>
+    </div>
+  </body>
+</html>
