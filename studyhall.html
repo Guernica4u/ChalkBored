@@ -220,12 +220,18 @@
     will-change: transform; filter: drop-shadow(0 2px 3px rgba(31, 45, 68, 0.18));
   }
   .rail-guy svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .rail-guy .guy-body { transform-box: view-box; transform-origin: 22px 54px; animation: guy-breathe 3.8s ease-in-out infinite; }
-  .rail-guy .ink { fill: none; stroke: var(--ink); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
-  .rail-guy .face .ink { stroke-width: 1.9; }
-  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.6; }
-  .rail-guy .torso { fill: var(--paper); stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
-  .rail-guy .cap { fill: var(--accent); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; opacity: 0.92; }
+  .rail-guy .guy-body { transform-box: view-box; transform-origin: 22px 55px; animation: guy-breathe 3.8s ease-in-out infinite; }
+  .rail-guy .ink { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .rail-guy .face .ink { stroke-width: 1.8; }
+  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; }
+  .rail-guy .torso { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; }
+  .rail-guy .hood { stroke-width: 2.1; }
+  .rail-guy .hand { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
+  .rail-guy .shoe { fill: var(--ink); stroke: var(--ink); stroke-width: 1.4; opacity: 0.8; }
+  .rail-guy .blush { fill: var(--accent); opacity: 0.42; }
+  .rail-guy .glint { fill: var(--paper); }
+  .rail-guy .string, .rail-guy .pocket { stroke-width: 1.6; opacity: 0.6; }
+  .rail-guy .cap { fill: var(--accent); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; opacity: 0.92; }
   .rail-guy .collar { stroke-width: 2; opacity: 0.4; }
   .rail-guy .eye-dot { fill: var(--ink); }
   .rail-guy .face { display: none; }
@@ -236,12 +242,12 @@
   .rail-guy.f-dizzy .face-dizzy { display: block; }
   .rail-guy.f-calm .eye-dot { animation: guy-blink 5.2s steps(1, end) infinite; transform-box: fill-box; transform-origin: center; }
   .rail-guy .limb { transform-box: view-box; }
-  .rail-guy .arm-a-g { transform-origin: 17px 27px; }
-  .rail-guy .arm-b-g { transform-origin: 27px 27px; }
-  .rail-guy .leg-a-g { transform-origin: 20px 37.5px; }
-  .rail-guy .leg-b-g { transform-origin: 24px 37.5px; }
-  .rail-guy .head-g { transform-box: view-box; transform-origin: 22px 24px; transition: transform 0.25s ease; }
-  .rail-guy .stars { opacity: 0; transform-box: view-box; transform-origin: 22px 6px; }
+  .rail-guy .arm-a-g { transform-origin: 18.4px 23.6px; }
+  .rail-guy .arm-b-g { transform-origin: 25.6px 23.6px; }
+  .rail-guy .leg-a-g { transform-origin: 19.5px 37.6px; }
+  .rail-guy .leg-b-g { transform-origin: 24.6px 37.6px; }
+  .rail-guy .head-g { transform-box: view-box; transform-origin: 22px 21.8px; transition: transform 0.25s ease; }
+  .rail-guy .stars { opacity: 0; transform-box: view-box; transform-origin: 22px 13px; }
   .rail-guy.f-hurt .stars, .rail-guy.f-dizzy .stars { opacity: 1; animation: guy-stars 2.4s linear infinite; }
   .rail-guy .star { stroke-width: 1.5; }
 
@@ -1649,48 +1655,72 @@
       if (!el) return;
 
       const FACE = '<g class="head-g">' +
-        '<circle class="head" cx="22" cy="14" r="10.2"></circle>' +
-        '<path class="cap" d="M12.3 10.1 q9.7 -7.5 19.4 0 l-1.5 2.3 q-8.2 -5.7 -16.4 0 z"></path>' +
+        '<ellipse class="head" cx="22" cy="13.1" rx="8.3" ry="8.6"></ellipse>' +
+        '<path class="cap" d="M15.2 9.6 q0.6 -5.4 6.8 -5.4 q6.2 0 6.8 5.4 q-6.8 -1.9 -13.6 0 z"></path>' +
+        '<path class="cap" d="M28.4 8.9 q4.8 0.1 5.2 2.3 q-2.8 1.4 -5.5 0.4 z"></path>' +
         '<g class="face face-calm">' +
-          '<circle class="eye-dot" cx="18.3" cy="14.1" r="1.35"></circle>' +
-          '<circle class="eye-dot" cx="25.7" cy="14.1" r="1.35"></circle>' +
-          '<path class="ink mouth" d="M19.7 18.2 q2.3 1.7 4.6 0"></path>' +
+          '<circle class="eye-dot" cx="19.1" cy="13" r="1.45"></circle>' +
+          '<circle class="glint" cx="18.7" cy="12.55" r="0.45"></circle>' +
+          '<circle class="eye-dot" cx="24.9" cy="13" r="1.45"></circle>' +
+          '<circle class="glint" cx="24.5" cy="12.55" r="0.45"></circle>' +
+          '<ellipse class="blush" cx="16.4" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
+          '<ellipse class="blush" cx="27.6" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
+          '<path class="ink mouth" d="M20.4 16.8 q1.6 1.2 3.2 0"></path>' +
         '</g>' +
         '<g class="face face-happy">' +
-          '<path class="ink eye" d="M16.8 14.3 q1.5 -1.9 3 0"></path>' +
-          '<path class="ink eye" d="M24.2 14.3 q1.5 -1.9 3 0"></path>' +
-          '<path class="ink mouth" d="M18.2 17.1 q3.8 3.5 7.6 0"></path>' +
+          '<path class="ink eye" d="M17.6 13.6 q1.5 -2.1 3 0"></path>' +
+          '<path class="ink eye" d="M23.4 13.6 q1.5 -2.1 3 0"></path>' +
+          '<ellipse class="blush" cx="16.3" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
+          '<ellipse class="blush" cx="27.7" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
+          '<path class="ink mouth" d="M18.8 16.3 q3.2 3.4 6.4 0"></path>' +
         '</g>' +
         '<g class="face face-scared">' +
-          '<circle class="eye-dot" cx="18.1" cy="13.1" r="1.9"></circle>' +
-          '<circle class="eye-dot" cx="25.9" cy="13.1" r="1.9"></circle>' +
-          '<ellipse class="ink mouth-o" cx="22" cy="19" rx="2.2" ry="2.8"></ellipse>' +
+          '<circle class="eye-dot" cx="19" cy="12.7" r="1.85"></circle>' +
+          '<circle class="glint" cx="18.5" cy="12.15" r="0.5"></circle>' +
+          '<circle class="eye-dot" cx="25" cy="12.7" r="1.85"></circle>' +
+          '<circle class="glint" cx="24.5" cy="12.15" r="0.5"></circle>' +
+          '<ellipse class="ink mouth-o" cx="22" cy="18" rx="1.85" ry="2.3"></ellipse>' +
         '</g>' +
         '<g class="face face-hurt">' +
-          '<path class="ink eye" d="M16.7 12.3 l2.9 2.9 M19.6 12.3 l-2.9 2.9"></path>' +
-          '<path class="ink eye" d="M24.2 12.3 l2.9 2.9 M27.1 12.3 l-2.9 2.9"></path>' +
-          '<path class="ink mouth" d="M18.6 19.8 q1.7 -1.6 3.4 0 q1.7 1.6 3.4 0"></path>' +
+          '<path class="ink eye" d="M17.4 11.6 l3 3 M20.4 11.6 l-3 3"></path>' +
+          '<path class="ink eye" d="M23.6 11.6 l3 3 M26.6 11.6 l-3 3"></path>' +
+          '<path class="ink mouth" d="M18.9 18.3 q1.55 -1.5 3.1 0 q1.55 1.5 3.1 0"></path>' +
         '</g>' +
         '<g class="face face-dizzy">' +
-          '<path class="ink eye" d="M18.7 11.7 a2.5 2.5 0 1 1 -2.5 2.7"></path>' +
-          '<path class="ink eye" d="M25.3 11.7 a2.5 2.5 0 1 0 2.5 2.7"></path>' +
-          '<path class="ink mouth" d="M18.5 19.5 q1.8 1.3 3.5 0 q1.7 -1.3 3.5 0"></path>' +
+          '<path class="ink eye" d="M19.5 10.9 a2.3 2.3 0 1 1 -2.3 2.4"></path>' +
+          '<path class="ink eye" d="M24.5 10.9 a2.3 2.3 0 1 0 2.3 2.4"></path>' +
+          '<path class="ink mouth" d="M19 17.7 q1.5 1.2 3 0 q1.5 -1.2 3 0"></path>' +
         '</g>' +
       '</g>';
 
       el.innerHTML = '<svg viewBox="0 0 44 58" aria-hidden="true">' +
         '<g class="guy-body">' +
-          '<g class="limb leg-a-g"><path class="ink leg leg-a" d="M20 37.5 17.6 50.4"></path></g>' +
-          '<g class="limb leg-b-g"><path class="ink leg leg-b" d="M24 37.5 26.4 50.4"></path></g>' +
-          '<g class="limb arm-a-g"><path class="ink arm arm-a" d="M17 27 9 33.6"></path></g>' +
-          '<g class="limb arm-b-g"><path class="ink arm arm-b" d="M27 27 35 33.6"></path></g>' +
-          '<path class="torso" d="M15.2 25.4 q6.8 -3.6 13.6 0 l1.5 12.6 q-8.3 3 -16.6 0 z"></path>' +
-          '<path class="ink collar" d="M18.7 30.4 h6.6"></path>' +
+          '<g class="limb leg-a-g">' +
+            '<path class="ink leg" d="M19.5 37.6 q-0.9 6.4 -1.2 15.2"></path>' +
+            '<ellipse class="shoe" cx="17.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
+          '</g>' +
+          '<g class="limb leg-b-g">' +
+            '<path class="ink leg" d="M24.5 37.6 q0.9 6.4 1.2 15.2"></path>' +
+            '<ellipse class="shoe" cx="26.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
+          '</g>' +
+          '<g class="limb arm-a-g">' +
+            '<path class="ink arm" d="M18.4 23.6 q-3.4 3.2 -4.9 8.4"></path>' +
+            '<circle class="hand" cx="13.2" cy="32.6" r="1.75"></circle>' +
+          '</g>' +
+          '<g class="limb arm-b-g">' +
+            '<path class="ink arm" d="M25.6 23.6 q3.4 3.2 4.9 8.4"></path>' +
+            '<circle class="hand" cx="30.8" cy="32.6" r="1.75"></circle>' +
+          '</g>' +
+          '<path class="torso hood" d="M17.8 22.2 q4.2 -4.2 8.4 0 q-4.2 3.1 -8.4 0 z"></path>' +
+          '<path class="torso" d="M17.9 21.4 q4.1 -2.2 8.2 0 q1.1 3.4 1.2 7.4 q0.2 4.8 -0.9 9.1 q-4.4 1.3 -8.8 0 q-1.1 -4.3 -0.9 -9.1 q0.1 -4 1.2 -7.4 z"></path>' +
+          '<path class="ink collar" d="M19.6 22.7 q2.4 2.1 4.8 0"></path>' +
+          '<path class="ink string" d="M20.9 24.2 l-0.4 3.1 M23.1 24.2 l0.4 3.1"></path>' +
+          '<path class="ink pocket" d="M19.4 32.5 q2.6 1.3 5.2 0"></path>' +
           FACE +
         '</g>' +
         '<g class="stars">' +
-          '<path class="ink star" d="M12.6 1.4 l.9 1.9 2.1.2 -1.6 1.5 .4 2.1 -1.8-1 -1.8 1 .4-2.1 -1.6-1.5 2.1-.2z"></path>' +
-          '<path class="ink star" d="M31.4 3.8 l.8 1.7 1.9.2 -1.5 1.3 .4 1.9 -1.6-.9 -1.6.9 .4-1.9 -1.5-1.3 1.9-.2z"></path>' +
+          '<path class="ink star" d="M11 6.1 l0.9 1.9 2.1 0.2 -1.6 1.5 0.4 2.1 -1.8 -1 -1.8 1 0.4 -2.1 -1.6 -1.5 2.1 -0.2z"></path>' +
+          '<path class="ink star" d="M33 7.6 l0.8 1.7 1.9 0.2 -1.5 1.3 0.4 1.9 -1.6 -0.9 -1.6 0.9 0.4 -1.9 -1.5 -1.3 1.9 -0.2z"></path>' +
         '</g>' +
       '</svg>';
 
