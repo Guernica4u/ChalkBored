@@ -224,21 +224,35 @@
     fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
     transform-box: fill-box; transform-origin: top center;
   }
-  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.6; }
-  .rail-guy.climb .arm-a { animation: guy-reach 0.62s ease-in-out infinite alternate; }
-  .rail-guy.climb .leg-a { animation: guy-step 0.62s ease-in-out infinite alternate; }
-  .rail-guy.climb .leg-b { animation: guy-step 0.62s ease-in-out infinite alternate-reverse; }
-  .rail-guy.wave .arm-b { animation: guy-wave 0.34s ease-in-out infinite alternate; }
+  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.6; transition: stroke 0.15s; }
+  .rail-guy .g { transition: stroke 0.15s; }
+  .rail-guy .guy-bubble {
+    position: absolute; left: 50%; bottom: 104%; transform: translateX(-50%) rotate(-4deg);
+    padding: 2px 7px; border-radius: 8px; background: var(--ink); color: var(--paper);
+    font: 700 11px/1.4 var(--body); white-space: nowrap; opacity: 0; transition: opacity 0.12s;
+    pointer-events: none;
+  }
+  .rail-guy .guy-bubble.on { opacity: 1; }
+  .rail-guy.dragging { cursor: grabbing; }
+  .rail-guy.climb .arm-a { animation: guy-reach 0.55s ease-in-out infinite alternate; }
+  .rail-guy.climb .arm-b { animation: guy-reach 0.55s ease-in-out infinite alternate-reverse; }
+  .rail-guy.climb .leg-a { animation: guy-step 0.55s ease-in-out infinite alternate; }
+  .rail-guy.climb .leg-b { animation: guy-step 0.55s ease-in-out infinite alternate-reverse; }
+  .rail-guy.wave .arm-b { animation: guy-wave 0.32s ease-in-out infinite alternate; }
   .rail-guy.hang .body { animation: guy-sway 1.9s ease-in-out infinite alternate; }
-  .rail-guy.dragging { cursor: grabbing; filter: none; }
-  .rail-guy.dragging .g, .rail-guy.dragging .head { stroke: var(--accent); }
-  .rail-guy.fall { animation: guy-squish 0.42s ease-out; }
+  .rail-guy.flail .arm-a { animation: guy-flail 0.16s linear infinite alternate; }
+  .rail-guy.flail .arm-b { animation: guy-flail 0.13s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-a { animation: guy-flail 0.15s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-b { animation: guy-flail 0.18s linear infinite alternate; }
+  .rail-guy.hurt .g, .rail-guy.hurt .head { stroke: var(--danger); }
+  .rail-guy.hit { animation: guy-hit 0.28s ease-out; }
   body.no-guy .rail-guy { display: none; }
-  @keyframes guy-reach { from { transform: rotate(-8deg); } to { transform: rotate(26deg); } }
-  @keyframes guy-step { from { transform: rotate(-6deg); } to { transform: rotate(18deg); } }
-  @keyframes guy-wave { from { transform: rotate(-30deg); } to { transform: rotate(-4deg); } }
+  @keyframes guy-reach { from { transform: rotate(-16deg); } to { transform: rotate(34deg); } }
+  @keyframes guy-step { from { transform: rotate(-10deg); } to { transform: rotate(22deg); } }
+  @keyframes guy-wave { from { transform: rotate(-34deg); } to { transform: rotate(-4deg); } }
   @keyframes guy-sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
-  @keyframes guy-squish { 0% { scale: 1 1; } 45% { scale: 1.2 0.8; } 100% { scale: 1 1; } }
+  @keyframes guy-flail { from { transform: rotate(-60deg); } to { transform: rotate(64deg); } }
+  @keyframes guy-hit { 0% { scale: 1.26 0.76; } 55% { scale: 0.92 1.08; } 100% { scale: 1 1; } }
   .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
 
 
@@ -1560,7 +1574,7 @@
       openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
 
-    // the little guy at the foot of the rail: he climbs, hangs about, and can be dragged
+    // the little guy: walks the floor, climbs the rail, ragdolls when thrown
     (function railGuy() {
       const el = document.getElementById('rail-guy');
       if (!el) return;
@@ -1574,80 +1588,207 @@
         '<path class="g leg leg-a" d="M17 29.6 11.4 40"></path>' +
         '<path class="g leg leg-b" d="M17 29.6 22.6 40"></path>' +
         '</svg>';
+      const bubble = document.createElement('span');
+      bubble.className = 'guy-bubble';
+      el.appendChild(bubble);
+
+      const W = 34, H = 46, GRAVITY = 1900;
       const rail = document.querySelector('nav.rail') || document.querySelector('.rail');
       const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let x = 8, y = 0, tx = 8, ty = 0, held = false, grabX = 0, grabY = 0;
       const railW = () => (rail ? rail.getBoundingClientRect().width : 210);
-      const top = () => Math.max(40, window.innerHeight - 96);
-      const place = () => { el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (-y).toFixed(1) + 'px)'; };
-      const dropClasses = () => el.classList.remove('climb', 'wave', 'hang');
+      const maxX = () => Math.max(0, window.innerWidth - W);
+      const maxY = () => Math.max(0, window.innerHeight - H);
+
+      let x = 8, y = 0, vx = 0, vy = 0, angle = 0, spin = 0;
+      let mode = 'ground';                 // ground | climb | held | air | hurt
+      let held = false, grabX = 0, grabY = 0;
+      let walkTo = x, climbTo = 0, climbDir = 1, hurtFor = 0;
+      let lastX = 0, lastY = 0, lastT = 0, flickX = 0, flickY = 0;
+
+      const set = (name, on) => el.classList.toggle(name, on);
+      const place = () => {
+        el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (-y).toFixed(1) + 'px) rotate(' + angle.toFixed(2) + 'deg)';
+      };
+
+      /* tiny sounds made on the spot, so there is no file to load */
+      let ac = null;
+      function beep(kind) {
+        try {
+          ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+          if (ac.state === 'suspended') ac.resume();
+          const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+          const scream = kind === 'scream';
+          o.type = scream ? 'sawtooth' : 'triangle';
+          o.frequency.setValueAtTime(scream ? 900 : 170, t);
+          o.frequency.exponentialRampToValueAtTime(scream ? 250 : 55, t + (scream ? 0.42 : 0.12));
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(scream ? 0.06 : 0.1, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + (scream ? 0.46 : 0.16));
+          o.connect(g).connect(ac.destination);
+          o.start(t);
+          o.stop(t + (scream ? 0.5 : 0.18));
+        } catch (e) {}
+      }
+
+      let bubbleTimer = 0;
+      function say(text, ms) {
+        bubble.textContent = text;
+        bubble.classList.add('on');
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(() => bubble.classList.remove('on'), ms || 1200);
+      }
+
+      function calm() { set('climb', false); set('wave', false); set('hang', false); set('flail', false); }
+
+      function getUp() {
+        mode = 'ground';
+        angle = 0; spin = 0; vx = 0; vy = 0;
+        set('hurt', false);
+        calm();
+        walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10);
+      }
+
+      function bonk() {
+        mode = 'hurt';
+        hurtFor = 900;
+        angle = 0; spin = 0; vx = 0; vy = 0;
+        set('flail', false);
+        set('hurt', true);
+        set('hit', true);
+        setTimeout(() => set('hit', false), 300);
+        say('OW!', 1000);
+        beep('thump');
+      }
+
+      function thrown() { calm(); set('flail', true); mode = 'air'; say('AAAH!', 1100); beep('scream'); }
+
+      function hop() {
+        if (mode !== 'ground') return;
+        calm();
+        mode = 'air';
+        vy = 430;
+        vx = (Math.random() - 0.5) * 90;
+      }
 
       function wander() {
-        if (held) return;
-        dropClasses();
+        if (held || mode === 'air' || mode === 'hurt') return;
         const r = Math.random();
-        if (r < 0.6) {                      // climbs the rail
-          ty = 10 + Math.random() * (top() - 20);
-          el.classList.add('climb');
-          if (Math.random() < 0.35) el.classList.add('wave');
-        } else if (r < 0.82) {              // back down to the floor
-          ty = 0;
-        } else {                            // shuffles along the bottom
-          ty = 0;
-          el.classList.add('wave');
-        }
-        tx = 4 + Math.random() * Math.max(8, railW() - 44);
-        if (ty > top() * 0.55) el.classList.add('hang');
-        setTimeout(() => { if (!held) el.classList.remove('wave'); }, 2200);
+        if (r < 0.4) { calm(); mode = 'ground'; walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10); }
+        else if (r < 0.62) { calm(); set('wave', true); say(['hi', 'hmm', 'oh'][(Math.random() * 3) | 0], 800); setTimeout(() => set('wave', false), 1800); }
+        else if (r < 0.85) { calm(); mode = 'climb'; climbDir = 1; climbTo = 30 + Math.random() * Math.max(40, window.innerHeight - 170); set('climb', true); }
+        else hop();
       }
 
       let last = performance.now();
       function frame(now) {
-        const k = Math.min(3, (now - last) / 16.7);
+        const dt = Math.min(0.04, (now - last) / 1000);
         last = now;
-        if (!held) {
-          x += (tx - x) * Math.min(1, 0.05 * k);
-          y += (ty - y) * Math.min(1, 0.075 * k);
+
+        if (held) { place(); requestAnimationFrame(frame); return; }
+
+        if (mode === 'air' || mode === 'hurt') {
+          vy -= GRAVITY * dt;
+          x += vx * dt;
+          y += vy * dt;
+          angle += spin * dt;
+
+          if (x < 0) {
+            x = 0;
+            if (Math.abs(vx) > 260) bonk(); else vx = Math.abs(vx) * 0.5;
+            spin *= 0.4;
+          } else if (x > maxX()) {
+            x = maxX();
+            if (Math.abs(vx) > 260) bonk(); else vx = -Math.abs(vx) * 0.5;
+            spin *= 0.4;
+          }
+
+          if (y <= 0) {
+            const impact = -vy;
+            y = 0;
+            if (mode === 'hurt') { vy = 0; vx *= 0.5; }
+            else if (impact > 420) { bonk(); }
+            else if (impact > 90) {
+              vy = impact * 0.34;
+              vx *= 0.72;
+              spin *= 0.55;
+              if (impact > 240) say('oof', 600);
+            } else {
+              vy = 0; vx *= 0.6; spin = 0; angle = 0;
+              mode = 'ground';
+              calm();
+            }
+          }
+          if (y > maxY()) { y = maxY(); vy = -Math.abs(vy) * 0.3; }
+        } else if (mode === 'climb') {
+          y += 130 * dt * climbDir;
+          x += (4 - x) * Math.min(1, 6 * dt);
+          if (y >= climbTo) climbDir = -1;
+          if (y <= 0) { y = 0; mode = 'ground'; calm(); }
+        } else {
+          const gap = walkTo - x;
+          if (Math.abs(gap) > 1.2) {
+            x += Math.sign(gap) * Math.min(Math.abs(gap), 90 * dt);
+            angle = Math.sin(now / 90) * 3;
+          } else { angle = 0; }
+        }
+
+        if (mode === 'hurt') {
+          hurtFor -= dt * 1000;
+          if (hurtFor <= 0) getUp();
         }
         place();
         requestAnimationFrame(frame);
       }
 
       el.addEventListener('pointerdown', (e) => {
+        if (mode === 'hurt') return;
         held = true;
-        el.classList.add('dragging');
-        el.classList.remove('fall');
+        mode = 'held';
         try { el.setPointerCapture(e.pointerId); } catch (err) {}
         grabX = e.clientX - x;
         grabY = (window.innerHeight - e.clientY) - y;
-        dropClasses();
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = performance.now();
+        flickX = 0;
+        flickY = 0;
+        calm();
+        set('flail', true);
         e.preventDefault();
       });
       el.addEventListener('pointermove', (e) => {
         if (!held) return;
-        x = Math.max(0, Math.min(window.innerWidth - 34, e.clientX - grabX));
-        y = Math.max(0, Math.min(window.innerHeight - 46, (window.innerHeight - e.clientY) - grabY));
+        const now = performance.now();
+        const dt = Math.max(8, now - lastT) / 1000;
+        flickX = (e.clientX - lastX) / dt;
+        flickY = (lastY - e.clientY) / dt;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = now;
+        x = Math.max(0, Math.min(maxX(), e.clientX - grabX));
+        y = Math.max(0, Math.min(maxY(), (window.innerHeight - e.clientY) - grabY));
+        angle = Math.max(-22, Math.min(22, -flickX * 0.02));
         place();
       });
       const release = (e) => {
         if (!held) return;
         held = false;
-        el.classList.remove('dragging');
         try { el.releasePointerCapture(e.pointerId); } catch (err) {}
-        tx = x;
-        ty = 0;                              // he falls back to the floor
-        el.classList.remove('fall');
-        void el.offsetWidth;
-        el.classList.add('fall');
-        setTimeout(() => el.classList.remove('fall'), 500);
-        setTimeout(() => { if (!held) { tx = Math.max(6, x - 30) + Math.random() * 40; el.classList.add('wave'); } }, 950);
-        setTimeout(() => { if (!held) el.classList.remove('wave'); }, 2600);
+        const speed = Math.hypot(flickX, flickY);
+        vx = flickX * 0.85;
+        vy = flickY * 0.85;
+        if (speed < 90) { vx = 0; vy = 0; }
+        spin = (vx >= 0 ? 1 : -1) * Math.min(760, 120 + speed * 0.7);
+        if (speed < 240) { calm(); set('flail', true); mode = 'air'; }
+        else thrown();
       };
       el.addEventListener('pointerup', release);
       el.addEventListener('pointercancel', release);
 
       place();
-      if (!still) { requestAnimationFrame(frame); wander(); setInterval(wander, 5200); }
+      requestAnimationFrame(frame);
+      setTimeout(wander, 1400);
+      if (!still) setInterval(wander, 4200);
     })();
 
     // ---- building the lists ----
