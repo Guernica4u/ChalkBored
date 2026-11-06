@@ -736,6 +736,13 @@
   .setup-guy { display: flex; justify-content: center; height: 62px; margin: -4px 0 8px; pointer-events: none; }
   .setup-guy .rail-guy { position: static; width: 47px; height: 62px; cursor: default; filter: drop-shadow(0 3px 4px rgba(31, 45, 68, 0.16)); }
   .modal-body > .btn { align-self: flex-start; }
+  /* setup's cloak choices get their own row, so every cloak fits */
+  .setup-cloak .setting { flex-wrap: wrap; }
+  .setup-cloak .setting > div:first-child { flex: 1 1 100%; }
+  .setup-cloak .choice { flex: 1 1 100%; margin-left: 0; justify-content: flex-start; }
+  /* first-load cloak ask */
+  .cloak-ask-choice { justify-content: flex-start; margin-bottom: 0.6rem; }
+  .cloak-ask-hint { margin-bottom: 0.8rem; font-size: 0.82rem; }
   .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .modal-actions { display: flex; gap: 0.5rem; align-items: center; }
   body.os .modal-box { background: #14161b; }
@@ -982,6 +989,10 @@
                 <div><h3>Open in a blank tab</h3><p>On launch, ChalkBored opens itself in a blank tab wearing the cloak, so the address bar never shows it.</p></div>
                 <button class="switch" id="blank-launch" type="button" role="switch" aria-checked="false" aria-label="Open in a blank tab"></button>
               </div>
+              <div class="setting">
+                <div><h3>Cloak this page</h3><p>Open ChalkBored in a blank tab wearing the cloak right now.</p></div>
+                <button class="btn" id="cloak-now" type="button">Cloak this page</button>
+              </div>
             </div>
 
             <div class="group">
@@ -1014,7 +1025,7 @@
       </main>
 
       <footer>
-        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.1 Early Access</button></span>
+        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.2 Early Access</button></span>
         <p class="tip" id="tip"></p>
       </footer>
     </div>
@@ -1032,6 +1043,21 @@
         <button class="btn" id="setup-back" type="button">Back</button>
         <span class="spacer"></span>
         <button class="btn primary" id="setup-next" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- first load: how games should open -->
+  <div class="modal" id="cloak-ask" hidden role="dialog" aria-modal="true" aria-labelledby="cloak-ask-title">
+    <div class="modal-box">
+      <p class="modal-step">Opening games</p>
+      <h2 id="cloak-ask-title">Open games cloaked?</h2>
+      <p>Pick a cloak and games open in a tab that looks like it. If your browser asks to allow pop-ups, allow them for ChalkBored &mdash; otherwise the cloaked tab can&rsquo;t open.</p>
+      <div class="choice cloak-ask-choice" id="cloak-ask-choice"></div>
+      <p class="cloak-ask-hint">You can change this any time in Settings.</p>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="cloak-ask-later" type="button">Not now</button>
       </div>
     </div>
   </div>
@@ -1067,6 +1093,7 @@
     <div class="viewer-bar">
       <button class="btn" id="viewer-back" type="button" hidden>&lsaquo; Back</button>
       <b id="viewer-title"></b>
+      <button class="btn" id="viewer-full" type="button">Fullscreen</button>
       <button class="btn" id="viewer-close" type="button">Close</button>
     </div>
   </div>
@@ -1346,6 +1373,7 @@
       askCloak: true,          // ask which cloak to use before opening a game
       cloakMode: 'classroom',  // the cloak picked last
       cloakDefaults: false,    // one-time migration for the restored cloak settings
+      cloakAsked: false,       // the first-load cloak question has been shown
       blankLaunch: false,      // open ChalkBored itself in a cloaked about:blank tab on launch
     };
     let settings = Object.assign({}, DEFAULT_SETTINGS);
@@ -2123,7 +2151,7 @@
       trigger.setAttribute('aria-haspopup', 'true');
       trigger.setAttribute('aria-expanded', 'false');
       trigger.addEventListener('click', () => {
-        if (!settings.askCloak) { closeAllMenus(); launch(item, settings.cloakMode); return; }
+        if (!settings.askCloak || settings.noNewTabs) { closeAllMenus(); launch(item, settings.cloakMode); return; }
         const opening = !wrap.classList.contains('is-open');
         closeAllMenus(wrap);
         wrap.classList.toggle('is-open', opening);
@@ -2389,6 +2417,16 @@
 
     $('gear').addEventListener('click', () => showPanel('settings'));
     $('viewer-close').addEventListener('click', closeHere);
+    const viewerEl = $('viewer');
+    if (!viewerEl.requestFullscreen) $('viewer-full').remove();
+    else $('viewer-full').addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else viewerEl.requestFullscreen().catch(() => {});
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const btn = $('viewer-full');
+      if (btn) btn.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+    });
 
 
     // ---- OS look ----
@@ -2547,6 +2585,12 @@
     $('auto-vault').addEventListener('click', () => change('autoVault', !settings.autoVault));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
     $('show-guy').addEventListener('click', () => change('showGuy', !settings.showGuy));
+    $('cloak-now').addEventListener('click', () => {
+      const url = new URL(location.href);
+      url.searchParams.set('blank', '1');
+      const mode = settings.disguise === 'off' ? 'classroom' : settings.disguise;
+      if (openCloakedTab(url.href, mode, 'ChalkBored')) location.replace('about:blank');
+    });
 
     $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
 
@@ -2570,7 +2614,7 @@
         const b = document.createElement('button');
         b.type = 'button';
         b.dataset.disguise = key;
-        b.textContent = d ? d.label : 'None';
+        b.textContent = d ? d.label : 'Normal tab';
         b.addEventListener('click', () => {
           settings.disguise = key;
           settings.cloakMode = key === 'off' ? 'normal' : key;
@@ -2682,6 +2726,7 @@
     function closeSetup() {
       setupEl.hidden = true;
       if (notesPending) { notesPending = false; setTimeout(showNewNotes, 300); }
+      else setTimeout(maybeAskCloak, 600);
       settings.setupVersion = SETUP_VERSION;
       change('setupDone', true);
     }
@@ -2700,7 +2745,7 @@
     $('updated-ver').textContent = VERSION_LABEL;
     $('updated-when').textContent = 'updated Nov 6 · what’s new';
     $('ver').addEventListener('click', () => { notesEl.hidden = false; });
-    $('notes-close').addEventListener('click', () => { notesEl.hidden = true; });
+    $('notes-close').addEventListener('click', () => { notesEl.hidden = true; setTimeout(maybeAskCloak, 300); });
 
     // the first time someone sees a new version: the quiet reveal, a note, then what's new
     function showMilestone() {
@@ -2733,6 +2778,39 @@
       if (VERSION === '1.2') showMilestone();
       else notesEl.hidden = false;
     }
+
+    // ---- first load: ask how games should open ----
+    function buildCloakAsk() {
+      const box = $('cloak-ask-choice');
+      if (!box || box.childElementCount) return;
+      OPEN_MODES.forEach(([mode, label]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          settings.cloakMode = mode;
+          if (mode === 'normal') settings.askCloak = false;
+          else settings.disguise = mode;
+          settings.cloakAsked = true;
+          saveSettings();
+          applySettings();
+          $('cloak-ask').hidden = true;
+        });
+        box.appendChild(b);
+      });
+    }
+    function maybeAskCloak() {
+      if (settings.cloakAsked || settings.noNewTabs || !settings.setupDone) return;
+      if (!$('setup').hidden || !$('milestone').hidden || !$('notes').hidden || !$('cloak-ask').hidden) return;
+      buildCloakAsk();
+      $('cloak-ask').hidden = false;
+      $('cloak-ask-later').focus();
+    }
+    $('cloak-ask-later').addEventListener('click', () => {
+      settings.cloakAsked = true;
+      saveSettings();
+      $('cloak-ask').hidden = true;
+    });
 
     // ---- people online ----
     const ONLINE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
@@ -2803,6 +2881,7 @@
       openSetup();
     }
     else if (seenVersion !== VERSION && returningVisitor) showNewNotes();
+    else setTimeout(maybeAskCloak, 1200);
 
     setTimeout(() => { const c = document.querySelector('.curtain'); if (c) c.remove(); }, 1200);
   </script>
