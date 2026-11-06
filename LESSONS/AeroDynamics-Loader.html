@@ -26,7 +26,7 @@
     <div id="player-container"></div>
 
     <!-- Ruffle Emulator CDN Script -->
-    <script src="https://unpkg.com/@ruffle-rs/ruffle@0.7.1/ruffle.js" integrity="sha384-6NrmfJx+zTZZPW41eipMGvyVrfvsDKenrh0v/YJ+nJq0WzzLvOHX6GCcQQ1GbIic" crossorigin="anonymous"></script>
+    <script src="../Flash-Player/ruffle.js"></script>
 
     <script>
         window.addEventListener("load", (event) => {
@@ -37,7 +37,7 @@
             document.getElementById("player-container").appendChild(player);
             
             // Replace "YOUR_SWF_FILE_NAME.swf" with your actual uploaded file name!
-            player.load("/SWF/AeroDynamics.swf");
+            player.load("../SWF/AeroDynamics.swf");
         });
     </script>
 </body>
