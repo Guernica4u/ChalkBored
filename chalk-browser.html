@@ -202,7 +202,6 @@
 </div>
 <script>
 /* Chalk Browser is the public Tide (github.com/Guernica4u/Tide), with its own tabs and address bar. ?url=<site> opens that site first. */
-/* the public Tide lives on workers.dev, which loads more reliably in class */
 // served from this same site, so a blocked workers.dev can't break the browser
 const TIDE_PAGE = new URL("tide/", location.href).href;
 const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
@@ -276,6 +275,22 @@ function openTide(mode, key) {
   if (start) cfg.open = start;
   f.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify(cfg));
   document.body.appendChild(f);
+  /* Tide's new tab wears our paper sunrise instead of its purple gradient */
+  f.addEventListener("load", () => {
+    try {
+      const doc = f.contentDocument;
+      if (!doc || !doc.head || doc.getElementById("chalk-tide-skin")) return;
+      const back = new URL("look/backdrops/ridges.svg", location.href).href;
+      const st = doc.createElement("style");
+      st.id = "chalk-tide-skin";
+      st.textContent =
+        ".nt-bg{background-image:url('" + back + "')!important;background-size:cover!important;" +
+        "background-position:center bottom!important;background-repeat:no-repeat!important}" +
+        ".nt-overlay{background-image:linear-gradient(180deg,rgba(255,250,240,.16),rgba(31,45,68,.24))!important}" +
+        ".nt-time,.nt-date,.nt-brand{color:#1f2d44!important;text-shadow:0 1px 0 rgba(255,255,255,.55)!important}";
+      doc.head.appendChild(st);
+    } catch (e) {}
+  });
 }
 
 
