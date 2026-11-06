@@ -732,6 +732,9 @@
   .modal-body { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
   .modal-body .choice { justify-content: flex-start; }
   .modal-body .setup-note { margin: 0; color: var(--pencil); }
+  /* the little guy turns up in setup as well */
+  .setup-guy { display: flex; justify-content: center; height: 62px; margin: -4px 0 8px; pointer-events: none; }
+  .setup-guy .rail-guy { position: static; width: 47px; height: 62px; cursor: default; filter: drop-shadow(0 3px 4px rgba(31, 45, 68, 0.16)); }
   .modal-body > .btn { align-self: flex-start; }
   .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .modal-actions { display: flex; gap: 0.5rem; align-items: center; }
@@ -928,7 +931,7 @@
             <div id="hero-search-slot"></div>
             <p class="hello-meta">
               <span class="meta-link static" id="stat-online" title="People online now"><span class="stat-dot"></span><b id="online-count" aria-live="polite">&hellip;</b> <span id="online-note">online now</span></span>
-              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.1 Early Access</b> <span id="updated-when">updated Nov 5 · what’s new</span></button>
+              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2 Early Access</b> <span id="updated-when">updated Nov 6 · what’s new</span></button>
             </p>
           </div>
           <div class="home-start">
@@ -1020,6 +1023,7 @@
   <!-- first-time setup -->
   <div class="modal" id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
     <div class="modal-box">
+      <div class="setup-guy" id="setup-guy" aria-hidden="true"></div>
       <p class="modal-step" id="setup-step"></p>
       <h2 id="setup-title"></h2>
       <p id="setup-text"></p>
@@ -1033,12 +1037,12 @@
   </div>
 
   <!-- version milestone screen, shown once before what's new -->
-  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.1">
+  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.2">
     <div class="milestone-inner">
       <p class="ms-name">ChalkBored</p>
-      <div class="ms-mask"><p class="ms-num">1.1</p></div>
+      <div class="ms-mask"><p class="ms-num">1.2</p></div>
       <span class="ms-line" aria-hidden="true"></span>
-      <p class="milestone-msg" id="milestone-msg">New looks and a faster games notebook.</p>
+      <p class="milestone-msg" id="milestone-msg">A little guy with a lot of feelings.</p>
       <p class="milestone-hint">Click anywhere to see what’s new</p>
     </div>
   </div>
@@ -1047,12 +1051,12 @@
   <div class="modal" id="notes" hidden role="dialog" aria-modal="true" aria-labelledby="notes-title">
     <div class="modal-box">
       <p class="modal-step">What's new</p>
-      <h2 id="notes-title">ChalkBored 1.1</h2>
+      <h2 id="notes-title">ChalkBored 1.2</h2>
       <ul>
-        <li><b>Games only:</b> Notebook opens straight to your games now.</li>
-        <li><b>New looks:</b> Basic (Night or Mono) and Space, with softer colors that are easy on the eyes.</li>
-        <li><b>Notebook opens faster,</b> especially on slower laptops.</li>
-        <li>More lessons, and sharper versions of some.</li>
+        <li><b>The little guy has feelings now:</b> five faces, a mood meter above the footer, and a landing that settles instead of snapping.</li>
+        <li><b>He tags along through setup,</b> pulling a face at every step.</li>
+        <li><b>Home spotlights</b> Eaglercraft 1.5, Learn to Fly 3, Fears to Fathom and Speed Stars.</li>
+        <li><b>Learn to Fly 3</b> uses our own Flash player now, so no CDN can take it down.</li>
       </ul>
       <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
     </div>
@@ -1322,9 +1326,9 @@
     const SETTINGS_STORE = 'vault-settings';
     const SEEN_STORE = 'vault-seen-version';
     const FAVS_STORE = 'vault-favorites';
-    const VERSION = '1.1';
-    const VERSION_LABEL = 'v1.1 Early Access';   // what the footer shows
-    const SETUP_VERSION = '1.0';   // bump this when everyone should see setup again
+    const VERSION = '1.2';
+    const VERSION_LABEL = 'v1.2 Early Access';   // what the footer shows
+    const SETUP_VERSION = '1.2';   // bump this when everyone should see setup again
     const THEMES = ['basic'];
     const BASIC_COLORS = [['mono', 'Mono']];
 
@@ -2628,14 +2632,34 @@
       {
         step: 'All set',
         title: 'You\u2019re ready',
-        text: 'Click the version at the bottom any time to see what\u2019s new in 1.1.',
+        text: 'Click the version at the bottom any time to see what’s new in 1.2.',
         body: () => null,
         next: 'Done',
       },
     ];
 
+    /* the little guy stands in the setup box and pulls a face for each step */
+    const SETUP_MOODS = ['happy', 'calm', 'scared', 'happy'];
+    function setupGuy(mood) {
+      const box = $('setup-guy');
+      if (!box) return;
+      if (!box.firstChild) {
+        const src = document.getElementById('rail-guy');
+        const svg = src && src.querySelector('svg');
+        if (!svg) return;
+        const fig = document.createElement('div');
+        fig.className = 'rail-guy';
+        fig.appendChild(svg.cloneNode(true));
+        box.appendChild(fig);
+      }
+      const fig = box.firstChild;
+      fig.classList.remove('f-calm', 'f-happy', 'f-scared', 'f-hurt', 'f-dizzy');
+      fig.classList.add('f-' + (mood || 'calm'));
+    }
+
     function renderSetup() {
       const st = SETUP_STEPS[setupStep];
+      setupGuy(SETUP_MOODS[setupStep] || 'calm');
       const steps = SETUP_STEPS.length - 2;   // Welcome and All set aren't numbered
       $('setup-step').textContent = setupStep > 0 && setupStep <= steps ? setupStep + ' of ' + steps + ' \u00b7 ' + st.step : st.step;
       $('setup-title').textContent = st.title;
@@ -2674,7 +2698,7 @@
     const notesEl = $('notes');
     $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
     $('updated-ver').textContent = VERSION_LABEL;
-    $('updated-when').textContent = 'updated Nov 5 · what\u2019s new';
+    $('updated-when').textContent = 'updated Nov 6 · what’s new';
     $('ver').addEventListener('click', () => { notesEl.hidden = false; });
     $('notes-close').addEventListener('click', () => { notesEl.hidden = true; });
 
@@ -2706,7 +2730,7 @@
 
     // what's new for a version you haven't seen, after the milestone screen
     function showNewNotes() {
-      if (VERSION === '1.1') showMilestone();
+      if (VERSION === '1.2') showMilestone();
       else notesEl.hidden = false;
     }
 
