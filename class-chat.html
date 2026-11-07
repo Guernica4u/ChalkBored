@@ -1278,19 +1278,6 @@
 <div id="toasts" aria-live="polite"></div>
 
 
-<div class="veil hide" id="mod-veil">
-  <div class="card" role="dialog" aria-labelledby="mod-title">
-    <h3 id="mod-title">Moderator login</h3>
-    <p>Type the moderator password. It isn’t stored anywhere in your browser.</p>
-    <input id="mod-pass" type="password" autocomplete="off" placeholder="Password">
-    <p class="err" id="mod-err"></p>
-    <div class="gate-row">
-      <button class="ghost" id="mod-cancel" type="button">Cancel</button>
-      <button class="primary" id="mod-go" type="button">Log in</button>
-    </div>
-  </div>
-</div>
-
 <div class="veil hide" id="pick-veil">
   <div class="card wide" role="dialog" aria-labelledby="pick-title">
     <div class="rp-head"><h3 id="pick-title">People</h3><button class="mini" id="pick-close" type="button">close</button></div>
@@ -1362,7 +1349,6 @@
     <p class="note">The same looks as ChalkBored. Picking one here changes it there too.</p>
     <div class="set-rows">
       <button class="link" id="set-profile" type="button">Edit your profile</button>
-      <button class="link" id="set-mod" type="button">Moderator login</button>
     </div>
   </div>
 </div>
@@ -2331,28 +2317,7 @@ async function watchPresence() {
 }
 
 // ------------------------------------------------------------------ moderator
-$('set-mod').onclick = () => {
-  $('settings-veil').classList.add('hide');
-  $('mod-pass').value = '';
-  $('mod-err').textContent = '';
-  $('mod-veil').classList.remove('hide');
-  setTimeout(() => $('mod-pass').focus(), 40);
-};
-$('mod-cancel').onclick = () => $('mod-veil').classList.add('hide');
-$('mod-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('mod-go').click(); });
-$('mod-go').onclick = async () => {
-  const password = $('mod-pass').value;
-  if (!password) { $('mod-err').textContent = 'Type the password.'; return; }
-  const { data: ok, error } = await db.rpc('claim_mod', { p_password: password });
-  if (error) { $('mod-err').textContent = error.message; return; }
-  if (!ok) { $('mod-err').textContent = 'Wrong password.'; $('mod-pass').select(); return; }
-  $('mod-veil').classList.add('hide');
-  $('mod-pass').value = '';
-  state.me.is_mod = true;
-  paintMe();
-  await loadRooms();
-  showToast('You’re a moderator now.');
-};
+// site mods are made by the owner in the database (see SCRIPTS/public-setup.sql), never from this page
 
 // the ban button opens a searchable list instead of asking for a name
 $('mod-tools').onclick = () => openPicker();
@@ -2363,7 +2328,6 @@ function paintMe() {
   $('me-tag').hidden = !state.me.is_mod;
   avatarStyle($('me-avatar'), state.me.id, state.me.username, state.me.avatar);
   $('mod-tools').hidden = !state.me.is_mod;
-  $('set-mod').hidden = state.me.is_mod;
   $('open-reports').hidden = !runsSomething();
   paintClassHead();
   if (state.room) {
