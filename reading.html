@@ -903,6 +903,10 @@
           <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2c1.8 1.7 2.7 3.8 2.7 6S9.8 12.3 8 14M8 2C6.2 3.7 5.3 5.8 5.3 8s.9 4.3 2.7 6"/></svg>
           <span>Chalk Browser</span>
         </button>
+        <button class="nav-btn" type="button" data-panel="chat" id="nav-chat" style="--tab:#5fb3a1">
+          <svg viewBox="0 0 16 16"><path d="M2 3.5h12v8H6.5L3 14.2V11.5H2z"/></svg>
+          <span>Chalk Chat</span>
+        </button>
       </div>
 
       <div class="rail-foot">
@@ -947,6 +951,7 @@
         <section class="panel flush" id="panel-music"></section>
         <section class="panel flush" id="panel-tv"></section>
         <section class="panel flush" id="panel-browser"></section>
+        <section class="panel flush" id="panel-chat"></section>
 
 
 
@@ -2347,6 +2352,7 @@
     let musicFrame = null;
     let tvFrame = null;
     let browserFrame = null;
+    let chatFrame = null;
 
     function showPanel(name) {
       closeAllMenus();
@@ -2356,8 +2362,8 @@
       $('gear').classList.toggle('active', name === 'settings');
       document.body.classList.toggle('on-home', name === 'home');
       window.dispatchEvent(new CustomEvent('chalk-home', { detail: name === 'home' }));
-      document.body.classList.toggle('app-open', name === 'music' || name === 'tv' || name === 'browser');
-      document.body.classList.toggle('full-panel', name === 'music' || name === 'tv' || name === 'browser');
+      document.body.classList.toggle('app-open', ['music', 'tv', 'browser', 'chat'].includes(name));
+      document.body.classList.toggle('full-panel', ['music', 'tv', 'browser', 'chat'].includes(name));
       placeSearch();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
       else if (lessonsBuilt) { $('games').innerHTML = ''; lessonsBuilt = false; }
@@ -2387,6 +2393,15 @@
         browserFrame.src = 'chalk-browser.html';
         browserFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write');
         $('panel-browser').appendChild(browserFrame);
+      }
+      // Chalk Chat stays signed in and live while you're on other tabs
+      if (name === 'chat' && !chatFrame) {
+        chatFrame = document.createElement('iframe');
+        chatFrame.className = 'frame blend';
+        chatFrame.title = 'Chalk Chat';
+        chatFrame.src = 'class-chat.html';
+        chatFrame.setAttribute('allow', 'clipboard-write');
+        $('panel-chat').appendChild(chatFrame);
       }
     }
 
