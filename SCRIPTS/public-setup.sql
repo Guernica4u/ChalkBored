@@ -860,7 +860,8 @@ create or replace function public.friend_map()
 returns table(user_id uuid, state text) language sql stable security definer set search_path = public, extensions as $$
   select case when requester = auth.uid() then addressee else requester end,
          case when status = 'accepted' then 'friend' when requester = auth.uid() then 'out' else 'in' end
-    from friendships where requester = auth.uid() or addressee = auth.uid();
+    from friendships
+   where (requester = auth.uid() and not is_banned(addressee)) or (addressee = auth.uid() and not is_banned(requester));
 $$;
 
 -- At most 10 friend requests a day and 20 waiting at once.
@@ -914,7 +915,7 @@ $$;
 create or replace function public.mutual_friends(p_user uuid)
 returns table(user_id uuid, username text, avatar text) language sql stable security definer set search_path = public, extensions as $$
   select p.id, p.username::text, p.avatar from profiles p
-   where are_friends(p.id, auth.uid()) and are_friends(p.id, p_user) and p.id <> auth.uid()
+   where are_friends(p.id, auth.uid()) and are_friends(p.id, p_user) and p.id <> auth.uid() and not p.banned
    order by p.username limit 50;
 $$;
 
@@ -938,14 +939,15 @@ end; $$;
 
 create or replace function public.online_ids()
 returns uuid[] language sql stable security definer set search_path = public, extensions as $$
-  select coalesce(array_agg(user_id), '{}') from chat_online where seen_at > now() - interval '90 seconds';
+  select coalesce(array_agg(o.user_id), '{}') from chat_online o join profiles p on p.id = o.user_id
+   where o.seen_at > now() - interval '90 seconds' and not p.banned;
 $$;
 
 create or replace function public.online_in_room(p_room uuid)
 returns int language sql stable security definer set search_path = public, extensions as $$
   select case when can_read_room(p_room) then
-    (select count(*)::int from chat_online o join room_members m on m.user_id = o.user_id
-      where m.room_id = p_room and o.seen_at > now() - interval '90 seconds') else 0 end;
+    (select count(*)::int from chat_online o join room_members m on m.user_id = o.user_id join profiles p on p.id = o.user_id
+      where m.room_id = p_room and o.seen_at > now() - interval '90 seconds' and not p.banned) else 0 end;
 $$;
 
 -- ---------------------------------------------------------------- row rules
@@ -963,7 +965,10 @@ end $$;
 -- automod_strikes, report_bodies, chat_online.
 
 drop policy if exists profiles_read on public.profiles;
-create policy profiles_read on public.profiles for select to authenticated using (true);
+-- banned accounts vanish for everyone but themselves and site mods (who need
+-- them to unban); deleted accounts are gone with their profile
+create policy profiles_read on public.profiles for select to authenticated
+  using (not banned or id = auth.uid() or is_site_mod());
 
 -- you see the classes you're in or invited to; site mods see all
 drop policy if exists rooms_read on public.rooms;
@@ -974,7 +979,8 @@ create policy rooms_delete on public.rooms for delete to authenticated
   using ((is_site_mod() or owner_id = auth.uid()) and not is_global);
 
 drop policy if exists members_read on public.room_members;
-create policy members_read on public.room_members for select to authenticated using (can_read_room(room_id));
+create policy members_read on public.room_members for select to authenticated
+  using (can_read_room(room_id) and (not is_banned(user_id) or user_id = auth.uid() or is_site_mod()));
 -- leave a class (not Global), or take someone out of one you run
 drop policy if exists members_leave on public.room_members;
 create policy members_leave on public.room_members for delete to authenticated
@@ -1012,7 +1018,7 @@ create policy mentions_mine on public.mentions for select to authenticated using
 
 drop policy if exists friendships_read on public.friendships;
 create policy friendships_read on public.friendships for select to authenticated
-  using (requester = auth.uid() or addressee = auth.uid());
+  using ((requester = auth.uid() and not is_banned(addressee)) or (addressee = auth.uid() and not is_banned(requester)));
 
 drop policy if exists room_bans_read on public.room_bans;
 create policy room_bans_read on public.room_bans for select to authenticated using (can_manage_room(room_id));
