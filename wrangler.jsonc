@@ -2,7 +2,7 @@
 // files, served as-is from the repo root. Newer wrangler versions no longer
 // guess this, so it's spelled out here.
 {
-  "name": "chalkbored-public",
+  "name": "chalkbored",
   "compatibility_date": "2026-10-19",
   "assets": {
     "directory": "."
