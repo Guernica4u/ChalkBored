@@ -143,8 +143,10 @@ where not exists (select 1 from public.requests);
 --            in channels that allow them. Slower sending, a daily cap on
 --            friend requests, and timeouts that get longer each time.
 --
--- After it runs, by hand in the SQL editor (never write it in this file):
---   select public.set_mod_password('your own long password');
+-- Site mods: there is no mod password. Only the owner makes someone a mod,
+-- by their username, here in the SQL editor:
+--   update public.profiles set is_mod = true  where username = 'their_name';
+--   update public.profiles set is_mod = false where username = 'their_name';   -- undo
 -- Dashboard: Authentication > Sign In / Providers > Email: turn OFF "Confirm
 -- email" (accounts use made-up addresses).
 -- Every rule lives in the database, so editing the page gets nobody anywhere.
@@ -214,9 +216,7 @@ alter table public.messages drop constraint if exists messages_reply_to_fkey;
 alter table public.messages add constraint messages_reply_to_fkey
   foreign key (reply_to) references public.messages (id) on delete set null;
 
-create table if not exists public.app_config (key text primary key, value text not null);
-
--- wrong mod passwords (kind 'mod') and friend requests sent (kind 'friend'), for the limits
+-- friend requests sent (kind 'friend'), for the daily cap
 create table if not exists public.secret_attempts (
   id         bigserial primary key,
   user_id    uuid not null references public.profiles on delete cascade,
@@ -405,15 +405,6 @@ returns boolean language sql immutable set search_path = public, extensions as $
   select lower(coalesce(p_text, '')) ~ '(https?:|www\.|[a-z0-9-]+ ?(\.|\(dot\)|\[dot\]| dot ) ?(com|net|org|io|gg|xyz|me|co|ly|app|dev|tv|us|uk|ru|cc|info|link|site|win|online|to|be|lol|fun|club|top)\M)';
 $$;
 
-create or replace function public.check_guess_limit(p_kind text)
-returns void language plpgsql security definer set search_path = public, extensions as $$
-begin
-  if (select count(*) from secret_attempts
-       where user_id = auth.uid() and kind = p_kind and created_at > now() - interval '15 minutes') >= 5 then
-    raise exception 'Too many wrong passwords. Wait 15 minutes and try again.';
-  end if;
-end; $$;
-
 create or replace function public.record_wrong_guess(p_kind text)
 returns void language sql security definer set search_path = public, extensions as $$
   insert into secret_attempts (user_id, kind) values (auth.uid(), p_kind);
@@ -472,26 +463,12 @@ create trigger on_auth_user_created after insert on auth.users
 
 -- ---------------------------------------------------------------- site mods
 
-create or replace function public.set_mod_password(p_password text)
-returns void language sql security definer set search_path = public, extensions as $$
-  insert into app_config (key, value) values ('mod_password', crypt(p_password, gen_salt('bf')))
-  on conflict (key) do update set value = excluded.value;
-$$;
-
-create or replace function public.claim_mod(p_password text)
-returns boolean language plpgsql security definer set search_path = public, extensions as $$
-declare ok boolean;
-begin
-  if auth.uid() is null or is_banned() then return false; end if;
-  perform check_guess_limit('mod');
-  select value = crypt(p_password, value) into ok from app_config where key = 'mod_password';
-  if coalesce(ok, false) then
-    update profiles set is_mod = true where id = auth.uid();
-    return true;
-  end if;
-  perform record_wrong_guess('mod');
-  return false;
-end; $$;
+-- No mod password: mods are set by username in the SQL editor (see the top of
+-- this section). These are gone on purpose.
+drop function if exists public.claim_mod(text);
+drop function if exists public.set_mod_password(text);
+drop function if exists public.check_guess_limit(text);
+drop table if exists public.app_config;
 
 create or replace function public.set_banned(p_username text, p_banned boolean)
 returns boolean language plpgsql security definer set search_path = public, extensions as $$
@@ -976,13 +953,13 @@ $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles', 'rooms', 'room_members', 'room_invites', 'channels', 'messages', 'app_config',
+  foreach t in array array['profiles', 'rooms', 'room_members', 'room_invites', 'channels', 'messages',
     'secret_attempts', 'blocked_words', 'automod_strikes', 'reports', 'report_bodies', 'mentions', 'room_bans',
     'dm_messages', 'dm_blocks', 'friendships', 'chat_online'] loop
     execute format('alter table public.%I enable row level security', t);
   end loop;
 end $$;
--- No policies (functions only): app_config, secret_attempts, blocked_words,
+-- No policies (functions only): secret_attempts, blocked_words,
 -- automod_strikes, report_bodies, chat_online.
 
 drop policy if exists profiles_read on public.profiles;
@@ -1054,7 +1031,7 @@ revoke execute on all functions in schema public from public, anon, authenticate
 grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
   public.i_am_here(uuid), public.online_count() to anon, authenticated;
 
-revoke all on public.app_config, public.secret_attempts, public.blocked_words, public.automod_strikes,
+revoke all on public.secret_attempts, public.blocked_words, public.automod_strikes,
   public.report_bodies, public.chat_online from anon, authenticated;
 revoke all on public.profiles, public.rooms, public.room_members, public.room_invites, public.channels,
   public.messages, public.reports, public.mentions, public.room_bans, public.dm_messages, public.dm_blocks,
@@ -1071,7 +1048,7 @@ grant insert on public.channels to authenticated;
 
 grant execute on function
   public.can_manage_room(uuid), public.can_read_room(uuid), public.channel_room(uuid),
-  public.is_banned(uuid), public.is_site_mod(uuid), public.claim_mod(text),
+  public.is_banned(uuid), public.is_site_mod(uuid),
   public.create_room(text, boolean, text), public.invite_to_room(uuid, uuid), public.my_invites(),
   public.answer_invite(uuid, boolean), public.set_room_role(uuid, text, text), public.set_room_banned(uuid, uuid, boolean),
   public.set_channel_links(uuid, boolean), public.send_message(uuid, text, bigint), public.send_dm(uuid, text),
