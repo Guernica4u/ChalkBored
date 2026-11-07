@@ -584,8 +584,8 @@
       <h2 id="chooser-title">Choose a page</h2>
       <p>Pick one. The last page you chose stays at the top.</p>
       <div class="chooser-check">
-        <button class="check-btn" id="check-links" type="button" aria-controls="chooser-grid" title="Tests each link from this browser. A filter can still treat a normal click differently.">Check links</button>
-        <span class="check-note" id="check-note" role="status" aria-live="polite">See which pages load from this browser.</span>
+        <button class="check-btn" id="check-links" type="button" aria-controls="chooser-grid" title="Checks whether this browser can fetch each page. Cards use the same fetch, not a normal navigation.">Check links</button>
+        <span class="check-note" id="check-note" role="status" aria-live="polite">Checks fetch access. Cards open here without navigating.</span>
       </div>
       <div class="chooser-grid" id="chooser-grid">
         <a class="hall" href="studyhall.html">Study Hall</a>
@@ -674,11 +674,48 @@
     // --- the secret ---
     const flash = document.getElementById('secret-flash');
 
-    function enterArcade(dest) {
+    let openingPage = false;
+
+    function setOpenNote(text) {
+      const note = document.getElementById('check-note');
+      if (note) note.textContent = text;
+    }
+
+    async function openPage(dest, label) {
+      if (openingPage) return;
+      openingPage = true;
       dest = dest || 'algebra.html';
-      if (prefersReducedMotion) { window.location.href = dest; return; }
+      label = label || 'Study Hall';
+      setOpenNote('Opening ' + label + '…');
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      try {
+        const res = await fetch(dest, { cache: 'no-store', credentials: 'same-origin', signal: ctrl.signal });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const html = await res.text();
+        if (!html.includes('ChalkBored study notebook') && !html.includes('data-study-shell')) {
+          throw new Error('Unexpected page');
+        }
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (err) {
+        openingPage = false;
+        flash.classList.remove('on');
+        setOpenNote(err && err.name === 'AbortError'
+          ? 'That page timed out. Try again.'
+          : 'That page could not open here. Try the check again.');
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    function enterArcade(dest, label) {
+      if (openingPage) return;
+      dest = dest || 'algebra.html';
+      if (prefersReducedMotion) { openPage(dest, label); return; }
       flash.classList.add('on');
-      setTimeout(() => { window.location.href = dest; }, 450);
+      setTimeout(() => openPage(dest, label), 450);
     }
 
     // the dot opens Study Hall
@@ -723,8 +760,12 @@
         pinned.appendChild(tag);
         grid.prepend(pinned);
       }
-      halls.forEach((a) => a.addEventListener('click', () => {
-        try { localStorage.setItem(KEY, a.getAttribute('href')); } catch (e) {}
+      halls.forEach((a) => a.addEventListener('click', (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        try { localStorage.setItem(KEY, a.getAttribute('href')); } catch (err) {}
+        const label = a.textContent.replace('Last opened', '').trim();
+        enterArcade(a.getAttribute('href'), label);
       }));
       const close = () => { chooser.hidden = true; document.body.classList.remove('choosing'); };
       chooser.addEventListener('click', (e) => { if (e.target === chooser) close(); });
@@ -746,7 +787,9 @@
       const note = document.getElementById('check-note');
       const grid = document.getElementById('chooser-grid');
       const SIGNATURE = 'ChalkBored study notebook';
-      const LABELS = { checking: 'Checking…', open: 'Open', blocked: 'Blocked', timeout: 'No response' };
+      const SHELL = 'data-study-shell';
+      const SHELL_APP = 's.txt?v=20261107';
+      const LABELS = { checking: 'Checking…', open: 'Fetchable', blocked: 'Blocked', timeout: 'No response' };
       let running = false;
 
       function mark(hall, state) {
@@ -762,16 +805,22 @@
 
       async function probe(href) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 12000);
+        const timer = setTimeout(() => ctrl.abort(), 15000);
         try {
           const res = await fetch(href, {
             cache: 'no-store',
+            credentials: 'same-origin',
             redirect: 'follow',
-            signal: ctrl.signal,
-            headers: { Accept: 'text/html', Range: 'bytes=0-16383' }
+            signal: ctrl.signal
           });
           if (res.type === 'opaqueredirect' || !res.ok) return 'blocked';
           const body = await res.text();
+          if (body.includes(SHELL)) {
+            const appRes = await fetch(SHELL_APP, { cache: 'no-store', credentials: 'same-origin', signal: ctrl.signal });
+            if (!appRes.ok) return 'blocked';
+            const app = await appRes.text();
+            return app.includes(SIGNATURE) ? 'open' : 'blocked';
+          }
           return body.includes(SIGNATURE) ? 'open' : 'blocked';
         } catch (err) {
           return err && err.name === 'AbortError' ? 'timeout' : 'blocked';
@@ -799,7 +848,7 @@
         };
         await Promise.all(Array.from({ length: Math.min(4, halls.length) }, worker));
         const parts = [];
-        if (counts.open) parts.push(counts.open + ' open');
+        if (counts.open) parts.push(counts.open + ' fetchable');
         if (counts.blocked) parts.push(counts.blocked + ' blocked');
         if (counts.timeout) parts.push(counts.timeout + ' no response');
         note.textContent = parts.join(' · ') || 'No links found.';
