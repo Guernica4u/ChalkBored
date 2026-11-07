@@ -732,9 +732,6 @@
   .modal-body { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
   .modal-body .choice { justify-content: flex-start; }
   .modal-body .setup-note { margin: 0; color: var(--pencil); }
-  /* the little guy turns up in setup as well */
-  .setup-guy { display: flex; justify-content: center; height: 62px; margin: -4px 0 8px; pointer-events: none; }
-  .setup-guy .rail-guy { position: static; width: 47px; height: 62px; cursor: default; filter: drop-shadow(0 3px 4px rgba(31, 45, 68, 0.16)); }
   .modal-body > .btn { align-self: flex-start; }
   /* setup's cloak choices get their own row, so every cloak fits */
   .setup-cloak .setting { flex-wrap: wrap; }
@@ -892,7 +889,7 @@
         </button>
         <button class="nav-btn" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
           <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
-          <span>Games</span><span class="tally" id="tally-games"></span>
+          <span>Activities</span><span class="tally" id="tally-games"></span>
         </button>
         <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
           <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
@@ -909,7 +906,6 @@
       </div>
 
       <div class="rail-foot">
-        <div class="rail-guy" id="rail-guy" aria-label="A little chalk figure"></div>
         <p class="rail-note">ChalkBored &middot; made for fun</p>
       </div>
 
@@ -921,7 +917,7 @@
         <div class="topbar-right">
           <div class="search-wrap">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
-            <input class="search" id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
+            <input class="search" id="search" type="search" placeholder="Search activities" autocomplete="off" aria-label="Search activities">
             <div class="results" id="results" hidden></div>
           </div>
           <button class="icon-btn" id="gear" type="button" aria-label="Settings" title="Settings">
@@ -942,7 +938,7 @@
             </p>
           </div>
           <div class="home-start">
-            <p class="section-label" id="home-label">Highlighted games</p>
+            <p class="section-label" id="home-label">Highlighted activities</p>
             <div class="cards" id="home-games"></div>
           </div>
         </section>
@@ -976,7 +972,7 @@
 
             <div class="group">
               <h2>Tab cloak</h2>
-              <p>What this tab and opened games pretend to be.</p>
+              <p>What this tab and opened pages pretend to be.</p>
               <div class="setting">
                 <div><h3>Subject</h3><p>Changes the tab name and icon.</p></div>
                 <div class="choice" id="disguise-choice"></div>
@@ -999,12 +995,8 @@
               <h2>Advanced &amp; experimental</h2>
               <p>How things opened from here behave.</p>
               <div class="setting">
-                <div><h3>No New Tabs</h3><p>Games open on top of this page instead of a new tab.</p></div>
+                <div><h3>No New Tabs</h3><p>Pages open on top of this page instead of a new tab.</p></div>
                 <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
-              </div>
-              <div class="setting">
-                <div><h3>The little guy</h3><p>A little chalk figure climbs the tab bar and does his own thing. Drag him around; turn him off for a still page.</p></div>
-                <button class="switch" id="show-guy" type="button" role="switch" aria-checked="true" aria-label="The little guy"></button>
               </div>
             </div>
 
@@ -1030,7 +1022,6 @@
   <!-- first-time setup -->
   <div class="modal" id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
     <div class="modal-box">
-      <div class="setup-guy" id="setup-guy" aria-hidden="true"></div>
       <p class="modal-step" id="setup-step"></p>
       <h2 id="setup-title"></h2>
       <p id="setup-text"></p>
@@ -1043,12 +1034,12 @@
     </div>
   </div>
 
-  <!-- first load: how games should open -->
+  <!-- first load: how pages should open -->
   <div class="modal" id="cloak-ask" hidden role="dialog" aria-modal="true" aria-labelledby="cloak-ask-title">
     <div class="modal-box">
-      <p class="modal-step">Opening games</p>
-      <h2 id="cloak-ask-title">Open games cloaked?</h2>
-      <p>Pick a cloak and games open in a tab that looks like it. If your browser asks to allow pop-ups, allow them for ChalkBored &mdash; otherwise the cloaked tab can&rsquo;t open.</p>
+      <p class="modal-step">Opening pages</p>
+      <h2 id="cloak-ask-title">Open pages cloaked?</h2>
+      <p>Pick a cloak and pages open in a tab that looks like it. If your browser asks to allow pop-ups, allow them for ChalkBored &mdash; otherwise the cloaked tab can&rsquo;t open.</p>
       <div class="choice cloak-ask-choice" id="cloak-ask-choice"></div>
       <p class="cloak-ask-hint">You can change this any time in Settings.</p>
       <div class="modal-actions">
@@ -1356,7 +1347,6 @@
     const BASIC_COLORS = [['mono', 'Mono']];
 
     const DEFAULT_SETTINGS = {
-      showGuy: true,
       setupDone: false, setupVersion: '', theme: 'basic', basic: 'mono',
       blockPopups: true,
       shell: 'os',             // layout: 'os' (sidebar desktop over a picture, the default) or 'classic'
@@ -1385,7 +1375,6 @@
     if (savedSettings && !savedSettings.shell) settings.shell = 'os';
     if (savedSettings && !savedSettings.basic) settings.basic = 'mono';
     settings.gameArt = true;   // card pictures are always on now
-    settings.showGuy = settings.showGuy !== false;   // he's on unless you turned him off
     // Plain look and Movie night are gone; Plain look users get Night instead
     if (settings.plain) settings.theme = 'night';
     delete settings.plain;
@@ -2243,20 +2232,20 @@
     ];
 
     function buildLessons() {
-      // Games always stays in list order: starring something never moves it up there.
-      buildCards('games', LIST.lessons, 'Games', true, true);
+      // The activity list always stays in list order: starring something never moves it up there.
+      buildCards('games', LIST.lessons, 'Activities', true, true);
       const starred = LIST.lessons.filter(isFav);
       const picks = starred.length
         ? starred.slice(0, 8)
         : HIGHLIGHTED.map((path) => LIST.lessons.find((g) => g.path === path)).filter(Boolean);
       const label = document.getElementById('home-label');
-      if (label) label.textContent = starred.length ? 'Your favorites' : 'Highlighted games';
-      buildCards('home-games', picks, 'Games', false, false);
+      if (label) label.textContent = starred.length ? 'Your favorites' : 'Highlighted activities';
+      buildCards('home-games', picks, 'Activities', false, false);
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
-    // the Games cards are made the first time Games opens, or once the page is
-    // idle, so opening Games doesn't wait for every card
+    // the activity cards are made the first time Activities opens, or once the page is
+    // idle, so opening Activities doesn't wait for every card
     let lessonsBuilt = false;
     function ensureLessons() {
       if (lessonsBuilt) return;
@@ -2270,7 +2259,7 @@
     document.addEventListener('click', (e) => { if (!e.target.closest('.card-wrap')) closeAllMenus(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllMenus(); });
 
-    // ---- search across games ----
+    // ---- search across activities ----
     const search = $('search');
     const results = $('results');
 
@@ -2556,13 +2545,12 @@
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch'], ['show-guy', 'showGuy']]
+      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
       document.body.classList.toggle('os', settings.shell === 'os');
       document.body.classList.toggle('rail-mini', settings.shell === 'os' && !!settings.railMini);
-      document.body.classList.toggle('no-guy', !settings.showGuy);
       placeSearch();
       if (bgShownFor !== settings.shell + settings.wallpaper) { bgShownFor = settings.shell + settings.wallpaper; showBackground(); }
       $('wall-pick').replaceChildren(makeWallpapers());
@@ -2577,7 +2565,6 @@
     $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
     $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
-    $('show-guy').addEventListener('click', () => change('showGuy', !settings.showGuy));
     $('cloak-now').addEventListener('click', () => {
       const url = new URL(location.href);
       url.searchParams.set('blank', '1');
@@ -2663,7 +2650,7 @@
       {
         step: 'Tab cloak',
         title: 'Pick a tab cloak',
-        text: 'What this tab and the games you open pretend to be. You can change it later in Settings.',
+        text: 'What this tab and the pages you open pretend to be. You can change it later in Settings.',
         body: () => makeCloakSetup(),
       },
       {
@@ -2675,28 +2662,8 @@
       },
     ];
 
-    /* the little guy stands in the setup box and pulls a face for each step */
-    const SETUP_MOODS = ['happy', 'calm', 'scared', 'happy'];
-    function setupGuy(mood) {
-      const box = $('setup-guy');
-      if (!box) return;
-      if (!box.firstChild) {
-        const src = document.getElementById('rail-guy');
-        const svg = src && src.querySelector('svg');
-        if (!svg) return;
-        const fig = document.createElement('div');
-        fig.className = 'rail-guy';
-        fig.appendChild(svg.cloneNode(true));
-        box.appendChild(fig);
-      }
-      const fig = box.firstChild;
-      fig.classList.remove('f-calm', 'f-happy', 'f-scared', 'f-hurt', 'f-dizzy');
-      fig.classList.add('f-' + (mood || 'calm'));
-    }
-
     function renderSetup() {
       const st = SETUP_STEPS[setupStep];
-      setupGuy(SETUP_MOODS[setupStep] || 'calm');
       const steps = SETUP_STEPS.length - 2;   // Welcome and All set aren't numbered
       $('setup-step').textContent = setupStep > 0 && setupStep <= steps ? setupStep + ' of ' + steps + ' \u00b7 ' + st.step : st.step;
       $('setup-title').textContent = st.title;

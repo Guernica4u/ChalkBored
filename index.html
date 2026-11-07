@@ -430,6 +430,45 @@
     font-size: 0.98rem;
     line-height: 1.5;
   }
+  .chooser-check {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin: -0.25rem 0 0.9rem;
+  }
+  .check-btn {
+    padding: 0.42rem 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .check-btn:hover:not(:disabled) {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .check-btn:disabled { opacity: 0.55; cursor: default; }
+  .check-note {
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .hall .probe {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .hall .probe.open { color: #356b46; }
+  .hall .probe.blocked,
+  .hall .probe.timeout { color: #a33a2f; }
   .chooser-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -544,22 +583,26 @@
       <p class="chooser-kicker">ChalkBored</p>
       <h2 id="chooser-title">Choose a page</h2>
       <p>Pick one. The last page you chose stays at the top.</p>
+      <div class="chooser-check">
+        <button class="check-btn" id="check-links" type="button" aria-controls="chooser-grid" title="Tests each link from this browser. A filter can still treat a normal click differently.">Check links</button>
+        <span class="check-note" id="check-note" role="status" aria-live="polite">See which pages load from this browser.</span>
+      </div>
       <div class="chooser-grid" id="chooser-grid">
+        <a class="hall" href="studyhall.html">Study Hall</a>
         <a class="hall" href="algebra.html">Algebra</a>
         <a class="hall" href="biology.html">Biology</a>
         <a class="hall" href="chemistry.html">Chemistry</a>
-        <a class="hall" href="earth-science.html">Earth Science</a>
         <a class="hall" href="english.html">English</a>
-        <a class="hall" href="geometry.html">Geometry</a>
-        <a class="hall" href="government.html">Government</a>
         <a class="hall" href="history.html">History</a>
-        <a class="hall" href="literature.html">Literature</a>
-        <a class="hall" href="physics.html">Physics</a>
-        <a class="hall" href="precalculus.html">Precalculus</a>
-        <a class="hall" href="psychology.html">Psychology</a>
-        <a class="hall" href="spanish.html">Spanish</a>
-        <a class="hall" href="statistics.html">Statistics</a>
-        <a class="hall" href="writing.html">Writing</a>
+        <a class="hall" href="notes.html">Notes</a>
+        <a class="hall" href="reading.html">Reading</a>
+        <a class="hall" href="practice.html">Practice</a>
+        <a class="hall" href="review.html">Review</a>
+        <a class="hall" href="resources.html">Resources</a>
+        <a class="hall" href="handbook.html">Handbook</a>
+        <a class="hall" href="planner.html">Planner</a>
+        <a class="hall" href="calendar.html">Calendar</a>
+        <a class="hall" href="archive.html">Archive</a>
       </div>
       <p class="chooser-foot">Click outside this box to stay on the homepage.</p>
     </div>
@@ -695,6 +738,77 @@
         document.body.classList.add('choosing');
         chooser.focus();
       });
+    })();
+
+    // ---- link check: which copies can this browser actually load? ----
+    (() => {
+      const button = document.getElementById('check-links');
+      const note = document.getElementById('check-note');
+      const grid = document.getElementById('chooser-grid');
+      const SIGNATURE = 'ChalkBored study notebook';
+      const LABELS = { checking: 'Checking…', open: 'Open', blocked: 'Blocked', timeout: 'No response' };
+      let running = false;
+
+      function mark(hall, state) {
+        let tag = hall.querySelector('.probe');
+        if (!tag) {
+          tag = document.createElement('span');
+          tag.className = 'probe';
+          hall.appendChild(tag);
+        }
+        tag.className = 'probe ' + state;
+        tag.textContent = LABELS[state];
+      }
+
+      async function probe(href) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 12000);
+        try {
+          const res = await fetch(href, {
+            cache: 'no-store',
+            redirect: 'follow',
+            signal: ctrl.signal,
+            headers: { Accept: 'text/html', Range: 'bytes=0-16383' }
+          });
+          if (res.type === 'opaqueredirect' || !res.ok) return 'blocked';
+          const body = await res.text();
+          return body.includes(SIGNATURE) ? 'open' : 'blocked';
+        } catch (err) {
+          return err && err.name === 'AbortError' ? 'timeout' : 'blocked';
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      async function run() {
+        if (running) return;
+        running = true;
+        button.disabled = true;
+        const halls = [...grid.querySelectorAll('.hall')];
+        const counts = { open: 0, blocked: 0, timeout: 0 };
+        note.textContent = 'Checking ' + halls.length + ' links…';
+        halls.forEach((hall) => mark(hall, 'checking'));
+        let next = 0;
+        const worker = async () => {
+          while (next < halls.length) {
+            const hall = halls[next++];
+            const state = await probe(hall.getAttribute('href'));
+            counts[state] += 1;
+            mark(hall, state);
+          }
+        };
+        await Promise.all(Array.from({ length: Math.min(4, halls.length) }, worker));
+        const parts = [];
+        if (counts.open) parts.push(counts.open + ' open');
+        if (counts.blocked) parts.push(counts.blocked + ' blocked');
+        if (counts.timeout) parts.push(counts.timeout + ' no response');
+        note.textContent = parts.join(' · ') || 'No links found.';
+        button.disabled = false;
+        button.textContent = 'Check again';
+        running = false;
+      }
+
+      button.addEventListener('click', run);
     })();
   </script>
 
