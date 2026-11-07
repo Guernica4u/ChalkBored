@@ -937,10 +937,6 @@
               <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2 Early Access</b> <span id="updated-when">updated Nov 6 · what’s new</span></button>
             </p>
           </div>
-          <div class="home-start">
-            <p class="section-label" id="home-label">Highlighted activities</p>
-            <div class="cards" id="home-games"></div>
-          </div>
         </section>
 
         <!-- brain exercises: short practice activities for study breaks -->
@@ -978,7 +974,7 @@
                 <div class="choice" id="disguise-choice"></div>
               </div>
               <div class="setting">
-                <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open a game card.</p></div>
+                <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open an activity card.</p></div>
                 <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
               </div>
               <div class="setting">
@@ -1068,8 +1064,8 @@
       <ul>
         <li><b>The little guy has feelings now:</b> five faces, a mood meter above the footer, and a landing that settles instead of snapping.</li>
         <li><b>He tags along through setup,</b> pulling a face at every step.</li>
-        <li><b>Home spotlights</b> Eaglercraft 1.5, Learn to Fly 3, Fears to Fathom and Speed Stars.</li>
-        <li><b>Learn to Fly 3</b> uses our own Flash player now, so no CDN can take it down.</li>
+        <li><b>Home stays quiet:</b> activities stay in the Activities tab, not on the landing page.</li>
+        <li><b>Picture-first cards:</b> activities are shown by their covers, without titles.</li>
       </ul>
       <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
     </div>
@@ -1520,7 +1516,7 @@
       setTabLook(doc, d.title, d.icon);
       const frame = doc.createElement('iframe');
       frame.src = fullUrl;
-      frame.title = title || 'Game';
+      frame.title = title || 'Activity';
       frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;background:#fff;';
       frame.setAttribute('allow', 'fullscreen; autoplay; gamepad; clipboard-read; clipboard-write');
       frame.setAttribute('allowfullscreen', '');
@@ -2172,9 +2168,8 @@
         card.style.setProperty('--i', i);
         card.innerHTML =
           '<span class="thumb"><span class="mono"></span></span>' +
-          '<span class="card-body"><span class="card-name"></span><span class="card-arrow">&rsaquo;</span></span>';
-        card.querySelector('.mono').textContent = initials(shown(item));
-        putName(card.querySelector('.card-name'), item);
+          '<span class="card-body"><span class="card-arrow">&rsaquo;</span></span>';
+        card.setAttribute('aria-label', 'Open activity');
 
         const art = item.img ? { src: item.img } : (settings.gameArt && ART[item.path]);
         if (art) {
@@ -2220,27 +2215,9 @@
       }
     }
 
-    // with nothing starred, Home shows a few good ones
-    const HIGHLIGHTED = [
-      'LESSONS/Bloons Math Loader.html',
-      'LESSONS/forgecraft.1.5.html',
-      'LESSONS/AeroDynamics-Loader.html',
-      'LESSONS/House-Sitting/index.html',
-      'LESSONS/Track-Sprints/index.html',
-      'LESSONS/Night-Shift-Logs-1/index.html',
-      'LESSONS/Study-Hall-Remake/index.html',
-    ];
-
     function buildLessons() {
-      // The activity list always stays in list order: starring something never moves it up there.
-      buildCards('games', LIST.lessons, 'Activities', true, true);
-      const starred = LIST.lessons.filter(isFav);
-      const picks = starred.length
-        ? starred.slice(0, 8)
-        : HIGHLIGHTED.map((path) => LIST.lessons.find((g) => g.path === path)).filter(Boolean);
-      const label = document.getElementById('home-label');
-      if (label) label.textContent = starred.length ? 'Your favorites' : 'Highlighted activities';
-      buildCards('home-games', picks, 'Activities', false, false);
+      // The activity list only appears in Activities, and stays in list order.
+      buildCards('games', LIST.lessons, 'Activities', false, true);
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
@@ -2253,8 +2230,6 @@
       buildLessons();
     }
     $('tally-games').textContent = String(LIST.lessons.length);
-    if (window.requestIdleCallback) requestIdleCallback(ensureLessons, { timeout: 3000 });
-    else setTimeout(ensureLessons, 1500);
 
     document.addEventListener('click', (e) => { if (!e.target.closest('.card-wrap')) closeAllMenus(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllMenus(); });
@@ -2265,11 +2240,11 @@
 
     function searchRows() {
       const rows = [];
-      LIST.lessons.forEach((g) => rows.push({ app: 'Games', item: g }));
+      LIST.lessons.forEach((g) => rows.push({ app: 'Activities', item: g }));
       return rows;
     }
 
-    function closeResults() { results.hidden = true; }
+    function closeResults() { results.hidden = true; results.innerHTML = ''; }
 
     function runSearch() {
       const q = search.value.trim().toLowerCase();
@@ -2284,7 +2259,7 @@
         results.appendChild(none);
       }
 
-      ['Games'].forEach((app) => {
+      ['Activities'].forEach((app) => {
         const group = hits.filter((h) => h.app === app);
         if (!group.length) return;
         const label = document.createElement('p');
@@ -2324,7 +2299,6 @@
 
     // ---- study tips (bottom right) ----
     const TIPS = [
-      'Being bullied? You can submit an anonymous tip to your school.',
       'Make sure to turn in your missing assignments. Late is better than never.',
       'Stuck on something? Ask your teacher before the test, not after.',
       'Write assignments down the moment they’re given.',
@@ -2332,8 +2306,9 @@
       'Read the rubric before you start, not after you finish.',
       'Study in short bursts: 25 minutes on, 5 minutes off.',
       'Sleep beats cramming. Tired brains don’t remember much.',
-      'Need someone to talk to? Your school counselor is there for that.',
-      'Struggling? In the US you can call or text 988, any time.',
+      'Keep water nearby and take a short stretch break.',
+      'Put your phone in another room while you study.',
+      'If something is bothering you, talk to a trusted adult.',
     ];
     const tipEl = $('tip');
     let tipAt = Math.floor(Math.random() * TIPS.length);
@@ -2366,6 +2341,7 @@
       document.body.classList.toggle('full-panel', name === 'music' || name === 'tv' || name === 'browser');
       placeSearch();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
+      else if (lessonsBuilt) { $('games').innerHTML = ''; lessonsBuilt = false; }
       if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
       if (name !== 'browser' && browserFrame) { browserFrame.remove(); browserFrame = null; }
       if (name === 'music' && !musicFrame) {
@@ -2627,7 +2603,7 @@
         line.appendChild(btn);
         wrap.appendChild(line);
       };
-      addSwitch('Ask to cloak', 'Pick a cloak each time you open a game card.', 'askCloak', 'Ask to cloak');
+      addSwitch('Ask to cloak', 'Pick a cloak each time you open an activity card.', 'askCloak', 'Ask to cloak');
       addSwitch('Open in a blank tab', 'ChalkBored opens in a blank tab wearing the cloak, so the address bar hides it.', 'blankLaunch', 'Open in a blank tab');
       return wrap;
     }
