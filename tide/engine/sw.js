@@ -6,7 +6,7 @@
  * to that page, which sends it out over the tide connection instead of
  * straight to the site. Anything it does not recognise passes through untouched.
  */
-importScripts("controller.sw.js");
+importScripts("ctl-worker.js");
 
 const TIDE_GO = new URL("go/", self.registration.scope).pathname;
 
