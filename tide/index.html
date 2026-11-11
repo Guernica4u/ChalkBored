@@ -22692,6 +22692,15 @@ _VIEWER_DL_JS +
                     });
                     await ctl.wait();
                     FE.ctl = ctl;
+                    // When a new version of Tide deploys, a new service worker takes over and asks
+                    // open pages to introduce themselves, but the engine answers the old, retired
+                    // worker, so the new one never learns about this page and every site's next
+                    // request fails ("Tide lost track of this page"). Answer the worker that asked.
+                    navigator.serviceWorker.addEventListener('message', e => {
+                        if (!e.data || !e.data.$controller$swrevive || !(e.source instanceof ServiceWorker) || e.source === ctl.serviceWorkerController) return;
+                        ctl.serviceWorkerController = e.source;
+                        ctl.setupMessagePort();
+                    });
                     FE.wisp = WISP;
                     FE.ready = true;
                     log('Fast engine ready');
