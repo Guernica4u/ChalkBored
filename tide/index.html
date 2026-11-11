@@ -27,7 +27,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="Tide: A service worker -less web browser-in-a-browser" />
     <title>Tide</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%239de5ff' d='M288 32c0 17.7 14.3 32 32 32h32c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H352c53 0 96-43 96-96s-43-96-96-96H320c-17.7 0-32 14.3-32 32zm64 352c0 17.7 14.3 32 32 32h32c53 0 96-43 96-96s-43-96-96-96H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H384c-17.7 0-32 14.3-32 32zM128 512h32c53 0 96-43 96-96s-43-96-96-96H32c-17.7 0-32 14.3-32 32s14.3 32 32 32H160c17.7 0 32 14.3 32 32s-14.3 32-32 32H128c-17.7 0-32 14.3-32 32s14.3 32 32 32z'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23121826'/%3E%3Cmask id='m'%3E%3Crect width='64' height='64' fill='%23fff'/%3E%3Ccircle cx='40' cy='24' r='20'/%3E%3C/mask%3E%3Ccircle cx='28' cy='34' r='22' fill='%23e6ebf5' mask='url%28%23m%29'/%3E%3Ccircle cx='48' cy='18' r='6' fill='%238fb3d9'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
@@ -5851,25 +5851,25 @@
         .skin-prev.sk-tide { filter: grayscale(1) brightness(0.8); }
     </style>
     <style id="tide-home-css">
-        /* Tide's own new tab page, the same on every skin: the time, a search box and recent sites */
+        /* Tide's own new tab page, the same on every skin: the logo, a search box and the time */
         #newtab > :not(#tideHome) { display: none !important; }
         #tideHome { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 22px; padding: 24px 16px 12vh; font-family: var(--ui); color: var(--tx); text-align: center; overflow: auto; }
-        #tideHome .th-time { font-size: clamp(44px, 9vw, 84px); font-weight: 200; letter-spacing: 2px; line-height: 1; text-shadow: 0 2px 18px rgba(0,0,0,.45); }
-        #tideHome .th-date { font-size: 14px; color: var(--tx2); margin-top: 8px; letter-spacing: .5px; }
-        #tideHome .th-name { font-size: 15px; font-weight: 600; letter-spacing: 8px; text-transform: uppercase; color: var(--tx3); }
-        #tideHome .th-search { width: min(620px, 100%); display: flex; align-items: center; gap: 10px; padding: 0 8px 0 18px; height: 52px;
-            border-radius: 26px; background: color-mix(in srgb, var(--bg1, #1f1f1f) 82%, transparent); border: 1px solid var(--bd);
-            box-shadow: 0 8px 30px rgba(0,0,0,.35); backdrop-filter: blur(10px); }
-        #tideHome .th-search:focus-within { border-color: var(--ac); }
+            padding: 24px 16px 14vh; font-family: var(--ui); color: var(--tx); text-align: center; overflow: auto; }
+        #tideHome .th-logo { width: 76px; height: 76px; color: var(--tx); filter: drop-shadow(0 6px 22px rgba(0,0,0,.45)); animation: th-float 6s ease-in-out infinite; }
+        #tideHome .th-logo .th-orb { fill: var(--ac); }
+        @keyframes th-float { 50% { transform: translateY(-5px); } }
+        @media (prefers-reduced-motion: reduce) { #tideHome .th-logo { animation: none; } }
+        #tideHome .th-name { margin: 14px 0 26px; font-size: 34px; font-weight: 650; letter-spacing: .5px; text-shadow: 0 2px 16px rgba(0,0,0,.4); }
+        #tideHome .th-search { width: min(640px, 100%); display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 8px 0 20px;
+            border-radius: 28px; background: color-mix(in srgb, var(--bg1, #1f1f1f) 84%, transparent); border: 1px solid var(--bd);
+            box-shadow: 0 10px 34px rgba(0,0,0,.35); backdrop-filter: blur(12px); transition: border-color .15s, box-shadow .15s; }
+        #tideHome .th-search:focus-within { border-color: var(--ac); box-shadow: 0 10px 34px rgba(0,0,0,.35), 0 0 0 4px color-mix(in srgb, var(--ac) 22%, transparent); }
+        #tideHome .th-search > i { color: var(--tx3); font-size: 15px; }
         #tideHome .th-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: inherit; font-size: 16px; }
         #tideHome .th-search input::placeholder { color: var(--tx3); }
-        #tideHome .th-search button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; font-size: 15px; }
-        #tideHome .th-sites { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 620px; }
-        #tideHome .th-sites:empty { display: none; }
-        #tideHome .th-site { width: 54px; height: 54px; border-radius: 16px; border: 1px solid var(--bd); cursor: pointer; font: 600 20px var(--ui);
-            color: #fff; background: hsl(var(--h) 45% 32%); box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
-        #tideHome .th-site:hover, #tideHome .th-site:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
+        #tideHome .th-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; font-size: 15px; }
+        #tideHome .th-search button:hover { filter: brightness(1.1); }
+        #tideHome .th-clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); letter-spacing: .3px; }
     </style>
     <style id="tide-lite-css">
         #customSearchCard { display: none !important; }
@@ -6262,14 +6262,17 @@
 
                 <div class="newtab active" id="newtab">
                     <div id="tideHome">
-                        <div><div class="th-time" id="thTime"></div><div class="th-date" id="thDate"></div></div>
+                        <svg class="th-logo" viewBox="0 0 64 64" aria-hidden="true">
+                            <mask id="thMoon"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
+                            <circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#thMoon)"/><circle class="th-orb" cx="48" cy="18" r="6"/>
+                        </svg>
                         <div class="th-name">Tide</div>
                         <form class="th-search" id="thSearch" role="search">
-                            <input id="thInput" placeholder="Search or type an address" autocomplete="off" spellcheck="false" aria-label="Search or type an address">
+                            <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                            <input id="thInput" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Search the web or type an address">
                             <button type="submit" title="Go" aria-label="Go"><i class="fas fa-arrow-right"></i></button>
                         </form>
-                        <!-- recent sites as letters only: their names stay in tooltips, since school filters scan page text for site names -->
-                        <div class="th-sites" id="thSites"></div>
+                        <div class="th-clock" id="thClock"></div>
                     </div>
                     <div class="nt-bg" id="ntBg"></div>
                     <div class="nt-overlay"></div>
@@ -9979,6 +9982,7 @@ window._libcurlReady = true;
                 return withWispSwapLock(async () => {
                     let s;
                     try {
+                        await waitForQueueQuiet(4000);   // don't swap the server under pages Tide's own engine is loading
                         await libcurl.load_wasm();
                         libcurl.set_websocket(url);
                         s = new libcurl.HTTPSession();
@@ -13559,12 +13563,12 @@ window._libcurlReady = true;
                 el.style.cssText = 'z-index:99995;gap:22px;';
                 el.innerHTML =
                     '<div class="boot-bench-spin"><div class="spinner"></div></div>' +
-                    '<div class="boot-bench-txt" id="bootBenchTxt">Benchmarking relays…</div>';
+                    '<div class="boot-bench-txt" id="bootBenchTxt">Finding the fastest server…</div>';
                 document.body.appendChild(el);
             }
             function setBootBenchmarkProgress(done, total) {
                 const t = document.getElementById('bootBenchTxt');
-                if (t) t.textContent = `Benchmarking relays… ${done}/${total}`;
+                if (t) t.textContent = `Finding the fastest server… ${done}/${total}`;
             }
             function hideBootBenchmark() {
                 if (!_bootSplashEl) return;
@@ -19812,27 +19816,11 @@ _VIEWER_DL_JS +
                 try { ls.setItem('gust:recent', JSON.stringify(recentSites)); } catch { }
             }
 
-            // Tide's own new tab page: the time, a search box (it does what the address bar does) and recent sites
+            // Tide's own new tab page: the logo, a search box (it does what the address bar does) and the time
             function renderTideHome() {
                 const now = new Date();
-                $("thTime").textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                $("thDate").textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-                const seen = new Set(), sites = $("thSites");
-                sites.replaceChildren();
-                for (const { url } of recentSites) {
-                    let host;
-                    try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { continue; }
-                    if (seen.has(host) || seen.size >= 8) continue;
-                    seen.add(host);
-                    const b = document.createElement('button');
-                    b.className = 'th-site';
-                    b.textContent = host[0].toUpperCase();
-                    b.title = host;
-                    b.setAttribute('aria-label', host);
-                    b.style.setProperty('--h', [...host].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7));
-                    b.onclick = () => go(url);
-                    sites.appendChild(b);
-                }
+                $("thClock").textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '  ·  ' +
+                    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
             }
             $("thSearch").onsubmit = e => {
                 e.preventDefault();
@@ -20466,12 +20454,24 @@ _VIEWER_DL_JS +
                     // ── Tide: one fast server ─────────────────────────────────────
                     // Unless a server was chosen in Settings, test every server once,
                     // all at the same time (2.5 s at most), and use the fastest. No
-                    // rotating between servers afterwards.
+                    // rotating between servers afterwards. When last time's fastest is
+                    // already in use, Tide starts at once and tests behind it, switching
+                    // only if that server can't load a page any more.
                     let _pinnedWisp = null;
                     try { _pinnedWisp = TIDE.relay || ls.getItem('gust:wisp:v1'); } catch (e) {}
-                    if (!poolModeOn() && !_pinnedWisp && !TIDE.wisp && typeof curl !== 'undefined' && curl) {
+                    const _known = (() => { try { return ls.getItem('gust:wisp:fastest:v1'); } catch (e) { return null; } })() === WISP;
+                    const pickFastestServer = async quiet => {
                         try {
-                            showBootBenchmark();
+                            if (quiet && await wispLoadsPage(WISP)) {   // still works: only refresh the ranking for next time
+                                await Promise.all(getWispPool().map(async u => {
+                                    const ms = await probeWispLatency(u, 2500);
+                                    wispHealth[u] = { latency: ms, checkedAt: Date.now(), healthy: ms != null, samples: 1 };
+                                }));
+                                saveWispHealth();
+                                rememberFastestRelay();
+                                return;
+                            }
+                            if (!quiet) showBootBenchmark();
                             const _pool = getWispPool();
                             let _done = 0;
                             const _res = await Promise.all(_pool.map(async u => {
@@ -20497,8 +20497,11 @@ _VIEWER_DL_JS +
                             }
                             rememberFastestRelay();
                         } catch (e) {} finally {
-                            hideBootBenchmark();
+                            if (!quiet) hideBootBenchmark();
                         }
+                    };
+                    if (!poolModeOn() && !_pinnedWisp && !TIDE.wisp && typeof curl !== 'undefined' && curl) {
+                        if (_known) pickFastestServer(true); else await pickFastestServer(false);
                     }
 
             // Signal that libcurl init is complete so deferred UI (tutorial, etc.) can start
@@ -22659,9 +22662,9 @@ _VIEWER_DL_JS +
                 FE.init = (async () => {
                     const reg = await navigator.serviceWorker.register(FE_BASE + 'sw.js', { scope: FE_BASE, updateViaCache: 'none' });
                     const sw = await feWorkerActive(reg);
-                    await feLoadScript(FE_BASE + 'scramjet.js');
-                    await feLoadScript(FE_BASE + 'controller.api.js');
-                    await feLoadScript(FE_BASE + 'libcurl-client.js');
+                    await feLoadScript(FE_BASE + 'core.js');
+                    await feLoadScript(FE_BASE + 'ctl.js');
+                    await feLoadScript(FE_BASE + 'net.js');
                     if (!window.$scramjet || !window.$scramjetController || !window.LibcurlTransport) throw new Error('engine files did not load');
                     await TIDE.wiped;
                     const ctl = new $scramjetController.Controller({
@@ -22681,9 +22684,10 @@ _VIEWER_DL_JS +
                                     catch (e) { return decodeURIComponent(s); }   // an address from before scrambling
                                 }
                             },
-                            scramjetPath: FE_BASE + 'scramjet.js',
-                            injectPath: FE_BASE + 'controller.inject.js',
-                            wasmPath: FE_BASE + 'scramjet.wasm'
+                            scramjetPath: FE_BASE + 'core.js',
+                            injectPath: FE_BASE + 'ctl-page.js',
+                            wasmPath: FE_BASE + 'core.wasm',
+                            virtualWasmPath: 'core.wasm.js'
                         }
                     });
                     await ctl.wait();
