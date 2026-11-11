@@ -11,4 +11,9 @@ instead of fetching every script before showing anything.
 | `libcurl-client.js` | [libcurl-transport](https://github.com/MercuryWorkshop/libcurl-transport) by Mercury Workshop, bundling [libcurl.js](https://github.com/ading2210/libcurl.js) 0.7.4 by ading2210 | AGPL-3.0 (libcurl.js: LGPL-3.0) |
 | `sw.js` | Tide's service worker (hands each request to the Tide page) | AGPL-3.0, like Tide |
 
-They are unchanged builds of those projects, as published.
+They are the builds of those projects as published, with one change in
+`scramjet.js`: the `$rfs` and `$io` tags it adds to addresses (the previous
+page and the site that asked) are scrambled like the addresses themselves
+(reversed, base64, marked with `~`), so a school filter can't read site names
+from them. Search it for `"~"+btoa` to find the three places and the one that
+reads them back.

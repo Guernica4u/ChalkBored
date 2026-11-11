@@ -22607,6 +22607,18 @@ _VIEWER_DL_JS +
                         transport: new LibcurlTransport.LibcurlClient({ wisp: WISP }),
                         config: {
                             prefix: FE_BASE + 'go/',
+                            // School filters read the site's address in each request and block it, so it's
+                            // scrambled (reversed, then base64). These are copied as text into sites' workers,
+                            // so they must not use anything from outside themselves. A "?query" a form adds stays as is.
+                            codec: {
+                                encode: u => u && btoa(encodeURIComponent(u).split('').reverse().join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+                                decode: s => {
+                                    if (!s) return s;
+                                    const [a, ...q] = s.split('?');
+                                    try { return decodeURIComponent(atob(a.replace(/-/g, '+').replace(/_/g, '/')).split('').reverse().join('')) + (q.length ? '?' + q.join('?') : ''); }
+                                    catch (e) { return decodeURIComponent(s); }   // an address from before scrambling
+                                }
+                            },
                             scramjetPath: FE_BASE + 'scramjet.js',
                             injectPath: FE_BASE + 'controller.inject.js',
                             wasmPath: FE_BASE + 'scramjet.wasm'
