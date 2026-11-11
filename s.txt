@@ -1117,7 +1117,6 @@
         { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
         { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
         { name: '.FNAF:;Sist3r;Loc5tion?'         , path: 'LESSONS/Night-Shift-Logs-SL/index.html' },
-        { name: '.F35rs;to;F5thom?'                           , path: 'LESSONS/House-Sitting/index.html' },
         { name: '.Snow;Rid3r;~3D?'                , path: 'LESSONS/How-Sleds-Work/index.html' },
         { name: '.Pig3on;Asc3nt?'                 , path: 'LESSONS/Pigeon/index.html' },
         { name: '.Stickm5n;Dismount?'             , path: 'LESSONS/Motion-Lab-Dismount/index.html' },
@@ -1318,7 +1317,6 @@
 
     // newer covers from the picture drop: these win over the ones above
     Object.assign(ART, {
-      'LESSONS/House-Sitting/index.html':                { src: 'LESSONS/art/fears-to-fathom.webp', bg: '#141c2b', fit: 'cover' },
       'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html': { src: 'LESSONS/art/final-earth-2.webp', bg: '#1b1240', fit: 'cover' },
       'LESSONS/City-Planning/index.html':                { src: 'LESSONS/art/townscaper.webp', bg: '#7ec8b0', fit: 'cover' },
       'LESSONS/Empty-Lesson/index.html':                 { src: 'LESSONS/art/there-is-no-game.webp', bg: '#3a2f80', fit: 'cover' },
