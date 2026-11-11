@@ -34,7 +34,7 @@ svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-widt
 html.framed #tabbar { background: transparent; }
 #tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 #tabs::-webkit-scrollbar { display: none; }
-.tab { flex: 0 1 220px; min-width: 72px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
+.tab { flex: 0 1 220px; width: 220px; min-width: 72px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
   border: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--tx2); cursor: pointer; text-align: left; }
 .tab:hover { background: color-mix(in srgb, var(--bg3) 45%, transparent); }
 .tab.active { background: var(--bg1); color: var(--tx); }
@@ -83,6 +83,17 @@ html.framed #home { background: transparent; }
 #home-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; display: grid; place-items: center; }
 #home-search button:hover { filter: brightness(1.1); }
 #clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); }
+
+/* while a tab loads its first page: the logo, its orb circling the moon */
+#loader { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: var(--bg0); }
+html.framed #loader { background: color-mix(in srgb, var(--bg0) 88%, transparent); }
+#loader[hidden] { display: none; }
+#loader svg { width: 72px; height: 72px; color: var(--tx); }
+#loader .orbit { transform-box: view-box; transform-origin: 28px 34px; animation: spin 1.4s linear infinite; }
+#loader .orb { fill: var(--ac); }
+#loader .moon { animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { #loader .orbit { animation: none; } }
 
 /* a message instead of the page (no engine, no server answering) */
 #notice { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 4; background: var(--bg0); }
@@ -183,7 +194,7 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
   <div id="navbar">
     <button class="nav-btn" id="back" title="Back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
     <button class="nav-btn" id="forward" title="Forward" aria-label="Forward"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-    <button class="nav-btn" id="reload" title="Reload" aria-label="Reload"><svg class="i" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+    <button class="nav-btn" id="reload" title="Reload" aria-label="Reload"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button>
     <form id="addr" role="search">
       <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="url" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Address">
@@ -193,6 +204,13 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
   </div>
   <main id="view">
     <div id="bar"></div>
+    <div id="loader" hidden role="status" aria-label="Loading">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <mask id="moon2"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
+        <circle class="moon" cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon2)"/>
+        <g class="orbit"><circle class="orb" cx="48" cy="18" r="6"/></g>
+      </svg>
+    </div>
     <div id="home">
       <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
         <mask id="moon"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
@@ -524,6 +542,8 @@ function renderTabs() {
   }
   // moving tab elements mid-click loses the click, so only when tabs were added, closed or moved
   if (box.children.length !== tabs.length || tabs.some((t, i) => box.children[i] !== t.el)) box.replaceChildren(...tabs.map(t => t.el));
+  // the logo while the active tab loads its first page; later pages keep the old one on screen with the bar
+  $('loader').hidden = !(active && active.url && active.loading && !active.painted);
   if (active && active.el) active.el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 const MOON = '<svg viewBox="0 0 64 64" width="14" height="14"><mask id="tm"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask><circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#tm)"/><circle cx="48" cy="18" r="6" fill="var(--ac)"/></svg>';
@@ -580,7 +600,9 @@ function frameFor(t) {
   el.allow = 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write';
   el.allowFullscreen = true;
   el.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-presentation allow-orientation-lock' + (CFG.tv ? '' : ' allow-downloads'));
-  el.addEventListener('load', () => { t.loading = false; if (t === active) showBar(false); follow(t); keepInTide(t); renderTabs(); });
+  el.addEventListener('load', () => {
+    try { if (el.contentWindow.location.href === 'about:blank') return; } catch (e) {}   // the empty frame, before the site
+    t.loading = false; t.painted = true; if (t === active) showBar(false); follow(t); keepInTide(t); renderTabs(); });
   t.frame = f;   // before it joins the page: an empty frame fires "load" right away
   view.appendChild(el);
   return f;
