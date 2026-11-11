@@ -128,39 +128,6 @@
   }
   #key-switch:hover, #key-switch:focus { opacity: 1; color: var(--ink); }
 
-  /* ---- Chalk Browser's own new-tab page ---- */
-  #home[hidden] { display: none; }
-  #home {
-    position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 18px; padding: 24px;
-    background: #0d1220 url("look/backdrops/ridges.svg") center / cover no-repeat;
-    color: #f2f4fb; text-align: center;
-  }
-  #home::before { content: ""; position: absolute; inset: 0; background: rgba(8, 11, 20, 0.62); }
-  #home > * { position: relative; }
-  #home h1 { margin: 0; font: 700 clamp(2.2rem, 6vw, 3.6rem)/1 var(--hand); letter-spacing: -0.02em; }
-  #home h1 span { color: #9fc0ff; }
-  #home p.lead { margin: 0; max-width: 30rem; color: #c7cee0; font-size: 0.92rem; }
-  #home-form { display: flex; width: min(560px, 88vw); gap: 8px; }
-  #home-url {
-    flex: 1; min-width: 0; height: 46px; padding: 0 16px; color: #f2f4fb;
-    background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 999px;
-  }
-  #home-url::placeholder { color: #aeb6ca; }
-  #home-url:focus { outline: none; border-color: #9fc0ff; background: rgba(255, 255, 255, 0.18); }
-  #home-go { height: 46px; padding: 0 22px; border: none; border-radius: 999px; background: #dbe3f6; color: #0e1328; font-weight: 700; }
-  #home-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 640px; }
-  #home-links button {
-    padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.26);
-    background: rgba(255, 255, 255, 0.10); color: #e7ecf8; font-size: 0.85rem;
-  }
-  #home-links button:hover { background: rgba(255, 255, 255, 0.2); }
-  #home-note { font-size: 0.78rem; color: #aeb6ca; }
-  #home-btn {
-    position: fixed; left: 10px; bottom: 10px; z-index: 900; padding: 5px 10px; border: 1px solid var(--edge);
-    border-radius: var(--radius); background: var(--card); color: var(--pencil); font-size: 0.75rem; opacity: 0.55;
-  }
-  #home-btn:hover, #home-btn:focus { opacity: 1; color: var(--ink); }
 
   #toast {
     position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 1001;
@@ -183,17 +150,6 @@
 </head>
 <body data-theme="basic" data-basic="mono">
 <div id="toast"></div>
-<div id="home" hidden>
-  <h1>Chalk <span>Browser</span></h1>
-  <p class="lead">Your own browser for class. Type a site or search, and it opens here.</p>
-  <form id="home-form" autocomplete="off">
-    <input id="home-url" type="text" placeholder="Search or type a site" aria-label="Search or type a site">
-    <button id="home-go" type="submit">Go</button>
-  </form>
-  <div id="home-links"></div>
-  <p id="home-note">Sites open in this tab. Press Home to come back here.</p>
-</div>
-<button id="home-btn" type="button">Home</button>
 
 <div id="keep-box" hidden>
   <b>Remember Chalk Browser when you switch tabs?</b>
@@ -275,84 +231,9 @@ function openTide(mode, key) {
   if (start) cfg.open = start;
   f.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify(cfg));
   document.body.appendChild(f);
-  /* Tide's new tab wears our paper sunrise instead of its purple gradient */
-  f.addEventListener("load", () => {
-    try {
-      const doc = f.contentDocument;
-      if (!doc || !doc.head || doc.getElementById("chalk-tide-skin")) return;
-      const back = new URL("look/backdrops/ridges.svg", location.href).href;
-      const st = doc.createElement("style");
-      st.id = "chalk-tide-skin";
-      st.textContent =
-        ".nt-bg{background-image:url('" + back + "')!important;background-size:cover!important;" +
-        "background-position:center bottom!important;background-repeat:no-repeat!important}" +
-        ".nt-overlay{background-image:linear-gradient(180deg,rgba(255,250,240,.16),rgba(31,45,68,.24))!important}" +
-        ".nt-time,.nt-date,.nt-brand{color:#1f2d44!important;text-shadow:0 1px 0 rgba(255,255,255,.55)!important}";
-      doc.head.appendChild(st);
-    } catch (e) {}
-  });
 }
 
 
-/* ---- Chalk Browser's own new-tab page ---- */
-const HOME_LINKS = [
-  ["Classroom", "https://classroom.google.com/"],
-  ["Drive", "https://drive.google.com/"],
-  ["Docs", "https://docs.google.com/"],
-  ["Khan Academy", "https://www.khanacademy.org/"],
-  ["Desmos", "https://www.desmos.com/calculator"],
-  ["Wikipedia", "https://www.wikipedia.org/"],
-];
-const homeEl = $("home");
-const homeUrl = $("home-url");
-let tideReady = false;
-
-function tide(message) {
-  const f = document.getElementById("tide-full");
-  if (f && f.contentWindow) f.contentWindow.postMessage(message, new URL(TIDE_PAGE).origin);
-}
-function showHome(show) {
-  homeEl.hidden = !show;
-  if (show) setTimeout(() => homeUrl.focus(), 30);
-}
-function toUrl(raw) {
-  const text = String(raw || "").trim();
-  if (!text) return null;
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) {
-    try { const u = new URL(text); return /^https?:$/.test(u.protocol) ? u.href : null; } catch (e) { return null; }
-  }
-  if (/^[^\s.]+\.[a-z]{2,}(\/|$)/i.test(text)) return "https://" + text;
-  return "https://www.google.com/search?q=" + encodeURIComponent(text);
-}
-function goTo(raw) {
-  const url = toUrl(raw);
-  if (!url) return;
-  showHome(false);
-  if (tideReady) tide({ tide: "go", url });
-  else pendingGo = url;
-}
-let pendingGo = "";
-
-HOME_LINKS.forEach(([label, url]) => {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.textContent = label;
-  b.addEventListener("click", () => goTo(url));
-  $("home-links").appendChild(b);
-});
-$("home-form").addEventListener("submit", (e) => { e.preventDefault(); goTo(homeUrl.value); homeUrl.value = ""; });
-$("home-btn").addEventListener("click", () => showHome(true));
-
-window.addEventListener("message", (e) => {
-  if (!e.data) return;
-  if (e.origin !== new URL(TIDE_PAGE).origin) return;
-  const f = document.getElementById("tide-full");
-  if (!f || e.source !== f.contentWindow) return;
-  if (e.data.tide === "ready") {
-    tideReady = true;
-    if (pendingGo) { tide({ tide: "go", url: pendingGo }); pendingGo = ""; }
-  }
-});
 
 openTide("public");
 
