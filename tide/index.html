@@ -5795,7 +5795,7 @@
         html.tide-framed:not(#x), html.tide-framed:not(#x) body, html.tide-framed:not(#x) .app, html.tide-framed:not(#x) main, html.tide-framed:not(#x) .view,
         html.tide-framed #newtab, html.tide-framed #newtab .fntp, html.tide-framed #newtab .skin-ntp { background: transparent !important; }
         html.tide-framed:not(#x) body { background: color-mix(in srgb, var(--bg0, #000) 88%, transparent) !important; }
-        html.tide-framed .view iframe { background: #fff; }   /* a site that sets no colour stays white, as in any browser */
+        html.tide-framed .view:not(:has(> #newtab.active)) iframe { background: #fff; }   /* a site that sets no colour stays white, as in any browser */
     </style>
     <style id="tide-loading-css">
         /* the loading screen, at start-up while Tide reaches the servers and while a page loads: black and white */
@@ -5849,6 +5849,27 @@
         #newtab .fntp-search { display: none !important; }
         #newtab .fntp-shortcuts { margin-top: 200px; }
         .skin-prev.sk-tide { filter: grayscale(1) brightness(0.8); }
+    </style>
+    <style id="tide-home-css">
+        /* Tide's own new tab page, the same on every skin: the time, a search box and recent sites */
+        #newtab > :not(#tideHome) { display: none !important; }
+        #tideHome { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 22px; padding: 24px 16px 12vh; font-family: var(--ui); color: var(--tx); text-align: center; overflow: auto; }
+        #tideHome .th-time { font-size: clamp(44px, 9vw, 84px); font-weight: 200; letter-spacing: 2px; line-height: 1; text-shadow: 0 2px 18px rgba(0,0,0,.45); }
+        #tideHome .th-date { font-size: 14px; color: var(--tx2); margin-top: 8px; letter-spacing: .5px; }
+        #tideHome .th-name { font-size: 15px; font-weight: 600; letter-spacing: 8px; text-transform: uppercase; color: var(--tx3); }
+        #tideHome .th-search { width: min(620px, 100%); display: flex; align-items: center; gap: 10px; padding: 0 8px 0 18px; height: 52px;
+            border-radius: 26px; background: color-mix(in srgb, var(--bg1, #1f1f1f) 82%, transparent); border: 1px solid var(--bd);
+            box-shadow: 0 8px 30px rgba(0,0,0,.35); backdrop-filter: blur(10px); }
+        #tideHome .th-search:focus-within { border-color: var(--ac); }
+        #tideHome .th-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: inherit; font-size: 16px; }
+        #tideHome .th-search input::placeholder { color: var(--tx3); }
+        #tideHome .th-search button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; font-size: 15px; }
+        #tideHome .th-sites { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 620px; }
+        #tideHome .th-sites:empty { display: none; }
+        #tideHome .th-site { width: 54px; height: 54px; border-radius: 16px; border: 1px solid var(--bd); cursor: pointer; font: 600 20px var(--ui);
+            color: #fff; background: hsl(var(--h) 45% 32%); box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
+        #tideHome .th-site:hover, #tideHome .th-site:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
     </style>
     <style id="tide-lite-css">
         #customSearchCard { display: none !important; }
@@ -6240,6 +6261,16 @@
                 </div>
 
                 <div class="newtab active" id="newtab">
+                    <div id="tideHome">
+                        <div><div class="th-time" id="thTime"></div><div class="th-date" id="thDate"></div></div>
+                        <div class="th-name">Tide</div>
+                        <form class="th-search" id="thSearch" role="search">
+                            <input id="thInput" placeholder="Search or type an address" autocomplete="off" spellcheck="false" aria-label="Search or type an address">
+                            <button type="submit" title="Go" aria-label="Go"><i class="fas fa-arrow-right"></i></button>
+                        </form>
+                        <!-- recent sites as letters only: their names stay in tooltips, since school filters scan page text for site names -->
+                        <div class="th-sites" id="thSites"></div>
+                    </div>
                     <div class="nt-bg" id="ntBg"></div>
                     <div class="nt-overlay"></div>
                     
@@ -12630,6 +12661,7 @@ window._libcurlReady = true;
                 updateClock();
                 loadSavedWallpaper();
                 renderFavorites();
+                renderTideHome();
                 playGustAnimation();
                 if (push) {
                     hist = hist.slice(0, histIdx + 1);
@@ -19779,6 +19811,36 @@ _VIEWER_DL_JS +
                 recentSites = recentSites.slice(0, 20);
                 try { ls.setItem('gust:recent', JSON.stringify(recentSites)); } catch { }
             }
+
+            // Tide's own new tab page: the time, a search box (it does what the address bar does) and recent sites
+            function renderTideHome() {
+                const now = new Date();
+                $("thTime").textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                $("thDate").textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                const seen = new Set(), sites = $("thSites");
+                sites.replaceChildren();
+                for (const { url } of recentSites) {
+                    let host;
+                    try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { continue; }
+                    if (seen.has(host) || seen.size >= 8) continue;
+                    seen.add(host);
+                    const b = document.createElement('button');
+                    b.className = 'th-site';
+                    b.textContent = host[0].toUpperCase();
+                    b.title = host;
+                    b.setAttribute('aria-label', host);
+                    b.style.setProperty('--h', [...host].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7));
+                    b.onclick = () => go(url);
+                    sites.appendChild(b);
+                }
+            }
+            $("thSearch").onsubmit = e => {
+                e.preventDefault();
+                const q = $("thInput").value.trim();
+                if (q) { $("thInput").value = ''; go(q); }
+            };
+            setInterval(() => { if (newtab.classList.contains('active')) renderTideHome(); }, 15000);
+            renderTideHome();
 
             function formatHistoryTime(ts) {
                 const now = Date.now();
