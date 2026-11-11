@@ -10,8 +10,8 @@
 :root {
   color-scheme: dark;
   --ui: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
-  --bg0: #0b0f1c; --bg1: #141b2e; --bg2: #1e2740; --bg3: #2a3450;
-  --bd: #2a3350; --bd2: #3a4568; --tx: #e6e9f2; --tx2: #c4cbe0; --tx3: #8f99b3; --ac: #8fb3d9;
+  --bg0: #000000; --bg1: #000000; --bg2: #121212; --bg3: #1e1e1e;
+  --bd: #1c1c1c; --bd2: #333333; --tx: #f2f2f2; --tx2: #bdbdbd; --tx3: #808080; --ac: #e8e8e8;
 }
 html[data-skin="firefox"] { color-scheme: light; --bg0: #e8e8ed; --bg1: #f9f9fb; --bg2: #f0f0f4; --bg3: #ffffff; --bd: #d7d7db; --bd2: #b1b1b9; --tx: #15141a; --tx2: #3a3944; --tx3: #6e6d7a; --ac: #0061e0; }
 html[data-skin="firefox"][data-look] { color-scheme: dark; }
@@ -96,11 +96,11 @@ html.framed #home { background: transparent; }
 .btn[disabled] { opacity: .6; cursor: default; }
 
 /* ---------- Settings ---------- */
-#settings { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: flex-end; background: rgba(0,0,0,.45); }
-#settings[hidden] { display: none; }
-#settings .panel { width: min(400px, 100%); height: 100%; overflow-y: auto; padding: 18px 18px 40px; background: var(--bg1); border-left: 1px solid var(--bd); }
-#settings header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-#settings h2 { margin: 0; font-size: 18px; }
+.side { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: flex-end; background: rgba(0,0,0,.45); }
+.side[hidden] { display: none; }
+.side .panel { width: min(400px, 100%); height: 100%; overflow-y: auto; padding: 18px 18px 40px; background: var(--bg1); border-left: 1px solid var(--bd); }
+.side header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.side h2 { margin: 0; font-size: 18px; }
 #settings h3 { margin: 22px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--tx3); }
 .choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .choice { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg2); color: var(--tx); cursor: pointer; display: flex; align-items: center; gap: 8px; }
@@ -115,6 +115,32 @@ html.framed #home { background: transparent; }
 .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
 #settings p.small { margin: 8px 0 0; color: var(--tx3); font-size: 12px; }
 #settings a { color: var(--ac); }
+.list { display: flex; flex-direction: column; gap: 2px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.item:hover { background: var(--bg2); }
+.item .icon { width: 22px; height: 22px; flex: none; border-radius: 6px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+.item .txt { flex: 1; min-width: 0; }
+.item .txt b, .item .txt small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.item .txt b { font-weight: 500; }
+.item .txt small { color: var(--tx3); }
+.item .x { flex: none; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--tx3); cursor: pointer; display: grid; place-items: center; }
+.item .x:hover { background: var(--bg3); color: var(--tx); }
+.item .x svg.i { width: 13px; height: 13px; }
+.empty { color: var(--tx3); padding: 10px; }
+#menu { position: fixed; z-index: 9; min-width: 210px; padding: 6px; border-radius: 10px; background: var(--bg2); border: 1px solid var(--bd2); box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+#menu[hidden] { display: none; }
+#menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 7px; background: none; color: var(--tx); cursor: pointer; text-align: left; }
+#menu button:hover, #menu button:focus-visible { background: var(--bg3); outline: none; }
+#menu kbd { margin-left: auto; font: 11px var(--ui); color: var(--tx3); }
+#star { flex: none; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--tx3); cursor: pointer; display: grid; place-items: center; }
+#star:hover { color: var(--tx); }
+#star.on { color: var(--ac); }
+#star.on svg.i { fill: currentColor; }
+#star[disabled] { visibility: hidden; }
+#marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; margin-top: 22px; }
+#marks:empty { display: none; }
+#marks button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--bd2); cursor: pointer; font: 600 18px var(--ui); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
+#marks button:hover, #marks button:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
 select { padding: 7px 10px; border-radius: 8px; background: var(--bg2); color: var(--tx); border: 1px solid var(--bd); font: inherit; }
 
 /* ---------- skins: the same pieces, shaped like other browsers ---------- */
@@ -161,8 +187,9 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
     <form id="addr" role="search">
       <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="url" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Address">
+      <button type="button" id="star" title="Bookmark this page (Ctrl+D)" aria-label="Bookmark this page" disabled><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
     </form>
-    <button class="nav-btn" id="settings-btn" title="Settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+    <button class="nav-btn" id="menu-btn" title="Menu" aria-label="Menu" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
   </div>
   <main id="view">
     <div id="bar"></div>
@@ -177,13 +204,31 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
         <input id="home-input" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Search the web or type an address">
         <button type="submit" title="Go" aria-label="Go"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </form>
+      <!-- bookmarks as letters only: names stay in tooltips, since school filters scan page text for site names -->
+      <div id="marks"></div>
       <div id="clock"></div>
     </div>
     <div id="notice" hidden><div class="card"><h2 id="notice-title"></h2><p id="notice-text"></p><button class="btn primary" id="notice-btn">Reload Tide</button></div></div>
   </main>
 </div>
 
-<div id="settings" hidden>
+<div id="menu" role="menu" hidden>
+  <button role="menuitem" data-do="newtab">New tab <kbd>Ctrl+T</kbd></button>
+  <button role="menuitem" data-do="reopen">Reopen closed tab <kbd>Ctrl+Shift+T</kbd></button>
+  <button role="menuitem" data-do="bookmarks">Bookmarks</button>
+  <button role="menuitem" data-do="history">History</button>
+  <button role="menuitem" data-do="settings">Settings</button>
+</div>
+
+<div id="lists" class="side" hidden>
+  <div class="panel" role="dialog" aria-labelledby="lists-title">
+    <header><h2 id="lists-title"></h2><button class="nav-btn" id="lists-close" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div class="list" id="list"></div>
+    <div class="row"><button class="btn" id="clear-history" hidden>Clear history</button></div>
+  </div>
+</div>
+
+<div id="settings" class="side" hidden>
   <div class="panel" role="dialog" aria-label="Settings">
     <header><h2>Settings</h2><button class="nav-btn" id="settings-close" aria-label="Close settings"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
     <h3>Skin</h3>
@@ -424,9 +469,11 @@ function newTab(input, show = true) {
   saveTabs();
   return t;
 }
+const closed = [];   // recently closed tabs' addresses, for Ctrl+Shift+T
 function closeTab(t) {
   const i = tabs.indexOf(t);
   if (i < 0) return;
+  if (t.url) closed.push(t.url);
   if (t.frame) t.frame.element.remove();
   tabs.splice(i, 1);
   if (!tabs.length) { newTab(); return; }
@@ -446,6 +493,7 @@ function showTab(t) {
   showBar(t.loading);
   if (document.activeElement !== $('url')) $('url').value = t.url;
   renderTabs();
+  renderStar();
   saveTabs();
   if (!t.url && !CFG.tv) setTimeout(() => $('home-input').focus({ preventScroll: true }), 0);
 }
@@ -549,6 +597,7 @@ function follow(t) {
   if (real && /^https?:/i.test(real) && real !== t.url) { t.url = real; changed = true; if (t === active && document.activeElement !== $('url')) $('url').value = real; saveTabs(); }
   const title = (doc && doc.title || '').trim() || hostOf(t.url);
   if (title !== t.title) { t.title = title; changed = true; }
+  if (changed) { remember(t.url, t.title); if (t === active) renderStar(); }
   const link = doc && doc.querySelector('link[rel~="icon"][href]');
   const icon = link ? link.href : '';
   if (icon !== t.icon) { t.icon = icon; changed = true; }
@@ -620,9 +669,12 @@ $('reload').onclick = () => { if (active && active.frame && active.url) { active
 document.addEventListener('keydown', e => {
   if (CFG.tv || !(e.ctrlKey || e.metaKey)) return;
   const k = e.key.toLowerCase();
-  if (k === 't') { e.preventDefault(); newTab(); }
+  if (k === 't' && e.shiftKey) { e.preventDefault(); reopen(); }
+  else if (k === 't') { e.preventDefault(); newTab(); }
   else if (k === 'w') { e.preventDefault(); closeTab(active); }
   else if (k === 'l') { e.preventDefault(); $('url').focus(); }
+  else if (k === 'd') { e.preventDefault(); toggleMark(); }
+  else if (e.key === 'Tab' && tabs.length > 1) { e.preventDefault(); showTab(tabs[(tabs.indexOf(active) + (e.shiftKey ? tabs.length - 1 : 1)) % tabs.length]); }
 });
 function tick() {
   const now = new Date();
@@ -632,10 +684,103 @@ function tick() {
 tick(); setInterval(tick, 15000);
 
 /* ---- Settings ---- */
-$('settings-btn').onclick = () => { $('settings').hidden = false; renderServers(); };
 $('settings-close').onclick = () => { $('settings').hidden = true; };
 $('settings').addEventListener('click', e => { if (e.target === $('settings')) $('settings').hidden = true; });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') $('settings').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('settings').hidden = true; closeLists(); $('menu').hidden = true; } });
+
+/* ---- the menu ---- */
+$('menu-btn').onclick = e => {
+  e.stopPropagation();
+  const m = $('menu'), r = $('menu-btn').getBoundingClientRect();
+  m.hidden = !m.hidden;
+  if (m.hidden) return;
+  m.style.top = (r.bottom + 6) + 'px';
+  m.style.right = Math.max(8, innerWidth - r.right) + 'px';
+  m.querySelector('[data-do="reopen"]').disabled = !closed.length;
+  m.querySelector('button').focus();
+};
+document.addEventListener('click', e => { if (!e.target.closest('#menu')) $('menu').hidden = true; });
+$('menu').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  $('menu').hidden = true;
+  const d = b.dataset.do;
+  if (d === 'newtab') newTab();
+  else if (d === 'reopen') reopen();
+  else if (d === 'bookmarks' || d === 'history') openList(d);
+  else if (d === 'settings') { $('settings').hidden = false; renderServers(); }
+};
+function reopen() { if (closed.length) newTab(closed.pop()); }
+
+/* ---- bookmarks and history (kept in this browser only; nothing is kept in fresh visits) ---- */
+const load = k => { try { const v = JSON.parse(store.get(k)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+let marks = load('bookmarks'), visits = load('history');
+const hue = s => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+function remember(url, title) {
+  if (CFG.fresh || !/^https?:/i.test(url)) return;
+  if (visits[0] && visits[0].url === url) visits[0].title = title;
+  else visits.unshift({ url, title, time: Date.now() });
+  visits = visits.slice(0, 300);
+  store.set('history', JSON.stringify(visits));
+}
+function renderStar() {
+  const on = !!(active && active.url && marks.some(m => m.url === active.url));
+  $('star').disabled = !active || !active.url || CFG.fresh;
+  $('star').classList.toggle('on', on);
+  $('star').title = on ? 'Remove bookmark (Ctrl+D)' : 'Bookmark this page (Ctrl+D)';
+}
+function toggleMark() {
+  if (!active || !active.url || CFG.fresh) return;
+  const i = marks.findIndex(m => m.url === active.url);
+  if (i >= 0) marks.splice(i, 1); else marks.push({ url: active.url, title: active.title });
+  store.set('bookmarks', JSON.stringify(marks));
+  renderStar(); renderMarks();
+}
+$('star').onclick = toggleMark;
+function renderMarks() {
+  $('marks').replaceChildren(...marks.slice(0, 12).map(m => {
+    const b = document.createElement('button');
+    b.textContent = (hostOf(m.url)[0] || '?').toUpperCase();
+    b.title = m.title || hostOf(m.url);
+    b.setAttribute('aria-label', b.title);
+    b.style.background = 'hsl(' + hue(hostOf(m.url)) + ' 45% 30%)';
+    b.onclick = () => open(active, m.url);
+    return b;
+  }));
+}
+function openList(kind) {
+  const list = kind === 'bookmarks' ? marks.slice().reverse() : visits;
+  $('lists-title').textContent = kind === 'bookmarks' ? 'Bookmarks' : 'History';
+  $('clear-history').hidden = kind !== 'history' || !visits.length;
+  $('list').replaceChildren(...(list.length ? list.slice(0, 200).map(v => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = '<span class="icon"></span><span class="txt"><b></b><small></small></span><button class="x" aria-label="Remove"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    const host = hostOf(v.url);
+    row.querySelector('.icon').textContent = (host[0] || '?').toUpperCase();
+    row.querySelector('.icon').style.background = 'hsl(' + hue(host) + ' 45% 30%)';
+    row.querySelector('b').textContent = v.title || host;
+    row.querySelector('small').textContent = kind === 'history' ? host + ' · ' + new Date(v.time).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : host;
+    row.onclick = e => {
+      if (e.target.closest('.x')) {
+        if (kind === 'bookmarks') { marks = marks.filter(m => m !== v); store.set('bookmarks', JSON.stringify(marks)); renderStar(); renderMarks(); }
+        else { visits = visits.filter(m => m !== v); store.set('history', JSON.stringify(visits)); }
+        openList(kind);
+        return;
+      }
+      closeLists();
+      open(active, v.url);
+    };
+    return row;
+  }) : [Object.assign(document.createElement('div'), { className: 'empty', textContent: kind === 'bookmarks' ? 'No bookmarks yet. Press the star in the address bar to add one.' : 'Nothing here yet.' })]));
+  $('lists').hidden = false;
+}
+// the lists leave the page when closed, so no site names stay in it
+function closeLists() { $('lists').hidden = true; $('list').replaceChildren(); }
+$('lists-close').onclick = closeLists;
+$('lists').addEventListener('click', e => { if (e.target === $('lists')) closeLists(); });
+$('clear-history').onclick = () => { visits = []; store.set('history', null); openList('history'); };
+renderMarks();
 function choices(box, list, onPick) {
   for (const [v, label, swatch] of list) {
     const b = document.createElement('button');
