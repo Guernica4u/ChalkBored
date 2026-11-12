@@ -6,7 +6,6 @@
 <meta name="referrer" content="no-referrer">
 <title>Chalk TV</title>
 <link rel="icon" href="favicon.svg">
-<link rel="preconnect" href="https://tide.guernica4u.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -269,8 +268,8 @@ const BOOT_SITE = TV_SITES.find((s) => s && s.url === "movy.sx") || TV_SITES[0];
 // ============================================================
 
 /* Chalk TV shows one site through the public Tide (github.com/Guernica4u/Tide) in its TV mode - no tabs. */
-/* the public Tide lives on workers.dev, which loads more reliably in class */
-const TIDE_PAGE = "https://tide.guernica4u.workers.dev/";
+/* ChalkBored's own copy of Tide, like Chalk Browser: filters (Cisco Umbrella) block tide.guernica4u.workers.dev */
+const TIDE_PAGE = new URL("tide/", location.href).href;
 const SITE_STORE = "chalk-tv.site";
 const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
 const MODE_STORE = "chalk-tv.mode";               /* "key" or "public" */
