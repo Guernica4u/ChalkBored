@@ -5817,6 +5817,17 @@
             --bd: #2b3039; --bd2: #3a404b; --tx: #d9d5cc; --tx2: #b8b4ac; --tx3: #8b909a;
             --ac: #8fb3d9; --ac2: #b5cde6; --sk-bar: #1f232a; --sk-field: #2b3039;
         }
+        html[data-cb-look="black"] {
+            --bg0: #000000; --bg1: #000000; --bg2: #121212; --bg3: #1e1e1e; --bg-elevated: #0a0a0a;
+            --bd: #1c1c1c; --bd2: #333333; --tx: #f2f2f2; --tx2: #bdbdbd; --tx3: #808080;
+            --ac: #e8e8e8; --ac2: #ffffff; --sk-bar: #000000; --sk-field: #121212;
+        }
+        /* the moon while Tide starts or a page loads: its orb circles it */
+        .tide-moon { width: 64px !important; height: 64px !important; border: 0 !important; border-radius: 0 !important; animation: none !important; color: #f2f2f2; }
+        .tide-moon .tm-orbit { transform-box: view-box; transform-origin: 28px 34px; animation: tide-spin 1.4s linear infinite; fill: var(--ac, #e8e8e8); }
+        .tide-moon .tm-moon { animation: tide-glow 1.4s ease-in-out infinite; }
+        @keyframes tide-glow { 50% { opacity: .55; } }
+        @media (prefers-reduced-motion: reduce) { .tide-moon .tm-orbit { animation: none; } }
         html[data-cb-look="mono"] {
             --bg0: #0b0b0b; --bg1: #171717; --bg2: #1f1f1f; --bg3: #2a2a2a; --bg-elevated: #171717;
             --bd: #2e2e2e; --bd2: #444444; --tx: #f2f2f2; --tx2: #c8c8c8; --tx3: #9a9a9a;
@@ -7057,6 +7068,7 @@
                                         <div class="settings-hint" style="margin-bottom:12px;">Only the colours change; the skin below keeps its layout.</div>
                                         <div class="tide-colors">
                                             <button class="tide-color" data-colors="follow"><i style="background:linear-gradient(135deg,#0b0b0b 50%,#8fb3d9 50%)"></i>Follow ChalkBored</button>
+                                            <button class="tide-color" data-colors="black"><i style="background:#000;border-color:#555"></i>Black</button>
                                             <button class="tide-color" data-colors="mono"><i style="background:#121212"></i>Mono</button>
                                             <button class="tide-color" data-colors="night"><i style="background:#8fb3d9"></i>Night</button>
                                             <button class="tide-color" data-colors="space"><i style="background:#1e2840"></i>Space</button>
@@ -7974,7 +7986,7 @@
                 </div>
 
                 <div class="overlay splash" id="overlay">
-                    <div class="spinner"></div>
+                    <svg class="spinner tide-moon" viewBox="0 0 64 64" aria-hidden="true"><mask id="tmL"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask><circle class="tm-moon" cx="28" cy="34" r="22" fill="currentColor" mask="url(#tmL)"/><g class="tm-orbit"><circle cx="48" cy="18" r="6"/></g></svg>
                     <div id="overlayText">Initializing...</div>
                 </div>
                 <div id="elemHighlightOverlay" style="
@@ -8312,7 +8324,7 @@ window._libcurlReady = true;
             // ChalkBored's theme, worn by the Tide skin (see tide-look-css); other skins keep their colours
             // Settings > Skins > Colours: "follow" (the default) wears what Chalk TV or
             // Chalk Browser passes in, "own" keeps the skin's colours
-            const TIDE_LOOKS = { space: 1, night: 1, mono: 1 };
+            const TIDE_LOOKS = { space: 1, night: 1, mono: 1, black: 1 };
             let tidePassedLook = '';
             function tideLook(look) {
                 if (TIDE_LOOKS[look]) tidePassedLook = look;
@@ -8320,7 +8332,7 @@ window._libcurlReady = true;
             }
             function tideApplyColors() {
                 const pick = ls.getItem('colors:v1') || 'follow';
-                const look = pick === 'follow' ? tidePassedLook : TIDE_LOOKS[pick] ? pick : '';
+                const look = pick === 'follow' ? (tidePassedLook || 'black') : TIDE_LOOKS[pick] ? pick : '';   // on its own, all black
                 if (look) document.documentElement.dataset.cbLook = look;
                 else delete document.documentElement.dataset.cbLook;
                 document.querySelectorAll('.tide-color').forEach(b => b.classList.toggle('selected', b.dataset.colors === pick));
@@ -12055,7 +12067,7 @@ window._libcurlReady = true;
                 el.className = 'overlay splash boot-bench';
                 el.style.cssText = 'z-index:99995;gap:22px;';
                 el.innerHTML =
-                    '<div class="boot-bench-spin"><div class="spinner"></div></div>' +
+                    '<div class="boot-bench-spin"><svg class="spinner tide-moon" viewBox="0 0 64 64" aria-hidden="true"><mask id="tmB"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask><circle class="tm-moon" cx="28" cy="34" r="22" fill="currentColor" mask="url(#tmB)"/><g class="tm-orbit"><circle cx="48" cy="18" r="6"/></g></svg></div>' +
                     '<div class="boot-bench-txt" id="bootBenchTxt">Finding the fastest server…</div>';
                 document.body.appendChild(el);
             }
