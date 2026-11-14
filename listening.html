@@ -288,7 +288,7 @@
   <aside id="side">
     <form id="search" autocomplete="off">
       <label><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
-        <input id="q" type="search" placeholder="Search songs" aria-label="Search songs"></label>
+        <input id="q" type="search" placeholder="Search songs or paste a link" aria-label="Search songs"></label>
       <button class="tool" id="add-btn" type="button" title="Add a song or playlist from a link">+</button>
       <button class="tool" id="opts" type="button" title="Options"><svg viewBox="0 0 16 16"><circle cx="3.5" cy="8" r=".6"/><circle cx="8" cy="8" r=".6"/><circle cx="12.5" cy="8" r=".6"/></svg></button>
     </form>
@@ -1123,7 +1123,9 @@ async function addLink() {
   const raw = await ask("Add a link",
     "Paste a link to a song or a playlist: a YouTube video or playlist, a Spotify playlist, album or song, or a link straight to a sound file.",
     "", "Add");
-  if (!raw) return;
+  if (raw) await takeLink(raw);
+}
+async function takeLink(raw) {
   const yl = parseYouTube(raw), sp = spotifyTarget(raw);
   try {
     if (yl && yl.list) return await importYouTubeList(yl.list);
@@ -1214,6 +1216,8 @@ function endSearch() {
 async function find(q) {
   q = String(q || "").trim();
   if (!q) return endSearch();
+  // a link pasted into the search bar is added like one from +
+  if (/^https?:\/\/\S+$/i.test(q)) { $("q").value = ""; endSearch(); return takeLink(q); }
   const box = $("songs");
   searching = true;
   drawPlaylists();
