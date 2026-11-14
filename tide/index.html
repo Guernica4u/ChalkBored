@@ -5914,7 +5914,6 @@
         #tutorialOverlay { display: none !important; }
         #restartTutorialBtn { display: none !important; }
         #adblockModal { display: none !important; }
-        #tabContextMenu { display: none !important; }
         .tab-mute-icon { display: none !important; }
     </style>
     <script>
@@ -6526,16 +6525,29 @@
 
                 <!-- Tab right-click context menu -->
                 <div class="tab-context-menu" id="tabContextMenu">
-                    <button class="tab-ctx-item" id="tabCtxMute">
+                    <!-- muting went through GUST's own engine, which Tide no longer has -->
+                    <button class="tab-ctx-item" id="tabCtxMute" style="display:none">
                         <i class="fas fa-volume-xmark"></i>
                         <span>Mute Tab</span>
                     </button>
-                    <div class="tab-ctx-separator"></div>
                     <button class="tab-ctx-item" id="tabCtxReload">
                         <i class="fas fa-rotate-right"></i>
                         <span>Reload Tab</span>
                     </button>
                     <div class="tab-ctx-separator"></div>
+                    <button class="tab-ctx-item" id="tabCtxDuplicate">
+                        <i class="fas fa-clone"></i>
+                        <span>Duplicate Tab</span>
+                    </button>
+                    <button class="tab-ctx-item" id="tabCtxReopen">
+                        <i class="fas fa-rotate-left"></i>
+                        <span>Reopen Closed Tab</span>
+                    </button>
+                    <div class="tab-ctx-separator"></div>
+                    <button class="tab-ctx-item" id="tabCtxCloseOthers">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Close Other Tabs</span>
+                    </button>
                     <button class="tab-ctx-item danger" id="tabCtxClose">
                         <i class="fas fa-xmark"></i>
                         <span>Close Tab</span>
@@ -21373,6 +21385,34 @@ _VIEWER_DL_JS +
                 if (TIDE.ui === 'tv' || !(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== 't' || !closedTabs.length) return;
                 e.preventDefault();
                 createTab(closedTabs.pop());
+            });
+            // the tab menu (right-click a tab): Reload goes through the engine's frame, and three more items
+            const tabCtxTab = () => tabs.find(t => t.id === tabCtxTargetId);
+            $("tabCtxReload").onclick = () => {
+                const t = tabCtxTab();
+                closeTabContextMenu();
+                if (!t) return;
+                switchToTab(t.id);
+                if (t.sf) { try { t.sf.reload(); } catch (e) {} }
+            };
+            $("tabCtxDuplicate").onclick = () => {
+                const t = tabCtxTab();
+                closeTabContextMenu();
+                if (t) createTab(/^https?:/i.test(t.sfUrl || t.url || '') ? (t.sfUrl || t.url) : undefined);
+            };
+            $("tabCtxReopen").onclick = () => { closeTabContextMenu(); if (closedTabs.length) createTab(closedTabs.pop()); };
+            $("tabCtxCloseOthers").onclick = () => {
+                const t = tabCtxTab();
+                closeTabContextMenu();
+                if (!t) return;
+                switchToTab(t.id);
+                tabs.filter(x => x.id !== t.id).forEach(x => closeTab(x.id));
+            };
+            document.getElementById('tabStrip').addEventListener('contextmenu', () => {
+                $("tabCtxReopen").disabled = !closedTabs.length;
+                $("tabCtxReopen").classList.toggle('disabled', !closedTabs.length);
+                $("tabCtxCloseOthers").disabled = tabs.length < 2;
+                $("tabCtxCloseOthers").classList.toggle('disabled', tabs.length < 2);
             });
             // Reload reloads the engine frame; Back/Forward already go through go()
             const _tideReload = $("reload").onclick;
