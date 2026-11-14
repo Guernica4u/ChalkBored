@@ -21503,6 +21503,28 @@ _VIEWER_DL_JS +
                 if (title && title !== tab.title) setTabTitle(title);
             }, 600);
 
+            // each site's own icon on its tab (its <link rel="icon">, else its /favicon.ico), loaded through the engine;
+            // until it loads, the tab keeps its globe
+            function feTabIcon(t) {
+                try {
+                    const link = t.sf.element.contentDocument.querySelector('link[rel~="icon"][href]');
+                    if (link) return link.href;
+                    if (/^https?:/i.test(t.sfUrl || '')) return t.sf.context.prefix.href + FE.ctl.config.codec.encode(new URL('/favicon.ico', t.sfUrl).href);
+                } catch (e) {}
+                return '';
+            }
+            setInterval(() => tabs.forEach(t => {
+                if (!t.sf || !t.sfUrl || t.url === HOME_INTERNAL) return;
+                const el = document.querySelector('.tab[data-tab-id="' + t.id + '"] .tab-icon');
+                const icon = feTabIcon(t);
+                if (!el || !icon || el.dataset.icon === icon) return;
+                el.dataset.icon = icon;
+                const img = new Image();
+                img.alt = ''; img.width = 16; img.height = 16; img.style.borderRadius = '3px';
+                img.onload = () => { if (el.dataset.icon === icon) el.replaceChildren(img); };
+                img.src = icon;
+            }), 800);
+
             // ── Fullscreen logic ──────────────────────────────────────────────
             function _doRequestFullscreen() {
                 return document.documentElement.requestFullscreen();
