@@ -21788,10 +21788,20 @@ _VIEWER_DL_JS +
                 // ── Page zoom (Chrome-style, applied to the content frame) ──
                 const ZOOM_STEPS = [25, 33, 50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200, 250, 300, 400, 500];
                 let zoomPct = 100;
+                // sites show in the engine's frames, so the zoom goes on each site's page (and again after it navigates)
                 function applyZoom() {
-                    try { frame.style.zoom = (zoomPct / 100); } catch (_) {}
+                    document.querySelectorAll('iframe[name^="tide-fe-"]').forEach(f => {
+                        try { const r = f.contentDocument.documentElement; const z = zoomPct === 100 ? '' : String(zoomPct / 100); if (r.style.zoom !== z) r.style.zoom = z; } catch (_) {}
+                    });
                     menuEl.querySelectorAll('.zpct').forEach(z => { z.textContent = zoomPct + '%'; });
                 }
+                setInterval(applyZoom, 700);
+                document.addEventListener('keydown', e => {
+                    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+                    if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomStep(1); }
+                    else if (e.key === '-') { e.preventDefault(); zoomStep(-1); }
+                    else if (e.key === '0') { e.preventDefault(); zoomPct = 100; applyZoom(); }
+                });
                 function zoomStep(dir) {
                     let i = ZOOM_STEPS.indexOf(zoomPct);
                     if (i === -1) i = ZOOM_STEPS.indexOf(100);
