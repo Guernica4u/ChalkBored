@@ -5880,6 +5880,9 @@
         #tideHome .th-search input::placeholder { color: var(--tx3); }
         #tideHome .th-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; font-size: 15px; }
         #tideHome .th-search button:hover { filter: brightness(1.1); }
+        .tab.pinned { flex: 0 0 40px !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important;
+            justify-content: center !important; padding: 0 !important; gap: 0 !important; }
+        .tab.pinned .tab-title, .tab.pinned .tab-close, .tab.pinned .tab-mute-icon { display: none !important; }
         #tideHome .th-marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; margin-top: 22px; }
         #tideHome .th-marks:empty { display: none; }
         #tideHome .th-marks button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--bd2, #333); cursor: pointer;
@@ -6541,6 +6544,10 @@
                         <span>Reload Tab</span>
                     </button>
                     <div class="tab-ctx-separator"></div>
+                    <button class="tab-ctx-item" id="tabCtxPin">
+                        <i class="fas fa-thumbtack"></i>
+                        <span>Pin Tab</span>
+                    </button>
                     <button class="tab-ctx-item" id="tabCtxDuplicate">
                         <i class="fas fa-clone"></i>
                         <span>Duplicate Tab</span>
@@ -9453,7 +9460,8 @@ window._libcurlReady = true;
                         title: t.title,
                         url: t.url,
                         history: t.history,
-                        historyIndex: t.historyIndex
+                        historyIndex: t.historyIndex,
+                        pinned: !!t.pinned
                     }));
                     ls.setItem(TAB_CACHE_KEY, JSON.stringify({
                         tabs: tabsToSave,
@@ -9883,6 +9891,7 @@ window._libcurlReady = true;
       <button class="tab-close">×</button>
     `;
                     if (tab.muted) tabEl.classList.add('muted');
+                    if (tab.pinned) { tabEl.classList.add('pinned'); tabEl.title = tab.title || 'Pinned tab'; }
                     if (tab.hasAudio && !tab.muted) tabEl.classList.add('audio-playing');
 
                     // Resolve tide favicons asynchronously
@@ -21426,12 +21435,12 @@ _VIEWER_DL_JS +
                 closeTabContextMenu();
                 if (!t) return;
                 switchToTab(t.id);
-                tabs.filter(x => x.id !== t.id).forEach(x => closeTab(x.id));
+                tabs.filter(x => x.id !== t.id && !x.pinned).forEach(x => closeTab(x.id));
             };
             document.addEventListener('keydown', e => {
                 if (TIDE.ui === 'tv' || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
                 const k = e.key.toLowerCase();
-                if (k === 'w') { e.preventDefault(); if (tabs.length > 1) closeTab(activeTabId); }
+                if (k === 'w') { e.preventDefault(); const a = getActiveTab(); if (tabs.length > 1 && a && !a.pinned) closeTab(activeTabId); }
                 else if (k === 'l') { e.preventDefault(); try { urlInput.focus(); urlInput.select(); } catch (err) {} }
             });
             // a muted tab keeps its site quiet, also what the site plays later; unmuting lets it play again
@@ -21442,7 +21451,18 @@ _VIEWER_DL_JS +
                 try { t.sf.element.contentDocument.querySelectorAll('video, audio').forEach(m => { if (m.muted !== want) m.muted = want; }); } catch (e) {}
                 t._wasMuted = want;
             }), 500);
+            $("tabCtxPin").onclick = () => {
+                const t = tabCtxTab();
+                closeTabContextMenu();
+                if (!t) return;
+                t.pinned = !t.pinned;
+                tabs = [...tabs.filter(x => x.pinned), ...tabs.filter(x => !x.pinned)];   // pinned tabs stay at the left
+                renderTabs();
+                saveTabs();
+            };
             document.getElementById('tabStrip').addEventListener('contextmenu', () => {
+                const t = tabCtxTab();
+                $("tabCtxPin").querySelector('span').textContent = t && t.pinned ? 'Unpin Tab' : 'Pin Tab';
                 $("tabCtxReopen").disabled = !closedTabs.length;
                 $("tabCtxReopen").classList.toggle('disabled', !closedTabs.length);
                 $("tabCtxCloseOthers").disabled = tabs.length < 2;
