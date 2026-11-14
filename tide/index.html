@@ -5880,6 +5880,11 @@
         #tideHome .th-search input::placeholder { color: var(--tx3); }
         #tideHome .th-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; font-size: 15px; }
         #tideHome .th-search button:hover { filter: brightness(1.1); }
+        #tideHome .th-marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; margin-top: 22px; }
+        #tideHome .th-marks:empty { display: none; }
+        #tideHome .th-marks button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--bd2, #333); cursor: pointer;
+            font: 600 18px var(--ui); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
+        #tideHome .th-marks button:hover, #tideHome .th-marks button:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
         #tideHome .th-clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); letter-spacing: .3px; }
     </style>
     <style id="tide-lite-css">
@@ -5914,7 +5919,6 @@
         #tutorialOverlay { display: none !important; }
         #restartTutorialBtn { display: none !important; }
         #adblockModal { display: none !important; }
-        .tab-mute-icon { display: none !important; }
     </style>
     <script>
     (function () {
@@ -6282,6 +6286,8 @@
                             <input id="thInput" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Search the web or type an address">
                             <button type="submit" title="Go" aria-label="Go"><i class="fas fa-arrow-right"></i></button>
                         </form>
+                        <!-- bookmarks as letters only: names stay in tooltips, since school filters scan page text for site names -->
+                        <div class="th-marks" id="thMarks"></div>
                         <div class="th-clock" id="thClock"></div>
                     </div>
                     <div class="nt-bg" id="ntBg"></div>
@@ -6525,11 +6531,11 @@
 
                 <!-- Tab right-click context menu -->
                 <div class="tab-context-menu" id="tabContextMenu">
-                    <!-- muting went through GUST's own engine, which Tide no longer has -->
-                    <button class="tab-ctx-item" id="tabCtxMute" style="display:none">
+                    <button class="tab-ctx-item" id="tabCtxMute">
                         <i class="fas fa-volume-xmark"></i>
                         <span>Mute Tab</span>
                     </button>
+                    <div class="tab-ctx-separator"></div>
                     <button class="tab-ctx-item" id="tabCtxReload">
                         <i class="fas fa-rotate-right"></i>
                         <span>Reload Tab</span>
@@ -10546,6 +10552,7 @@ window._libcurlReady = true;
                 try {
                     ls.setItem(BM_KEY, JSON.stringify(bookmarks));
                 } catch { }
+                try { renderTideHome(); } catch (e) {}   // the home screen's bookmark tiles
             }
 
             function faviconFor(url) {
@@ -18335,6 +18342,18 @@ _VIEWER_DL_JS +
 
             // Tide's own new tab page: the logo, a search box (it does what the address bar does) and the time
             function renderTideHome() {
+                const hue = t => [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+                $("thMarks").replaceChildren(...(typeof bookmarks !== 'undefined' ? bookmarks : []).slice(0, 12).map(m => {
+                    let host = '';
+                    try { host = new URL(m.url).hostname.replace(/^www\./, ''); } catch (e) {}
+                    const b = document.createElement('button');
+                    b.textContent = (host[0] || '?').toUpperCase();
+                    b.title = m.name || host;
+                    b.setAttribute('aria-label', b.title);
+                    b.style.background = 'hsl(' + hue(host) + ' 45% 30%)';
+                    b.onclick = () => go(m.url);
+                    return b;
+                }));
                 const now = new Date();
                 $("thClock").textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '  ·  ' +
                     now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
@@ -18850,6 +18869,7 @@ _VIEWER_DL_JS +
 
                 try {
                     bookmarks = loadBookmarks();
+                    try { renderTideHome(); } catch (e) {}
                     loadFavorites();
                     loadTabCacheEnabled();
 
@@ -21408,6 +21428,20 @@ _VIEWER_DL_JS +
                 switchToTab(t.id);
                 tabs.filter(x => x.id !== t.id).forEach(x => closeTab(x.id));
             };
+            document.addEventListener('keydown', e => {
+                if (TIDE.ui === 'tv' || !(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+                const k = e.key.toLowerCase();
+                if (k === 'w') { e.preventDefault(); if (tabs.length > 1) closeTab(activeTabId); }
+                else if (k === 'l') { e.preventDefault(); try { urlInput.focus(); urlInput.select(); } catch (err) {} }
+            });
+            // a muted tab keeps its site quiet, also what the site plays later; unmuting lets it play again
+            setInterval(() => tabs.forEach(t => {
+                if (!t.sf) return;
+                const want = !!t.muted;
+                if (!want && !t._wasMuted) return;
+                try { t.sf.element.contentDocument.querySelectorAll('video, audio').forEach(m => { if (m.muted !== want) m.muted = want; }); } catch (e) {}
+                t._wasMuted = want;
+            }), 500);
             document.getElementById('tabStrip').addEventListener('contextmenu', () => {
                 $("tabCtxReopen").disabled = !closedTabs.length;
                 $("tabCtxReopen").classList.toggle('disabled', !closedTabs.length);
