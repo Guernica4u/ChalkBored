@@ -1,7 +1,8 @@
 # Tide's fast engine
 
-Websites open through these files. They need service workers, and they stream
-pages like a normal browser instead of fetching every script before showing anything.
+Websites open through these files when the browser allows service workers;
+otherwise Tide uses GUST's own engine. They stream pages like a normal browser
+instead of fetching every script before showing anything.
 
 | File | What it is | License |
 |------|------------|---------|
