@@ -9845,8 +9845,8 @@ window._libcurlReady = true;
                     tabEl.dataset.tabId = tab.id;
                     tabEl.setAttribute('draggable', 'false'); // we use pointer events; just for cursor
 
-                    const iconHtml = tab.url === HOME_INTERNAL
-                        ? '<i class="fas fa-earth-americas"></i>'
+                    const iconHtml = tab.url === HOME_INTERNAL   // an empty tab: Tide's moon
+                        ? '<svg viewBox="0 0 64 64" width="14" height="14" aria-hidden="true"><mask id="tabMoon"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask><circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#tabMoon)"/><circle cx="48" cy="18" r="6" fill="var(--ac)"/></svg>'
                         : isSettingsPage(tab.url)
                             ? '<i class="fas fa-gear"></i>'
                             : (isInvalidInternal(tab.url) || tab.hasError)
