@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en" data-skin="tide">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tide</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23121826'/%3E%3Cmask id='m'%3E%3Crect width='64' height='64' fill='%23fff'/%3E%3Ccircle cx='40' cy='24' r='20'/%3E%3C/mask%3E%3Ccircle cx='28' cy='34' r='22' fill='%23e6ebf5' mask='url(%23m)'/%3E%3Ccircle cx='48' cy='18' r='6' fill='%238fb3d9'/%3E%3C/svg%3E">
+<style>
+/* ---------- colours: each skin has its own; ChalkBored's looks (and Settings > Colours) replace them ---------- */
+:root {
+  color-scheme: dark;
+  --ui: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  --bg0: #000000; --bg1: #000000; --bg2: #121212; --bg3: #1e1e1e;
+  --bd: #1c1c1c; --bd2: #333333; --tx: #f2f2f2; --tx2: #bdbdbd; --tx3: #808080; --ac: #e8e8e8;
+}
+html[data-skin="firefox"] { color-scheme: light; --bg0: #e8e8ed; --bg1: #f9f9fb; --bg2: #f0f0f4; --bg3: #ffffff; --bd: #d7d7db; --bd2: #b1b1b9; --tx: #15141a; --tx2: #3a3944; --tx3: #6e6d7a; --ac: #0061e0; }
+html[data-skin="firefox"][data-look] { color-scheme: dark; }
+html[data-skin="chrome"]  { --bg0: #202124; --bg1: #35363a; --bg2: #202124; --bg3: #4a4c50; --bd: #3c4043; --bd2: #5f6368; --tx: #e8eaed; --tx2: #bdc1c6; --tx3: #9aa0a6; --ac: #8ab4f8; }
+html[data-look="night"] { --bg0: #16181d; --bg1: #1f232a; --bg2: #262b33; --bg3: #2f3540; --bd: #2b3039; --bd2: #3a404b; --tx: #d9d5cc; --tx2: #b8b4ac; --tx3: #8b909a; --ac: #8fb3d9; }
+html[data-look="mono"]  { --bg0: #0b0b0b; --bg1: #171717; --bg2: #1f1f1f; --bg3: #2a2a2a; --bd: #2e2e2e; --bd2: #444444; --tx: #f2f2f2; --tx2: #c8c8c8; --tx3: #9a9a9a; --ac: #f2f2f2; }
+html[data-look="space"] { --bg0: #0b0f1c; --bg1: #182030; --bg2: #1e2840; --bg3: #2a3450; --bd: #2a3350; --bd2: #3a4568; --tx: #e6e9f2; --tx2: #c4cbe0; --tx3: #a4adc4; --ac: #dbe3f6; }
+
+/* ---------- layout ---------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg0); color: var(--tx); font: 13px/1.4 var(--ui); overflow: hidden; }
+/* inside another page (Chalk Browser, Chalk TV): the theme's colour, a little see-through */
+html.framed body { background: color-mix(in srgb, var(--bg0) 88%, transparent); }
+button { font: inherit; color: inherit; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#app { display: flex; flex-direction: column; height: 100%; }
+
+#tabbar { display: flex; align-items: flex-end; gap: 4px; padding: 6px 8px 0; background: var(--bg0); }
+html.framed #tabbar { background: transparent; }
+#tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
+.tab { flex: 0 1 220px; width: 220px; min-width: 72px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
+  border: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--tx2); cursor: pointer; text-align: left; }
+.tab:hover { background: color-mix(in srgb, var(--bg3) 45%, transparent); }
+.tab.active { background: var(--bg1); color: var(--tx); }
+.tab .icon { width: 16px; height: 16px; flex: none; border-radius: 4px; display: grid; place-items: center; overflow: hidden;
+  font-size: 10px; font-weight: 700; background: var(--bg3); color: var(--tx); }
+.tab .icon img { width: 16px; height: 16px; object-fit: contain; }
+.tab.loading .icon { background: none; border: 2px solid var(--bd2); border-top-color: var(--ac); border-radius: 50%; animation: spin .8s linear infinite; }
+.tab.loading .icon > * { display: none; }
+.tab .icon:has(svg) { background: none; }
+.tab .title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tab .close { flex: none; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: var(--tx3); }
+.tab .close:hover { background: var(--bg3); color: var(--tx); }
+.tab .close svg.i { width: 12px; height: 12px; }
+#new-tab { flex: none; width: 30px; height: 30px; margin-bottom: 2px; border: 0; border-radius: 8px; background: transparent; color: var(--tx2); cursor: pointer; display: grid; place-items: center; }
+#new-tab:hover { background: color-mix(in srgb, var(--bg3) 60%, transparent); color: var(--tx); }
+
+#navbar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; background: var(--bg1); border-bottom: 1px solid var(--bd); }
+.nav-btn { flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--tx2); display: grid; place-items: center; cursor: pointer; }
+.nav-btn:hover { background: color-mix(in srgb, var(--bg3) 60%, transparent); color: var(--tx); }
+#addr { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; margin: 0 4px;
+  border-radius: 17px; background: var(--bg2); border: 1px solid transparent; color: var(--tx3); }
+#addr:focus-within { border-color: var(--ac); }
+#url { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: 14px var(--ui); }
+#url::placeholder { color: var(--tx3); }
+
+#view { flex: 1; position: relative; min-height: 0; }
+#view > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; display: none; }
+#view > iframe.shown { display: block; }
+#bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--ac); z-index: 3; opacity: 0; transition: width .5s ease, opacity .3s; }
+#bar.on { opacity: 1; width: 70%; transition: width 6s cubic-bezier(.1,.6,.3,1), opacity .2s; }
+
+/* ---------- the home page (an empty tab) ---------- */
+#home { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 16px 14vh; text-align: center; overflow: auto; background: #000 url("background.webp") center / cover no-repeat; }
+html.framed #home { background: transparent; }
+#home[hidden] { display: none; }
+.logo { width: 76px; height: 76px; color: var(--tx); filter: drop-shadow(0 6px 22px rgba(0,0,0,.45)); animation: float 6s ease-in-out infinite; }
+.logo .orb { fill: var(--ac); }
+#home h1 { margin: 14px 0 26px; font-size: 34px; font-weight: 650; letter-spacing: .5px; text-shadow: 0 2px 16px rgba(0,0,0,.4); }
+#home-search { width: min(640px, 100%); display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 8px 0 20px;
+  border-radius: 28px; background: color-mix(in srgb, var(--bg1) 84%, transparent); border: 1px solid var(--bd); color: var(--tx3);
+  box-shadow: 0 10px 34px rgba(0,0,0,.35); backdrop-filter: blur(12px); transition: border-color .15s, box-shadow .15s; }
+#home-search:focus-within { border-color: var(--ac); box-shadow: 0 10px 34px rgba(0,0,0,.35), 0 0 0 4px color-mix(in srgb, var(--ac) 22%, transparent); }
+#home-input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: 16px var(--ui); }
+#home-input::placeholder { color: var(--tx3); }
+#home-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; display: grid; place-items: center; }
+#home-search button:hover { filter: brightness(1.1); }
+#clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); }
+
+/* while a tab loads its first page: the logo, its orb circling the moon */
+#loader { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: var(--bg0); }
+html.framed #loader { background: color-mix(in srgb, var(--bg0) 88%, transparent); }
+#loader[hidden] { display: none; }
+#loader svg { width: 72px; height: 72px; color: var(--tx); }
+#loader .orbit { transform-box: view-box; transform-origin: 28px 34px; animation: spin 1.4s linear infinite; }
+#loader .orb { fill: var(--ac); }
+#loader .moon { animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { #loader .orbit { animation: none; } }
+
+/* a message instead of the page (no engine, no server answering) */
+#notice { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 4; background: var(--bg0); }
+#notice[hidden] { display: none; }
+#notice .card { max-width: 440px; padding: 24px; border-radius: 14px; background: var(--bg1); border: 1px solid var(--bd); text-align: center; }
+#notice h2 { margin: 0 0 8px; font-size: 18px; }
+#notice p { margin: 0 0 16px; color: var(--tx2); }
+.btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--bd2); background: var(--bg2); color: var(--tx); cursor: pointer; }
+.btn:hover { border-color: var(--ac); }
+.btn.primary { background: var(--ac); color: var(--bg0); border-color: var(--ac); }
+.btn[disabled] { opacity: .6; cursor: default; }
+
+/* ---------- Settings ---------- */
+.side { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: flex-end; background: rgba(0,0,0,.45); }
+.side[hidden] { display: none; }
+.side .panel { width: min(400px, 100%); height: 100%; overflow-y: auto; padding: 18px 18px 40px; background: var(--bg1); border-left: 1px solid var(--bd); }
+.side header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.side h2 { margin: 0; font-size: 18px; }
+#settings h3 { margin: 22px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--tx3); }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg2); color: var(--tx); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.choice.on { border-color: var(--ac); box-shadow: 0 0 0 1px var(--ac); }
+.choice i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--bd2); }
+.servers { display: flex; flex-direction: column; gap: 6px; }
+.server { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg2); color: var(--tx); cursor: pointer; text-align: left; }
+.server.on { border-color: var(--ac); }
+.server b { flex: 1; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.server span { font-size: 12px; color: var(--tx3); }
+.server span.bad { color: #e88; }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+#settings p.small { margin: 8px 0 0; color: var(--tx3); font-size: 12px; }
+#settings a { color: var(--ac); }
+.list { display: flex; flex-direction: column; gap: 2px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.item:hover { background: var(--bg2); }
+.item .icon { width: 22px; height: 22px; flex: none; border-radius: 6px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+.item .txt { flex: 1; min-width: 0; }
+.item .txt b, .item .txt small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.item .txt b { font-weight: 500; }
+.item .txt small { color: var(--tx3); }
+.item .x { flex: none; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--tx3); cursor: pointer; display: grid; place-items: center; }
+.item .x:hover { background: var(--bg3); color: var(--tx); }
+.item .x svg.i { width: 13px; height: 13px; }
+.empty { color: var(--tx3); padding: 10px; }
+#menu { position: fixed; z-index: 9; min-width: 210px; padding: 6px; border-radius: 10px; background: var(--bg2); border: 1px solid var(--bd2); box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+#menu[hidden] { display: none; }
+#menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 7px; background: none; color: var(--tx); cursor: pointer; text-align: left; }
+#menu button:hover, #menu button:focus-visible { background: var(--bg3); outline: none; }
+#menu kbd { margin-left: auto; font: 11px var(--ui); color: var(--tx3); }
+#star { flex: none; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--tx3); cursor: pointer; display: grid; place-items: center; }
+#star:hover { color: var(--tx); }
+#star.on { color: var(--ac); }
+#star.on svg.i { fill: currentColor; }
+#star[disabled] { visibility: hidden; }
+#marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; margin-top: 22px; }
+#marks:empty { display: none; }
+#marks button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--bd2); cursor: pointer; font: 600 18px var(--ui); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
+#marks button:hover, #marks button:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
+select { padding: 7px 10px; border-radius: 8px; background: var(--bg2); color: var(--tx); border: 1px solid var(--bd); font: inherit; }
+
+/* ---------- skins: the same pieces, shaped like other browsers ---------- */
+html[data-skin="tide"] #tabbar { padding-bottom: 6px; background: var(--bg1); }
+html[data-skin="tide"] .tab { height: 32px; border-radius: 9px; }
+html[data-skin="tide"] .tab.active { background: var(--bg2); }
+html[data-skin="tide"] #navbar { padding-top: 0; }
+html[data-skin="firefox"] #tabbar { padding: 4px 6px; }
+html[data-skin="firefox"] .tab { height: 34px; border-radius: 4px; }
+html[data-skin="firefox"] .tab.active { background: var(--bg3); box-shadow: 0 0 0 1px var(--bd), 0 1px 4px rgba(0,0,0,.18); }
+html[data-skin="firefox"] .tab .icon { background: none; }
+html[data-skin="firefox"] #navbar { border-bottom-color: var(--bd); }
+html[data-skin="firefox"] #addr { border-radius: 4px; height: 32px; }
+html[data-skin="firefox"] #addr:focus-within { box-shadow: 0 0 0 2px color-mix(in srgb, var(--ac) 35%, transparent); }
+html[data-skin="firefox"] #home-search { border-radius: 8px; }
+html[data-skin="chrome"] #tabbar { padding: 8px 10px 0; }
+html[data-skin="chrome"] .tab { height: 34px; border-radius: 10px 10px 0 0; }
+html[data-skin="chrome"] .tab .icon { background: none; }
+html[data-skin="chrome"] #addr { border-radius: 17px; }
+html[data-skin="chrome"] .tab:not(.active) + .tab:not(.active)::before { content: ""; position: absolute; margin-left: -14px; width: 1px; height: 18px; background: var(--bd2); }
+html[data-skin="chrome"] .tab { position: relative; }
+html[data-skin="chrome"] #navbar { border-bottom: 0; }
+html[data-skin="chrome"] #addr { background: var(--bg0); }
+
+/* Chalk TV: just the site, Chalk TV has its own bar */
+html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes float { 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .logo { animation: none; } }
+@media (max-width: 520px) { #forward { display: none; } .tab { min-width: 56px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="tabbar">
+    <div id="tabs" role="tablist" aria-label="Tabs"></div>
+    <button id="new-tab" title="New tab (Ctrl+T)" aria-label="New tab"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  <div id="navbar">
+    <button class="nav-btn" id="back" title="Back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="nav-btn" id="forward" title="Forward" aria-label="Forward"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+    <button class="nav-btn" id="reload" title="Reload" aria-label="Reload"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <form id="addr" role="search">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="url" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Address">
+      <button type="button" id="star" title="Bookmark this page (Ctrl+D)" aria-label="Bookmark this page" disabled><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+    </form>
+    <button class="nav-btn" id="menu-btn" title="Menu" aria-label="Menu" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+  </div>
+  <main id="view">
+    <div id="bar"></div>
+    <div id="loader" hidden role="status" aria-label="Loading">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <mask id="moon2"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
+        <circle class="moon" cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon2)"/>
+        <g class="orbit"><circle class="orb" cx="48" cy="18" r="6"/></g>
+      </svg>
+    </div>
+    <div id="home">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <mask id="moon"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
+        <circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon)"/><circle class="orb" cx="48" cy="18" r="6"/>
+      </svg>
+      <h1>Tide</h1>
+      <form id="home-search" role="search">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="home-input" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Search the web or type an address">
+        <button type="submit" title="Go" aria-label="Go"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </form>
+      <!-- bookmarks as letters only: names stay in tooltips, since school filters scan page text for site names -->
+      <div id="marks"></div>
+      <div id="clock"></div>
+    </div>
+    <div id="notice" hidden><div class="card"><h2 id="notice-title"></h2><p id="notice-text"></p><button class="btn primary" id="notice-btn">Reload Tide</button></div></div>
+  </main>
+</div>
+
+<div id="menu" role="menu" hidden>
+  <button role="menuitem" data-do="newtab">New tab <kbd>Ctrl+T</kbd></button>
+  <button role="menuitem" data-do="reopen">Reopen closed tab <kbd>Ctrl+Shift+T</kbd></button>
+  <button role="menuitem" data-do="bookmarks">Bookmarks</button>
+  <button role="menuitem" data-do="history">History</button>
+  <button role="menuitem" data-do="settings">Settings</button>
+</div>
+
+<div id="lists" class="side" hidden>
+  <div class="panel" role="dialog" aria-labelledby="lists-title">
+    <header><h2 id="lists-title"></h2><button class="nav-btn" id="lists-close" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div class="list" id="list"></div>
+    <div class="row"><button class="btn" id="clear-history" hidden>Clear history</button></div>
+  </div>
+</div>
+
+<div id="settings" class="side" hidden>
+  <div class="panel" role="dialog" aria-label="Settings">
+    <header><h2>Settings</h2><button class="nav-btn" id="settings-close" aria-label="Close settings"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <h3>Skin</h3>
+    <div class="choices" id="skins"></div>
+    <h3>Colours</h3>
+    <div class="choices" id="colors"></div>
+    <h3>Search with</h3>
+    <select id="engine" aria-label="Search engine"></select>
+    <h3>Server</h3>
+    <div class="servers" id="servers"></div>
+    <div class="row"><button class="btn" id="test-servers">Test every server</button><span id="server-status" class="small"></span></div>
+    <p class="small">Tide sends sites through one of these servers. "Fastest" picks one each time Tide starts.</p>
+    <h3>About</h3>
+    <p class="small">Tide is free software (AGPL-3.0). <a href="https://github.com/Guernica4u/Tide" target="_blank" rel="noopener">Source code</a> · built with open-source parts listed in its engine folder.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const html = document.documentElement;
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem('tide:' + k); return v == null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { if (v == null) localStorage.removeItem('tide:' + k); else localStorage.setItem('tide:' + k, v); } catch (e) {} }
+};
+const framed = window.top !== window.self;
+if (framed) html.classList.add('framed');
+
+/* public servers Tide can send sites through */
+const SERVERS = [
+  'wss://fern.best/wisp/', 'wss://lichology.com/wisp/', 'wss://wisp.mercurywork.shop/', 'wss://wisp.terbiumon.top/wisp/',
+  'wss://gointospace.app/wisp/', 'wss://definitelyscience.com/wisp/', 'wss://anura.pro/', 'wss://motor-cycle-part.org/wisp/'
+];
+const ENGINES = {
+  ddg: ['DuckDuckGo', 'https://duckduckgo.com/?q='], google: ['Google', 'https://www.google.com/search?q='],
+  bing: ['Bing', 'https://www.bing.com/search?q='], brave: ['Brave Search', 'https://search.brave.com/search?q=']
+};
+const SKINS = { tide: 'Tide', firefox: 'Firefox', chrome: 'Chrome' };
+const LOOKS = { night: ['Night', '#16181d'], mono: ['Mono', '#0b0b0b'], space: ['Space', '#0b0f1c'] };
+
+/* ---- #tide={...}: how the page around Tide wants it.
+   open: a site to show first · ui:"tv": Chalk TV, just the site · fresh: nothing from an
+   earlier visit comes back · relay: one of SERVERS for this visit · look: ChalkBored's colours */
+const CFG = (() => {
+  const c = { open: null, tv: false, fresh: false, relay: null, look: null };
+  const m = /[#&]tide=([^&]*)/.exec(location.hash);
+  if (!m) return c;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  let j; try { j = JSON.parse(decodeURIComponent(m[1])); } catch (e) { return c; }
+  if (!j || typeof j !== 'object') return c;
+  if (typeof j.open === 'string' && /^https?:\/\//i.test(j.open)) c.open = j.open;
+  c.tv = j.ui === 'tv';
+  c.fresh = j.fresh === true;
+  if (SERVERS.includes(j.relay)) c.relay = j.relay;
+  if (typeof j.look === 'string' && LOOKS[j.look]) c.look = j.look;
+  return c;
+})();
+if (CFG.tv) html.classList.add('tv');
+
+/* "fresh": sites' storage and cookies from earlier visits are gone. The engine keeps a
+   site's storage here as "host@key" and its cookies in "__scramjet_controller"; deleting that
+   database waits forever while another Tide (Chalk Browser) has it open, so a fresh visit
+   gets its own empty one and earlier fresh ones are cleared away. */
+if (CFG.fresh) {
+  const siteKey = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?@/i;
+  for (const st of [localStorage, sessionStorage]) {
+    try { Object.keys(st).filter(k => siteKey.test(k)).forEach(k => st.removeItem(k)); } catch (e) {}
+  }
+  const CTL_DB = '__scramjet_controller', FRESH_DB = CTL_DB + '_fresh_';
+  try {
+    if (indexedDB.databases) indexedDB.databases().then(list => list.forEach(d => {
+      if (d.name && d.name.startsWith(FRESH_DB)) indexedDB.deleteDatabase(d.name);
+    })).catch(() => {});
+    const open = indexedDB.open.bind(indexedDB), mine = FRESH_DB + Date.now().toString(36);
+    indexedDB.open = (name, version) => open(name === CTL_DB ? mine : name, version);
+  } catch (e) {}
+}
+
+/* ---- look: skin (shape) and colours ---- */
+let passedLook = CFG.look;
+function applyLook() {
+  const skin = SKINS[store.get('skin')] ? store.get('skin') : 'tide';
+  html.dataset.skin = skin;
+  const pick = store.get('colors', 'follow');
+  const look = pick === 'follow' ? passedLook : LOOKS[pick] ? pick : null;
+  if (look) html.dataset.look = look; else delete html.dataset.look;
+  document.querySelectorAll('#skins .choice').forEach(b => b.classList.toggle('on', b.dataset.v === skin));
+  document.querySelectorAll('#colors .choice').forEach(b => b.classList.toggle('on', b.dataset.v === pick));
+}
+applyLook();
+
+/* ---- servers ---- */
+function ping(url, ms = 2500) {
+  return new Promise(done => {
+    const t0 = performance.now(); let ws, timer;
+    const finish = v => { clearTimeout(timer); try { ws.close(); } catch (e) {} done(v); };
+    try { ws = new WebSocket(url); } catch (e) { return done(null); }
+    timer = setTimeout(() => finish(null), ms);
+    ws.onopen = () => finish(performance.now() - t0);
+    ws.onerror = () => finish(null);
+  });
+}
+/* A server can answer the ping and still fail every site, so it must also reach a real one:
+   one tide stream to example.com's https port has to get an answer back. */
+function reachesSiteOnce(url, ms = 6000) {
+  return new Promise(done => {
+    let ws, timer;
+    const finish = ok => { clearTimeout(timer); try { ws.close(); } catch (e) {} done(ok); };
+    try { ws = new WebSocket(url); } catch (e) { return done(false); }
+    ws.binaryType = 'arraybuffer';
+    timer = setTimeout(() => finish(false), ms);
+    ws.onerror = ws.onclose = () => finish(false);
+    ws.onopen = () => {
+      const enc = new TextEncoder(), host = enc.encode('example.com'), req = enc.encode('GET / HTTP/1.0\r\nHost: example.com\r\n\r\n');
+      const open = new Uint8Array(8 + host.length), data = new Uint8Array(5 + req.length);
+      open.set([1, 1, 0, 0, 0, 1, 443 & 255, 443 >> 8]); open.set(host, 8);   // CONNECT: stream 1, TCP, port 443
+      data.set([2, 1, 0, 0, 0]); data.set(req, 5);                             // DATA on stream 1
+      ws.send(open); ws.send(data);
+    };
+    ws.onmessage = e => {
+      const b = new Uint8Array(e.data);
+      if (b[1] === 1 && b[0] === 2) finish(true);         // the site answered
+      else if (b[1] === 1 && b[0] === 4) finish(false);   // the server closed the stream
+    };
+  });
+}
+const reachesSite = async url => (await reachesSiteOnce(url)) || reachesSiteOnce(url);   // one miss is often just a blip
+/* the fastest server that also reaches a real site; remembered for the next start */
+async function findFastest() {
+  const times = await Promise.all(SERVERS.map(async u => [u, await ping(u)]));
+  for (const [u] of times.filter(t => t[1] != null).sort((a, b) => a[1] - b[1])) {
+    if (await reachesSite(u)) { store.set('fastest', u); return u; }
+  }
+  return null;
+}
+/* the server to start with: Chalk TV's pick, the one chosen in Settings, or the fastest.
+   Last time's fastest starts Tide at once and is checked behind it. */
+let wisp = null, checkBehind = false;
+const startServer = (async () => {
+  if (CFG.relay) return CFG.relay;
+  const chosen = store.get('server');
+  if (SERVERS.includes(chosen)) return chosen;
+  const known = store.get('fastest');
+  if (SERVERS.includes(known)) { checkBehind = true; return known; }
+  showBar(true);
+  return (await findFastest()) || SERVERS[0];
+})();
+function useServer(url) {
+  wisp = url;
+  if (ctl) ctl.setTransport(new LibcurlTransport.LibcurlClient({ wisp: url }));
+  renderServers();
+}
+
+/* ---- the engine ---- */
+const ENGINE = new URL('engine/', location.href).pathname;
+let ctl = null;
+const loadScript = src => new Promise((ok, fail) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = ok; s.onerror = () => fail(new Error('could not load ' + src));
+  document.head.appendChild(s);
+});
+/* the registration's worker, once it runs (this page sits outside engine/, so serviceWorker.ready never settles) */
+function workerActive(reg) {
+  if (reg.active) return Promise.resolve(reg.active);
+  const w = reg.installing || reg.waiting;
+  return new Promise((ok, fail) => {
+    const timer = setTimeout(() => fail(new Error('the engine did not start')), 15000);
+    w.addEventListener('statechange', () => {
+      if (w.state === 'activated') { clearTimeout(timer); ok(reg.active || w); }
+      else if (w.state === 'redundant') { clearTimeout(timer); fail(new Error('the engine did not start')); }
+    });
+  });
+}
+const engine = (async () => {
+  if (!('serviceWorker' in navigator)) throw new Error('no-sw');
+  const reg = await navigator.serviceWorker.register(ENGINE + 'sw.js', { scope: ENGINE, updateViaCache: 'none' });
+  const [sw] = await Promise.all([workerActive(reg), loadScript(ENGINE + 'core.js').then(() => loadScript(ENGINE + 'ctl.js')).then(() => loadScript(ENGINE + 'net.js'))]);
+  wisp = await startServer;
+  const c = new $scramjetController.Controller({
+    serviceworker: sw,
+    transport: new LibcurlTransport.LibcurlClient({ wisp }),
+    config: {
+      prefix: ENGINE + 'go/',
+      // School filters read the site's address in each request and block it, so it's
+      // scrambled (reversed, then base64). These are copied as text into sites' workers,
+      // so they must not use anything from outside themselves. A "?query" a form adds stays as is.
+      codec: {
+        encode: u => u && btoa(encodeURIComponent(u).split('').reverse().join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+        decode: s => {
+          if (!s) return s;
+          const [a, ...q] = s.split('?');
+          try { return decodeURIComponent(atob(a.replace(/-/g, '+').replace(/_/g, '/')).split('').reverse().join('')) + (q.length ? '?' + q.join('?') : ''); }
+          catch (e) { return decodeURIComponent(s); }   // an address from before scrambling
+        }
+      },
+      scramjetPath: ENGINE + 'core.js',
+      injectPath: ENGINE + 'ctl-page.js',
+      wasmPath: ENGINE + 'core.wasm',
+      virtualWasmPath: 'core.wasm.js'
+    }
+  });
+  await c.wait();
+  // When a new version of Tide deploys, a new service worker takes over and asks open pages
+  // to introduce themselves, but the engine answers the old, retired worker, so the new one
+  // never learns about this page ("Tide lost track of this page"). Answer the worker that asked.
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (!e.data || !e.data.$controller$swrevive || !(e.source instanceof ServiceWorker) || e.source === c.serviceWorkerController) return;
+    c.serviceWorkerController = e.source;
+    c.setupMessagePort();
+  });
+  ctl = c;
+  showBar(false);
+  renderServers();
+  if (checkBehind) (async () => {   // last time's fastest: still working? Rank again for next time either way
+    const ok = await reachesSite(wisp);
+    const best = await findFastest();
+    if (!ok && best && best !== wisp) useServer(best);
+  })();
+  return c;
+})();
+engine.then(() => { if (framed) try { window.parent.postMessage({ tide: 'ready' }, '*'); } catch (e) {} },
+  e => notice("Tide can't open sites here", e.message === 'no-sw'
+    ? 'Its engine needs service workers, which private windows and some settings turn off. Open Tide in a normal window.'
+    : 'Its engine did not start (' + e.message + '). Reloading usually fixes it.'));
+/* Firefox can't hand a stream between pages, so there each answer goes over whole */
+const canStream = (() => { try { const ch = new MessageChannel(), rs = new ReadableStream(); ch.port1.postMessage(rs, [rs]); return true; } catch (e) { return false; } })();
+
+/* ---- tabs ---- */
+const view = $('view');
+let tabs = [], active = null, nextId = 1;
+function newTab(input, show = true) {
+  const t = { id: nextId++, url: '', title: 'New Tab', icon: '', frame: null, loading: false, waiting: false, el: null };
+  tabs.push(t);
+  if (input && !show) { t.url = toUrl(input) || ''; t.title = hostOf(t.url) || 'New Tab'; t.waiting = !!t.url; }   // loads when first shown
+  if (show) showTab(t); else renderTabs();
+  if (input && show) open(t, input);
+  saveTabs();
+  return t;
+}
+const closed = [];   // recently closed tabs' addresses, for Ctrl+Shift+T
+function closeTab(t) {
+  const i = tabs.indexOf(t);
+  if (i < 0) return;
+  if (t.url) closed.push(t.url);
+  if (t.frame) t.frame.element.remove();
+  tabs.splice(i, 1);
+  if (!tabs.length) { newTab(); return; }
+  if (active === t) showTab(tabs[Math.min(i, tabs.length - 1)]);
+  else renderTabs();
+  saveTabs();
+}
+function showTab(t) {
+  if (active && active !== t && active.frame) {
+    active.frame.element.classList.remove('shown');
+    try { active.frame.element.contentDocument.querySelectorAll('video, audio').forEach(m => m.pause()); } catch (e) {}
+  }
+  active = t;
+  if (t.waiting) { t.waiting = false; open(t, t.url); }
+  if (t.frame && t.url) t.frame.element.classList.add('shown');
+  $('home').hidden = !!t.url;
+  showBar(t.loading);
+  if (document.activeElement !== $('url')) $('url').value = t.url;
+  renderTabs();
+  renderStar();
+  saveTabs();
+  if (!t.url && !CFG.tv) setTimeout(() => $('home-input').focus({ preventScroll: true }), 0);
+}
+function renderTabs() {
+  const box = $('tabs');
+  for (const t of tabs) {
+    if (!t.el) {
+      t.el = document.createElement('div');
+      t.el.className = 'tab';
+      t.el.setAttribute('role', 'tab');
+      t.el.innerHTML = '<span class="icon"></span><span class="title"></span><span class="close" title="Close tab" role="button" aria-label="Close tab"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>';
+      t.el.addEventListener('click', e => { if (e.target.closest('.close')) closeTab(t); else showTab(t); });
+      t.el.addEventListener('auxclick', e => { if (e.button === 1) closeTab(t); });
+    }
+    t.el.classList.toggle('active', t === active);
+    t.el.classList.toggle('loading', t.loading);
+    t.el.setAttribute('aria-selected', t === active);
+    t.el.title = t.title;
+    t.el.querySelector('.title').textContent = t.title;
+    const icon = t.el.querySelector('.icon');
+    if (icon.dataset.src !== t.icon) {
+      icon.dataset.src = t.icon;
+      icon.textContent = '';
+      if (t.icon) { const img = new Image(); img.src = t.icon; img.alt = ''; img.onerror = () => { icon.textContent = letter(t); }; icon.appendChild(img); }
+      else if (!t.url) icon.innerHTML = MOON;
+      else icon.textContent = letter(t);
+    }
+  }
+  // moving tab elements mid-click loses the click, so only when tabs were added, closed or moved
+  if (box.children.length !== tabs.length || tabs.some((t, i) => box.children[i] !== t.el)) box.replaceChildren(...tabs.map(t => t.el));
+  // the logo while the active tab loads its first page; later pages keep the old one on screen with the bar
+  $('loader').hidden = !(active && active.url && active.loading && !active.painted);
+  if (active && active.el) active.el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+const MOON = '<svg viewBox="0 0 64 64" width="14" height="14"><mask id="tm"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask><circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#tm)"/><circle cx="48" cy="18" r="6" fill="var(--ac)"/></svg>';
+const letter = t => { try { return new URL(t.url).hostname.replace(/^www\./, '')[0].toUpperCase(); } catch (e) { return ''; } };
+function saveTabs() {
+  if (CFG.fresh || CFG.tv) return;
+  store.set('tabs', JSON.stringify({ urls: tabs.map(t => t.url), active: tabs.indexOf(active) }));
+}
+
+/* ---- opening sites ---- */
+function toUrl(q) {
+  q = String(q || '').trim();
+  if (!q) return null;
+  if (/^https?:\/\//i.test(q)) return q;
+  if (!/\s/.test(q) && /^[^\s/]+\.[a-z]{2,}(:\d+)?(\/.*)?$/i.test(q)) return 'https://' + q;
+  const e = ENGINES[store.get('engine')] || ENGINES.ddg;
+  return e[1] + encodeURIComponent(q);
+}
+async function open(t, input) {
+  const url = toUrl(input);
+  if (!url) return;
+  t.url = url;
+  t.title = hostOf(url);
+  t.icon = '';
+  t.loading = true;
+  if (t === active) { $('url').value = url; $('home').hidden = true; showBar(true); }
+  renderTabs();
+  saveTabs();
+  try { await engine; } catch (e) { return; }
+  frameFor(t).go(url);
+  if (t === active) t.frame.element.classList.add('shown');
+}
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
+function frameFor(t) {
+  if (t.frame) return t.frame;
+  const f = ctl.createFrame();
+  const { Tap, BareResponse } = $scramjet;
+  if (CFG.tv) {
+    /* Chalk TV has nowhere to put downloads, so they are dropped */
+    Tap.tap(f.hooks.fetch.preresponse, (ctx, props) => {
+      const r = props.response;
+      const dest = ctx.parsed.destination || ctx.request.rawDestination;
+      if (!/^\s*attachment/i.test(r.headers.get('content-disposition') || '') || (dest !== 'document' && dest !== 'iframe')) return;
+      try { r.body && r.body.cancel(); } catch (e) {}
+      props.response = BareResponse.fromNativeResponse(new Response(null, { status: 204 }));
+    });
+  }
+  if (!canStream) Tap.tap(f.hooks.fetch.response, async (ctx, props) => {
+    const body = props.response.body;
+    if (body instanceof ReadableStream) props.response.body = await new Response(body).arrayBuffer();
+  });
+  const el = f.element;
+  el.title = 'Page';
+  el.allow = 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write';
+  el.allowFullscreen = true;
+  el.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-presentation allow-orientation-lock' + (CFG.tv ? '' : ' allow-downloads'));
+  el.addEventListener('load', () => {
+    try { if (el.contentWindow.location.href === 'about:blank') return; } catch (e) {}   // the empty frame, before the site
+    t.loading = false; t.painted = true; if (t === active) showBar(false); follow(t); keepInTide(t); renderTabs(); });
+  t.frame = f;   // before it joins the page: an empty frame fires "load" right away
+  view.appendChild(el);
+  return f;
+}
+/* follow the page: links and redirects inside it update the address bar and the tab */
+function follow(t) {
+  if (!t.frame) return;
+  let href, doc;
+  try { href = t.frame.element.contentWindow.location.href; doc = t.frame.element.contentDocument; } catch (e) { return; }
+  if (!href.startsWith(t.frame.context.prefix.href)) return;
+  let real;
+  try { real = $scramjet.unrewriteUrl(href, t.frame.context); } catch (e) { return; }
+  let changed = false;
+  if (real && /^https?:/i.test(real) && real !== t.url) { t.url = real; changed = true; if (t === active && document.activeElement !== $('url')) $('url').value = real; saveTabs(); }
+  const title = (doc && doc.title || '').trim() || hostOf(t.url);
+  if (title !== t.title) { t.title = title; changed = true; }
+  if (changed) { remember(t.url, t.title); if (t === active) renderStar(); }
+  const link = doc && doc.querySelector('link[rel~="icon"][href]');
+  const icon = link ? link.href : '';
+  if (icon !== t.icon) { t.icon = icon; changed = true; }
+  if (changed) renderTabs();
+}
+setInterval(() => tabs.forEach(follow), 700);
+/* a link or window that asks for a new tab opens as a Tide tab (in Chalk TV, right here);
+   pop-ups nobody clicked for are dropped */
+function keepInTide(t) {
+  const f = t.frame;
+  const openNew = url => { if (CFG.tv) open(t, url); else newTab(url); };
+  const patchWin = win => {
+    let doc;
+    try { doc = win.document; } catch (e) { return; }
+    if (!doc) return;
+    try { for (let i = 0; i < win.frames.length; i++) patchWin(win.frames[i]); } catch (e) {}
+    if (win.__tideKeep || !String(win.location.href).startsWith(f.context.prefix.href)) return;
+    win.__tideKeep = true;
+    const realUrl = raw => {
+      let u = null;
+      try {
+        const abs = new URL(String(raw), win.location.href).href;
+        u = abs.startsWith(f.context.prefix.href) ? $scramjet.unrewriteUrl(abs, f.context)
+          : new URL(String(raw), $scramjet.unrewriteUrl(win.location.href, f.context)).href;
+      } catch (e) { return null; }
+      return /^https?:/i.test(u) ? u : null;
+    };
+    const elsewhere = target => !!target && !/^_(self|parent|top)$/i.test(target);
+    const targetOf = a => a.getAttribute('target') || (doc.querySelector('base[target]') || { getAttribute: () => '' }).getAttribute('target');
+    win.open = function (url) {
+      const real = url == null || String(url) === '' ? null : realUrl(url);
+      const clicked = !win.navigator.userActivation || win.navigator.userActivation.isActive;
+      if (real && clicked) openNew(real);
+      return null;
+    };
+    const onClick = e => {
+      const a = e.target && e.target.closest && e.target.closest('a[href], area[href]');
+      if (!a) return;
+      const extra = e.type === 'auxclick' ? e.button === 1 : (e.ctrlKey || e.metaKey || e.shiftKey);
+      if (!extra && !elsewhere(targetOf(a))) return;
+      const real = realUrl(a.getAttribute('href'));
+      if (!real) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      openNew(real);
+    };
+    doc.addEventListener('click', onClick, true);
+    doc.addEventListener('auxclick', onClick, true);
+  };
+  patchWin(f.element.contentWindow);
+}
+setInterval(() => tabs.forEach(t => { if (t.frame) keepInTide(t); }), 1500);
+
+/* ---- the bar, the buttons, the keyboard ---- */
+function showBar(on) { $('bar').classList.toggle('on', !!on); }
+function notice(title, text) {
+  $('notice-title').textContent = title;
+  $('notice-text').textContent = text;
+  $('notice').hidden = false;
+}
+$('notice-btn').onclick = () => location.reload();
+$('addr').onsubmit = e => { e.preventDefault(); const q = $('url').value; open(active, q); $('url').blur(); };
+$('url').addEventListener('focus', () => $('url').select());
+$('url').addEventListener('blur', () => { $('url').value = active ? active.url : ''; });
+$('home-search').onsubmit = e => { e.preventDefault(); const q = $('home-input').value; $('home-input').value = ''; open(active, q); };
+$('new-tab').onclick = () => newTab();
+$('back').onclick = () => { if (active && active.frame) active.frame.back(); };
+$('forward').onclick = () => { if (active && active.frame) active.frame.forward(); };
+$('reload').onclick = () => { if (active && active.frame && active.url) { active.loading = true; showBar(true); renderTabs(); active.frame.reload(); } };
+document.addEventListener('keydown', e => {
+  if (CFG.tv || !(e.ctrlKey || e.metaKey)) return;
+  const k = e.key.toLowerCase();
+  if (k === 't' && e.shiftKey) { e.preventDefault(); reopen(); }
+  else if (k === 't') { e.preventDefault(); newTab(); }
+  else if (k === 'w') { e.preventDefault(); closeTab(active); }
+  else if (k === 'l') { e.preventDefault(); $('url').focus(); }
+  else if (k === 'd') { e.preventDefault(); toggleMark(); }
+  else if (e.key === 'Tab' && tabs.length > 1) { e.preventDefault(); showTab(tabs[(tabs.indexOf(active) + (e.shiftKey ? tabs.length - 1 : 1)) % tabs.length]); }
+});
+function tick() {
+  const now = new Date();
+  $('clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '  ·  ' +
+    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+tick(); setInterval(tick, 15000);
+
+/* ---- Settings ---- */
+$('settings-close').onclick = () => { $('settings').hidden = true; };
+$('settings').addEventListener('click', e => { if (e.target === $('settings')) $('settings').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('settings').hidden = true; closeLists(); $('menu').hidden = true; } });
+
+/* ---- the menu ---- */
+$('menu-btn').onclick = e => {
+  e.stopPropagation();
+  const m = $('menu'), r = $('menu-btn').getBoundingClientRect();
+  m.hidden = !m.hidden;
+  if (m.hidden) return;
+  m.style.top = (r.bottom + 6) + 'px';
+  m.style.right = Math.max(8, innerWidth - r.right) + 'px';
+  m.querySelector('[data-do="reopen"]').disabled = !closed.length;
+  m.querySelector('button').focus();
+};
+document.addEventListener('click', e => { if (!e.target.closest('#menu')) $('menu').hidden = true; });
+$('menu').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  $('menu').hidden = true;
+  const d = b.dataset.do;
+  if (d === 'newtab') newTab();
+  else if (d === 'reopen') reopen();
+  else if (d === 'bookmarks' || d === 'history') openList(d);
+  else if (d === 'settings') { $('settings').hidden = false; renderServers(); }
+};
+function reopen() { if (closed.length) newTab(closed.pop()); }
+
+/* ---- bookmarks and history (kept in this browser only; nothing is kept in fresh visits) ---- */
+const load = k => { try { const v = JSON.parse(store.get(k)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+let marks = load('bookmarks'), visits = load('history');
+const hue = s => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+function remember(url, title) {
+  if (CFG.fresh || !/^https?:/i.test(url)) return;
+  if (visits[0] && visits[0].url === url) visits[0].title = title;
+  else visits.unshift({ url, title, time: Date.now() });
+  visits = visits.slice(0, 300);
+  store.set('history', JSON.stringify(visits));
+}
+function renderStar() {
+  const on = !!(active && active.url && marks.some(m => m.url === active.url));
+  $('star').disabled = !active || !active.url || CFG.fresh;
+  $('star').classList.toggle('on', on);
+  $('star').title = on ? 'Remove bookmark (Ctrl+D)' : 'Bookmark this page (Ctrl+D)';
+}
+function toggleMark() {
+  if (!active || !active.url || CFG.fresh) return;
+  const i = marks.findIndex(m => m.url === active.url);
+  if (i >= 0) marks.splice(i, 1); else marks.push({ url: active.url, title: active.title });
+  store.set('bookmarks', JSON.stringify(marks));
+  renderStar(); renderMarks();
+}
+$('star').onclick = toggleMark;
+function renderMarks() {
+  $('marks').replaceChildren(...marks.slice(0, 12).map(m => {
+    const b = document.createElement('button');
+    b.textContent = (hostOf(m.url)[0] || '?').toUpperCase();
+    b.title = m.title || hostOf(m.url);
+    b.setAttribute('aria-label', b.title);
+    b.style.background = 'hsl(' + hue(hostOf(m.url)) + ' 45% 30%)';
+    b.onclick = () => open(active, m.url);
+    return b;
+  }));
+}
+function openList(kind) {
+  const list = kind === 'bookmarks' ? marks.slice().reverse() : visits;
+  $('lists-title').textContent = kind === 'bookmarks' ? 'Bookmarks' : 'History';
+  $('clear-history').hidden = kind !== 'history' || !visits.length;
+  $('list').replaceChildren(...(list.length ? list.slice(0, 200).map(v => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = '<span class="icon"></span><span class="txt"><b></b><small></small></span><button class="x" aria-label="Remove"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    const host = hostOf(v.url);
+    row.querySelector('.icon').textContent = (host[0] || '?').toUpperCase();
+    row.querySelector('.icon').style.background = 'hsl(' + hue(host) + ' 45% 30%)';
+    row.querySelector('b').textContent = v.title || host;
+    row.querySelector('small').textContent = kind === 'history' ? host + ' · ' + new Date(v.time).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : host;
+    row.onclick = e => {
+      if (e.target.closest('.x')) {
+        if (kind === 'bookmarks') { marks = marks.filter(m => m !== v); store.set('bookmarks', JSON.stringify(marks)); renderStar(); renderMarks(); }
+        else { visits = visits.filter(m => m !== v); store.set('history', JSON.stringify(visits)); }
+        openList(kind);
+        return;
+      }
+      closeLists();
+      open(active, v.url);
+    };
+    return row;
+  }) : [Object.assign(document.createElement('div'), { className: 'empty', textContent: kind === 'bookmarks' ? 'No bookmarks yet. Press the star in the address bar to add one.' : 'Nothing here yet.' })]));
+  $('lists').hidden = false;
+}
+// the lists leave the page when closed, so no site names stay in it
+function closeLists() { $('lists').hidden = true; $('list').replaceChildren(); }
+$('lists-close').onclick = closeLists;
+$('lists').addEventListener('click', e => { if (e.target === $('lists')) closeLists(); });
+$('clear-history').onclick = () => { visits = []; store.set('history', null); openList('history'); };
+renderMarks();
+function choices(box, list, onPick) {
+  for (const [v, label, swatch] of list) {
+    const b = document.createElement('button');
+    b.className = 'choice'; b.dataset.v = v;
+    if (swatch) { const i = document.createElement('i'); i.style.background = swatch; b.appendChild(i); }
+    b.append(label);
+    b.onclick = () => onPick(v);
+    box.appendChild(b);
+  }
+}
+choices($('skins'), Object.entries(SKINS), v => { store.set('skin', v); applyLook(); });
+choices($('colors'), [['follow', 'Follow ChalkBored'], ...Object.entries(LOOKS).map(([k, [n, c]]) => [k, n, c]), ['own', "Skin's own"]],
+  v => { store.set('colors', v); applyLook(); });
+applyLook();
+for (const [k, [name]] of Object.entries(ENGINES)) $('engine').add(new Option(name, k));
+$('engine').value = ENGINES[store.get('engine')] ? store.get('engine') : 'ddg';
+$('engine').onchange = () => store.set('engine', $('engine').value);
+const results = {};
+function renderServers() {
+  const box = $('servers');
+  if ($('settings').hidden) return;
+  const chosen = store.get('server') || '';
+  const row = (url, name, note) => {
+    const b = document.createElement('button');
+    b.className = 'server' + (url === chosen ? ' on' : '');
+    b.innerHTML = '<b></b><span></span>';
+    b.querySelector('b').textContent = name;
+    const s = b.querySelector('span');
+    s.textContent = note || '';
+    if (/not working|no answer/.test(note)) s.className = 'bad';
+    b.onclick = () => { store.set('server', url || null); useServer(url || store.get('fastest') || wisp); };
+    return b;
+  };
+  const list = [row('', 'Fastest', CFG.relay ? 'Chalk TV picked a server' : 'now ' + hostOf(wisp || '…'))];
+  const order = SERVERS.slice().sort((a, b) => (results[a] && results[a].ms || 1e9) - (results[b] && results[b].ms || 1e9));
+  for (const u of order) list.push(row(u, hostOf(u), results[u] ? results[u].note : (u === wisp ? 'in use' : '')));
+  box.replaceChildren(...list);
+}
+$('test-servers').onclick = async () => {
+  const btn = $('test-servers');
+  btn.disabled = true;
+  let done = 0;
+  $('server-status').textContent = 'Testing… 0 of ' + SERVERS.length;
+  await Promise.all(SERVERS.map(async u => {
+    const ms = [];
+    for (let i = 0; i < 3; i++) { const v = await ping(u); if (v != null) ms.push(v); }
+    const avg = ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : null;
+    const works = avg != null && await reachesSite(u);
+    results[u] = { ms: works ? avg : null, note: avg == null ? 'no answer' : works ? avg + ' ms' : 'not working' };
+    $('server-status').textContent = 'Testing… ' + (++done) + ' of ' + SERVERS.length;
+    renderServers();
+  }));
+  btn.disabled = false;
+  const best = SERVERS.filter(u => results[u].ms != null).sort((a, b) => results[a].ms - results[b].ms)[0];
+  if (best) store.set('fastest', best);
+  $('server-status').textContent = best ? 'Fastest: ' + hostOf(best) : 'No server reached a site. Check the internet connection.';
+  if (best && !store.get('server') && !CFG.relay && best !== wisp) useServer(best);
+};
+
+/* ---- commands from the page around Tide (Chalk TV, Chalk Browser) ---- */
+const PARENTS = ['https://chalkbored.win', 'https://chalkbored-for-students.vercel.app', 'https://chalkbored.guernica4u.workers.dev',
+  'https://chalkboredforall.vercel.app', 'https://chalkbored-public.guernica4u.workers.dev', location.origin];
+window.addEventListener('message', e => {
+  if (!framed || e.source !== window.parent) return;
+  const local = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(e.origin);
+  if (!PARENTS.includes(e.origin) && !local) return;
+  const d = e.data;
+  if (!d || typeof d.tide !== 'string') return;
+  if (d.tide === 'go' && typeof d.url === 'string' && /^https?:\/\//i.test(d.url)) open(active, d.url);
+  else if (d.tide === 'back') $('back').click();
+  else if (d.tide === 'reload') $('reload').click();
+  else if (d.tide === 'look' && (d.look === null || LOOKS[d.look])) { passedLook = d.look; applyLook(); }
+});
+
+/* ---- start ---- */
+if (CFG.open || CFG.tv || CFG.fresh) newTab(CFG.open);
+else {
+  let saved = null;
+  try { saved = JSON.parse(store.get('tabs')); } catch (e) {}
+  const urls = saved && Array.isArray(saved.urls) ? saved.urls.filter(u => u === '' || /^https?:\/\//i.test(u)).slice(0, 30) : [];
+  if (!urls.length) newTab();
+  else {
+    urls.forEach(u => newTab(u, false));
+    showTab(tabs[saved.active] || tabs[0]);
+  }
+}
+})();
+</script>
+</body>
+</html>
