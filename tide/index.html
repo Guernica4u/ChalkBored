@@ -21359,13 +21359,21 @@ _VIEWER_DL_JS +
                 if (tabId !== activeTabId) feHideAll();
                 return _tideSwitchToTab.apply(this, arguments);
             };
+            const closedTabs = [];   // recently closed tabs' addresses, for Ctrl+Shift+T
             const _tideCloseTab = closeTab;
             closeTab = function (tabId) {
                 const t = tabs.find(x => x.id === tabId);
                 const r = _tideCloseTab.apply(this, arguments);
                 if (t && t.sf && !tabs.includes(t)) { try { t.sf.element.remove(); } catch (e) {} t.sf = null; }
+                if (t && !tabs.includes(t) && /^https?:/i.test(t.sfUrl || t.url || '')) closedTabs.push(t.sfUrl || t.url);
                 return r;
             };
+            // Ctrl+Shift+T opens the last closed tab again
+            document.addEventListener('keydown', e => {
+                if (TIDE.ui === 'tv' || !(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== 't' || !closedTabs.length) return;
+                e.preventDefault();
+                createTab(closedTabs.pop());
+            });
             // Reload reloads the engine frame; Back/Forward already go through go()
             const _tideReload = $("reload").onclick;
             $("reload").onclick = function (e) {
