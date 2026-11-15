@@ -1148,6 +1148,13 @@
         { name: '.Duck;Lif3;~3?'                  , path: 'LESSONS/Bird-Training-3/index.html' },
         { name: '.Duck;Lif3;4?'                   , path: 'LESSONS/Bird-Training-4/index.html' },
         { name: '.Duck;Lif3;~5?'                  , path: 'LESSONS/Bird-Training-5/index.html' },
+        { name: '.Riddl3;School?',                path: 'LESSONS/Logic-Lab-1/index.html' },
+        { name: '.Riddl3;School;2?',              path: 'LESSONS/Logic-Lab-2/index.html' },
+        { name: '.Riddl3;School;~3?',             path: 'LESSONS/Logic-Lab-3/index.html' },
+        { name: '.Riddl3;School;4?',              path: 'LESSONS/Logic-Lab-4/index.html' },
+        { name: '.Riddl3;School;~5?',             path: 'LESSONS/Logic-Lab-5/index.html' },
+        { name: '.Riddl3;School;Tr5nsf3r?',       path: 'LESSONS/Logic-Lab-Transfer-1/index.html' },
+        { name: '.Riddl3;School;Tr5nsf3r;2?',     path: 'LESSONS/Logic-Lab-Transfer-2/index.html' },
         { name: '.Among;Us?'                      , path: 'LESSONS/Crew-Mission/index.html' },
         { name: '.Bitlif3?'                       , path: 'LESSONS/Life-Skills/index.html' },
         { name: '.Bloxors?'                       , path: 'LESSONS/Block-Logic/index.html' },
@@ -1198,7 +1205,15 @@
     // ---- card pictures ----
     // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
     // A lesson missing from here keeps its initials.
-    const ART = {      'LESSONS/forgecraft.1.5.html':                     { src: 'LESSONS/art/forgecraft.webp', bg: '#6b4a2f', fit: 'cover' },
+    const ART = {
+      'LESSONS/Logic-Lab-1/index.html': { src: 'LESSONS/art/logic-lab-1.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-2/index.html': { src: 'LESSONS/art/logic-lab-2.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-3/index.html': { src: 'LESSONS/art/logic-lab-3.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-4/index.html': { src: 'LESSONS/art/logic-lab-4.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-5/index.html': { src: 'LESSONS/art/logic-lab-5.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-Transfer-1/index.html': { src: 'LESSONS/art/logic-lab-transfer-1.webp', fit: 'cover' },
+      'LESSONS/Logic-Lab-Transfer-2/index.html': { src: 'LESSONS/art/logic-lab-transfer-2.webp', fit: 'cover' },
+      'LESSONS/forgecraft.1.5.html':                     { src: 'LESSONS/art/forgecraft.webp', bg: '#6b4a2f', fit: 'cover' },
       'LESSONS/Crew-Mission/index.html':                 { src: 'LESSONS/art/crew-mission.webp', bg: '#3a2f4a', fit: 'cover' },
       'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/board-games-club.webp', bg: '#2b2b26', fit: 'cover' },
       'LESSONS/Line-Drawing-Physics/index.html':         { src: 'LESSONS/art/line-drawing-physics.webp', bg: '#1b2430', fit: 'cover' },
