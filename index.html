@@ -430,45 +430,48 @@
     font-size: 0.98rem;
     line-height: 1.5;
   }
-  .chooser-check {
+  .chooser-note {
+    min-height: 1.2em;
+    margin: 0.8rem 0 0;
+    color: #a33a2f;
+    font-size: 0.85rem;
+  }
+  .chooser-auto {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    flex-wrap: wrap;
-    margin: -0.25rem 0 0.9rem;
+    gap: 0.5rem;
+    margin: 1rem 0 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
   }
-  .check-btn {
-    padding: 0.42rem 0.7rem;
+  .chooser-auto input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--ink); }
+  .auto-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 130;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    font-size: 0.92rem;
+  }
+  .auto-bar[hidden] { display: none; }
+  .auto-bar button {
+    padding: 0.35rem 0.7rem;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 3px;
     color: var(--ink);
     font: inherit;
-    font-size: 0.82rem;
     cursor: pointer;
   }
-  .check-btn:hover:not(:disabled) {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
-  }
-  .check-btn:disabled { opacity: 0.55; cursor: default; }
-  .check-note {
-    color: var(--muted);
-    font-size: 0.78rem;
-    line-height: 1.35;
-  }
-  .hall .probe {
-    margin-left: auto;
-    color: var(--muted);
-    font-size: 0.64rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .hall .probe.open { color: #356b46; }
-  .hall .probe.blocked,
-  .hall .probe.timeout { color: #a33a2f; }
+  .auto-bar button:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
   .chooser-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -577,16 +580,12 @@
 
   <div class="secret-flash" id="secret-flash" aria-hidden="true"></div>
 
-  <!-- choose which Study Hall copy to open; last pick stays on top -->
+  <!-- choose which Study Hall copy to open; last pick stays on top, and can open by itself -->
   <div class="chooser" id="chooser" role="dialog" aria-modal="true" aria-labelledby="chooser-title" tabindex="-1">
     <div class="chooser-card">
       <p class="chooser-kicker">ChalkBored</p>
-      <h2 id="chooser-title">Choose a page</h2>
-      <p>Pick one. The last page you chose stays at the top.</p>
-      <div class="chooser-check">
-        <button class="check-btn" id="check-links" type="button" aria-controls="chooser-grid" title="Checks whether this browser can fetch each page. Cards use the same fetch, not a normal navigation.">Check links</button>
-        <span class="check-note" id="check-note" role="status" aria-live="polite">Checks fetch access. Cards open here without navigating.</span>
-      </div>
+      <h2 id="chooser-title">Pick your page</h2>
+      <p>Every page below opens the same ChalkBored. There are several so you always have a backup: if one stops working or gets blocked, pick another one. The page you used last stays at the top.</p>
       <div class="chooser-grid" id="chooser-grid">
         <a class="hall" href="studyhall.html">Study Hall</a>
         <a class="hall" href="algebra.html">Algebra</a>
@@ -604,7 +603,15 @@
         <a class="hall" href="calendar.html">Calendar</a>
         <a class="hall" href="archive.html">Archive</a>
       </div>
-      <p class="chooser-foot">Click outside this box to stay on the homepage.</p>
+      <p class="chooser-note" id="chooser-note" role="status" aria-live="polite"></p>
+      <label class="chooser-auto"><input type="checkbox" id="auto-open"> Open my page by itself next time</label>
+      <p class="chooser-foot">When it opens by itself, press Choose another page (or Esc) to come back to this list. Click outside this box to stay on the homepage.</p>
+    </div>
+  </div>
+
+  <div class="auto-bar" id="auto-bar" role="status" hidden>
+    <span id="auto-bar-text">Opening your page…</span>
+    <button type="button" id="auto-bar-stop">Choose another page</button>
     </div>
   </div>
 
@@ -677,8 +684,7 @@
     let openingPage = false;
 
     function setOpenNote(text) {
-      const note = document.getElementById('check-note');
-      if (note) note.textContent = text;
+      document.getElementById('chooser-note').textContent = text;
     }
 
     async function openPage(dest, label) {
@@ -686,7 +692,7 @@
       openingPage = true;
       dest = dest || 'algebra.html';
       label = label || 'Study Hall';
-      setOpenNote('Opening ' + label + '…');
+      setOpenNote('');
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 15000);
       try {
@@ -702,9 +708,10 @@
       } catch (err) {
         openingPage = false;
         flash.classList.remove('on');
+        showChooser();
         setOpenNote(err && err.name === 'AbortError'
           ? 'That page timed out. Try again.'
-          : 'That page could not open here. Try the check again.');
+          : 'That page didn’t open. Pick another one.');
       } finally {
         clearTimeout(timer);
       }
@@ -748,6 +755,9 @@
       const chooser = document.getElementById('chooser');
       const grid = document.getElementById('chooser-grid');
       const KEY = 'chalk-studyhall-choice';
+      const AUTO = 'chalk-studyhall-auto';
+      const auto = document.getElementById('auto-open');
+      const bar = document.getElementById('auto-bar');
       const halls = [...grid.querySelectorAll('.hall')];
       let last = null;
       try { last = localStorage.getItem(KEY); } catch (e) {}
@@ -770,95 +780,35 @@
       const close = () => { chooser.hidden = true; document.body.classList.remove('choosing'); };
       chooser.addEventListener('click', (e) => { if (e.target === chooser) close(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !chooser.hidden) close(); });
-      document.body.classList.add('choosing');
-      chooser.focus();
-      // coming back through the back/forward cache still asks again
-      window.addEventListener('pageshow', (e) => {
-        if (!e.persisted) return;
+      window.showChooser = () => {
+        bar.hidden = true;
         chooser.hidden = false;
         document.body.classList.add('choosing');
         chooser.focus();
+      };
+
+      try { auto.checked = localStorage.getItem(AUTO) === '1'; } catch (e) {}
+      auto.addEventListener('change', () => {
+        try { localStorage.setItem(AUTO, auto.checked ? '1' : '0'); } catch (e) {}
       });
+
+      // auto-open: a short pause with a way out, then your page (homepage#pick always shows the list)
+      let autoTimer = null;
+      function startAuto() {
+        if (!auto.checked || !pinned || location.hash === '#pick') { showChooser(); return; }
+        chooser.hidden = true;
+        const label = pinned.textContent.replace('Last opened', '').trim();
+        document.getElementById('auto-bar-text').textContent = 'Opening ' + label + '…';
+        bar.hidden = false;
+        autoTimer = setTimeout(() => { bar.hidden = true; enterArcade(pinned.getAttribute('href'), label); }, 1500);
+      }
+      document.getElementById('auto-bar-stop').addEventListener('click', () => { clearTimeout(autoTimer); showChooser(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bar.hidden) { clearTimeout(autoTimer); showChooser(); } });
+      startAuto();
+      // coming back through the back/forward cache still asks again
+      window.addEventListener('pageshow', (e) => { if (e.persisted) showChooser(); });
     })();
 
-    // ---- link check: which copies can this browser actually load? ----
-    (() => {
-      const button = document.getElementById('check-links');
-      const note = document.getElementById('check-note');
-      const grid = document.getElementById('chooser-grid');
-      const SIGNATURE = 'ChalkBored study notebook';
-      const SHELL = 'data-study-shell';
-      const SHELL_APP = 's.txt?v=20261109';
-      const LABELS = { checking: 'Checking…', open: 'Fetchable', blocked: 'Blocked', timeout: 'No response' };
-      let running = false;
-
-      function mark(hall, state) {
-        let tag = hall.querySelector('.probe');
-        if (!tag) {
-          tag = document.createElement('span');
-          tag.className = 'probe';
-          hall.appendChild(tag);
-        }
-        tag.className = 'probe ' + state;
-        tag.textContent = LABELS[state];
-      }
-
-      async function probe(href) {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 15000);
-        try {
-          const res = await fetch(href, {
-            cache: 'no-store',
-            credentials: 'same-origin',
-            redirect: 'follow',
-            signal: ctrl.signal
-          });
-          if (res.type === 'opaqueredirect' || !res.ok) return 'blocked';
-          const body = await res.text();
-          if (body.includes(SHELL)) {
-            const appRes = await fetch(SHELL_APP, { cache: 'no-store', credentials: 'same-origin', signal: ctrl.signal });
-            if (!appRes.ok) return 'blocked';
-            const app = await appRes.text();
-            return app.includes(SIGNATURE) ? 'open' : 'blocked';
-          }
-          return body.includes(SIGNATURE) ? 'open' : 'blocked';
-        } catch (err) {
-          return err && err.name === 'AbortError' ? 'timeout' : 'blocked';
-        } finally {
-          clearTimeout(timer);
-        }
-      }
-
-      async function run() {
-        if (running) return;
-        running = true;
-        button.disabled = true;
-        const halls = [...grid.querySelectorAll('.hall')];
-        const counts = { open: 0, blocked: 0, timeout: 0 };
-        note.textContent = 'Checking ' + halls.length + ' links…';
-        halls.forEach((hall) => mark(hall, 'checking'));
-        let next = 0;
-        const worker = async () => {
-          while (next < halls.length) {
-            const hall = halls[next++];
-            const state = await probe(hall.getAttribute('href'));
-            counts[state] += 1;
-            mark(hall, state);
-          }
-        };
-        await Promise.all(Array.from({ length: Math.min(4, halls.length) }, worker));
-        const parts = [];
-        if (counts.open) parts.push(counts.open + ' fetchable');
-        if (counts.blocked) parts.push(counts.blocked + ' blocked');
-        if (counts.timeout) parts.push(counts.timeout + ' no response');
-        note.textContent = parts.join(' · ') || 'No links found.';
-        button.disabled = false;
-        button.textContent = 'Check again';
-        running = false;
-      }
-
-      button.addEventListener('click', run);
-    })();
   </script>
 
 </body>
