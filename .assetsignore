@@ -3,3 +3,4 @@ wrangler.jsonc
 .vercelignore
 .git
 node_modules
+worker.js

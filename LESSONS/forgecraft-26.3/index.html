@@ -27,7 +27,8 @@
       status.textContent = 'This lesson did not load. Try again in a minute.';
       return;
     }
-    const html = await new Blob(parts).text();
+    // the backup relay switch on the launcher page hooks in before the lesson's own scripts
+    const html = (await new Blob(parts).text()).replace('<head>', '<head><script src="../forgecraft-launcher/net.js"></script>');
     document.open();
     document.write(html);
     document.close();
