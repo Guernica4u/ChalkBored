@@ -5890,6 +5890,27 @@
         #tideHome .th-marks button:hover, #tideHome .th-marks button:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
         #tideHome .th-clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); letter-spacing: .3px; }
     </style>
+    <style id="tide-standalone-look">
+        /* The standalone Tide's look on GUST's pieces (the default Tide skin): round tabs and address bar,
+           no status pill, the page edge to edge under the bar, ⋮ for the menu */
+        html.tide-mono #tabStrip .tab { flex: 0 1 220px !important; width: 220px; max-width: 220px !important; min-width: 72px !important; height: 32px !important;
+            border: 0 !important; border-radius: 9px !important; background: transparent !important; color: var(--tx2) !important; box-shadow: none !important; }
+        html.tide-mono #tabStrip .tab:hover:not(.active) { background: color-mix(in srgb, var(--bg3) 45%, transparent) !important; }
+        html.tide-mono #tabStrip .tab.active { background: var(--bg2) !important; color: var(--tx) !important; }
+        html.tide-mono #tabStrip .tab.pinned { flex: 0 0 40px !important; width: 40px; min-width: 40px !important; max-width: 40px !important; padding: 0 !important; }
+        html.tide-mono #titlebarStatus { display: none !important; }
+        html.tide-mono .omnibox { background: var(--bg2) !important; border: 1px solid transparent !important; border-radius: 17px !important; height: 34px !important; box-shadow: none !important; }
+        html.tide-mono .omnibox:focus-within { border-color: var(--ac) !important; }
+        html.tide-mono #securityChip { display: none !important; }
+        html.tide-mono .omnibox::before { content: ""; flex: none; width: 15px; height: 15px; margin: 0 2px 0 6px; background: var(--tx3);
+            -webkit-mask: var(--mi-search) center / contain no-repeat; mask: var(--mi-search) center / contain no-repeat; }
+        html.tide-mono #skinMenuBtn { --sk-m: var(--mi-more-vert) !important; }
+        html.tide-mono main { padding: 0 !important; gap: 0 !important; }
+        html.tide-mono .view { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; margin: 0 !important; }
+        html.tide-mono .titlebar { height: 44px !important; min-height: 44px !important; padding: 6px 8px !important; align-items: flex-start !important; }
+        html.tide-mono #tabStrip { margin-top: 0 !important; }
+        html.tide-mono .navbar { height: 41px !important; min-height: 41px !important; padding: 0 8px 6px !important; border-bottom: 1px solid var(--bd) !important; }
+    </style>
     <style id="tide-lite-css">
         #customSearchCard { display: none !important; }
         #settingsBlockSwitch { display: none !important; }
