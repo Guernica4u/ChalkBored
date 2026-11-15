@@ -5909,6 +5909,22 @@
         html.tide-mono .view { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; margin: 0 !important; }
         html.tide-mono .titlebar { height: 44px !important; min-height: 44px !important; padding: 6px 8px !important; align-items: flex-start !important; }
         html.tide-mono #tabStrip { margin-top: 0 !important; }
+        html.tide-mono #settingsPage { background: rgba(0, 0, 0, .45) !important; }
+        html.tide-mono #settingsPage > .nt-bg, html.tide-mono #settingsPage > .nt-overlay { display: none !important; }
+        html.tide-mono #settingsPage > div:last-child { justify-content: flex-end; }
+        html.tide-mono #settingsPage > div:last-child > div:first-child { display: none !important; }   /* the section list */
+        html.tide-mono #settingsPage > div:last-child > div:last-child { flex: 0 0 min(400px, 100%) !important; padding: 56px 18px 40px !important; gap: 22px !important;
+            background: var(--bg1); border-left: 1px solid var(--bd); position: relative; }
+        html.tide-mono #settingsPage > div:last-child > div:last-child::before { content: "Settings"; position: absolute; top: 18px; left: 18px; font-size: 18px; font-weight: 600; color: var(--tx); }
+        html.tide-mono #settingsPage .settings-section[data-section="search"],
+        html.tide-mono #settingsPage .settings-section[data-section="connection"],
+        html.tide-mono #settingsPage .settings-section[data-section="about"] { display: block !important; }
+        html.tide-mono #settingsPage .settings-section[data-section="search"] { order: 1; }
+        html.tide-mono #settingsPage .settings-section[data-section="connection"] { order: 2; }
+        html.tide-mono #settingsPage .settings-section[data-section="about"] { order: 3; }
+        html.tide-mono #settingsPage .settings-card:has(#settingsWispInput) { display: none !important; }
+        html.tide-mono #settingsPage .settings-section[data-section="skins"],
+        html.tide-mono #settingsPage .settings-section[data-section="fallback"] { display: none !important; }
         html.tide-mono .navbar { height: 41px !important; min-height: 41px !important; padding: 0 8px 6px !important; border-bottom: 1px solid var(--bd) !important; }
     </style>
     <style id="tide-lite-css">
@@ -6220,7 +6236,7 @@
                     <span id="securityText"></span>
                 </div>
                 <input type="text" class="url-input" id="url" value="tide://newtab" spellcheck="false"
-                    autocomplete="off" placeholder="Search or enter address">
+                    autocomplete="off" placeholder="Search the web or type an address">
                 <span class="omni-drop-hint" id="omniDropHint">
                     <i class="fas fa-arrow-right-to-bracket"></i>drop to navigate
                 </span>
@@ -19113,6 +19129,13 @@ _VIEWER_DL_JS +
                     el.className = 'settings-hint';
                 }, 5000));
             }
+            document.getElementById('settingsPage').addEventListener('click', e => {
+                const panel = e.currentTarget.querySelector(':scope > div:last-child > div:last-child');
+                if (!document.documentElement.classList.contains('tide-mono') || !panel || panel.contains(e.target)) return;
+                $("back").click();
+                const pg = e.currentTarget;
+                setTimeout(() => { if (getComputedStyle(pg).display !== 'none') showNewTab(); }, 300);   // nothing to go back to
+            });
             function showSettingsPage(push = true, section = null) {
                 const settingsEl = $("settingsPage");
                 if (!settingsEl) return;
@@ -24430,6 +24453,7 @@ _VIEWER_DL_JS +
                 // Tide: only the menu items that work in Tide
                 const FIREFOX_MENU = () => [
                     mi('', 'New tab', () => createTab(), { accel: 'Ctrl+T' }),
+                    mi('', 'Reopen closed tab', () => { if (typeof closedTabs !== 'undefined' && closedTabs.length) createTab(closedTabs.pop()); }, { accel: 'Ctrl+Shift+T' }),
                     SEP,
                     mi('', 'Bookmarks', null, { sub: [
                         mi('', 'Bookmark current tab', () => { const b = $('bookmarkBtn'); if (b) b.click(); }, { accel: 'Ctrl+D' }),
@@ -24979,7 +25003,7 @@ _VIEWER_DL_JS +
                         urlInput.placeholder = plusIs() ? (plusCfg.ph || 'Search or enter address')
                             : current === 'chrome' ? 'Search Google or type a URL'
                             : current === 'brave' ? 'Search Brave or type a URL'
-                            : 'Search or enter address';
+                            : 'Search the web or type an address';
                     } catch (_) {}
                     syncBmBar();
                     blankOmniOnNTP();
