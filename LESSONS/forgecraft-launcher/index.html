@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; min-height: 100%; background: #14171c; color: #e6e8eb; font: 16px/1.4 system-ui, sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 32px 16px; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  .list { display: grid; gap: 10px; }
+  button.v { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
+    padding: 14px 16px; border: 1px solid #2c323b; border-radius: 10px; background: #1c2027; color: inherit;
+    font: inherit; text-align: left; cursor: pointer; }
+  button.v:hover, button.v:focus-visible { border-color: #6aa7ff; background: #222833; outline: none; }
+  .v b { font-size: 18px; }
+  .v span { color: #9aa3ae; font-size: 14px; }
+  .relay { margin-top: 24px; padding: 14px 16px; border: 1px solid #2c323b; border-radius: 10px; }
+  .relay label { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+  .relay input { width: 20px; height: 20px; }
+  .relay p { margin: 8px 0 0; color: #9aa3ae; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pick a version</h1>
+  <div class="list">
+    <button class="v" data-go="../forgecraft.html"><b>1.8</b><span>fast</span></button>
+    <button class="v" data-go="../forgecraft.1.12.html"><b>1.12</b><span>fast</span></button>
+    <button class="v" data-go="../forgecraft-26.3/index.html"><b>26.3</b><span>big download</span></button>
+    <button class="v" data-go="../forgecraft-26.2/index.html"><b>26.2</b><span>big download</span></button>
+    <button class="v" data-go="../forgecraft.1.5.html"><b>1.5.2</b><span>slow on Chromebooks</span></button>
+  </div>
+  <div class="relay">
+    <label><input type="checkbox" id="backup"> Backup relay</label>
+    <p>For shared (LAN) worlds. Turn this on if hosting or joining a shared world doesn't work.
+      It reaches the same main relay through this site's own address, with another relay as a spare.
+      Turn it on before you open the version. If joining still fails, both players turn it on.</p>
+  </div>
+</main>
+<script>
+  const KEY = 'cb-backup-relay';
+  const box = document.getElementById('backup');
+  try { box.checked = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  box.addEventListener('change', () => {
+    try {
+      localStorage.setItem(KEY, box.checked ? '1' : '0');
+      // the builds keep their own saved relay list, which beats the one passed in; clear it so the switch takes effect
+      for (const k of Object.keys(localStorage)) if (/^_eaglercraft.*\.r$/.test(k)) localStorage.removeItem(k);
+    } catch (e) {}
+  });
+  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { location.href = b.dataset.go; }));
+</script>
+</body>
+</html>

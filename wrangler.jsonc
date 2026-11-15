@@ -1,10 +1,13 @@
 // Cloudflare (Workers Builds) settings: ChalkBored is a folder of static
 // files, served as-is from the repo root. Newer wrangler versions no longer
-// guess this, so it's spelled out here.
+// guess this, so it's spelled out here. worker.js only handles paths that
+// aren't files (the shared-world relay pass-through); files skip it.
 {
   "name": "chalkbored",
   "compatibility_date": "2026-10-19",
+  "main": "worker.js",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   }
 }
