@@ -5923,6 +5923,16 @@
         html.tide-mono #settingsPage .settings-section[data-section="connection"] { order: 2; }
         html.tide-mono #settingsPage .settings-section[data-section="about"] { order: 3; }
         html.tide-mono #settingsPage .settings-card:has(#settingsWispInput) { display: none !important; }
+        /* plain headings instead of cards, like the standalone Tide's panel */
+        html.tide-mono #settingsPage .settings-card { background: transparent !important; border: 0 !important; box-shadow: none !important; margin: 0 0 14px !important; }
+        html.tide-mono #settingsPage .settings-card-head { padding: 0 0 10px !important; border: 0 !important; background: none !important;
+            font-size: 12px !important; font-weight: 600 !important; letter-spacing: .6px; text-transform: uppercase; color: var(--tx3) !important; }
+        html.tide-mono #settingsPage .settings-card-head > i { display: none !important; }
+        html.tide-mono #settingsPage .settings-card-body { padding: 0 !important; }
+        html.tide-mono #settingsPage .settings-engine-btn .engine-url { display: none !important; }
+        /* the server list stays; the round-robin heading and switch don't (the standalone has neither) */
+        html.tide-mono #settingsPage .settings-card:has(#settingsPoolList) > .settings-card-head,
+        html.tide-mono #settingsPage .settings-switch-row:has(#settingsPoolModeSwitch) { display: none !important; }
         html.tide-mono #settingsPage .settings-section[data-section="skins"],
         html.tide-mono #settingsPage .settings-section[data-section="fallback"] { display: none !important; }
         html.tide-mono .navbar { height: 41px !important; min-height: 41px !important; padding: 0 8px 6px !important; border-bottom: 1px solid var(--bd) !important; }
@@ -9471,6 +9481,8 @@ window._libcurlReady = true;
             const SEARCH_ENGINES = {
                 brave: "https://search.brave.com/search?q=",
                 ddg: "https://duckduckgo.com/?q=",
+                google: "https://www.google.com/search?q=",
+                bing: "https://www.bing.com/search?q=",
                 custom: "https://example.com/search?q={q}"
             };
             const CUSTOM_SEARCH_URL_KEY = "gust:custom-search-url:v1";
@@ -19435,7 +19447,9 @@ _VIEWER_DL_JS +
                 const customUrl = (function () { try { return ls.getItem(CUSTOM_SEARCH_URL_KEY); } catch { return ""; } })();
                 const engines = [
                     { key: "ddg", name: "DuckDuckGo", url: SEARCH_ENGINES.ddg },
-                    { key: "brave", name: "Brave", url: SEARCH_ENGINES.brave },
+                    { key: "google", name: "Google", url: SEARCH_ENGINES.google },
+                    { key: "bing", name: "Bing", url: SEARCH_ENGINES.bing },
+                    { key: "brave", name: "Brave Search", url: SEARCH_ENGINES.brave },
                     { key: "custom", name: customName, url: customUrl || SEARCH_ENGINES.custom }
                 ];
                 engines.forEach(eng => {
