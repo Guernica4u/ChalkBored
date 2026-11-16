@@ -1198,7 +1198,6 @@
         { name: '.Boxing;R5ndom?',                path: 'LESSONS/Boxing-Physics/index.html' },
         { name: '.G3t5w5y;Shootout?',             path: 'LESSONS/Getaway-Physics/index.html' },
         { name: '.Pl5nt;D5ddy?',                  path: 'LESSONS/Plant-Care/index.html' },
-        { name: '.El5stic;M5n?',                  path: 'LESSONS/Elastic-Faces/index.html' },
         { name: '.Lin3;Rid3r?'                    , path: 'LESSONS/Line-Drawing-Physics/index.html' },
       ],
     };
@@ -1215,7 +1214,6 @@
       'LESSONS/Boxing-Physics/index.html': { src: 'LESSONS/art/boxing-physics.webp', fit: 'cover' },
       'LESSONS/Getaway-Physics/index.html': { src: 'LESSONS/art/getaway-physics.webp', fit: 'cover' },
       'LESSONS/Plant-Care/index.html': { src: 'LESSONS/art/plant-care.webp', fit: 'cover' },
-      'LESSONS/Elastic-Faces/index.html': { src: 'LESSONS/art/elastic-faces.webp', fit: 'cover' },
       'LESSONS/forgecraft-launcher/index.html': { src: 'LESSONS/art/forgecraft.webp', fit: 'cover' },
       'LESSONS/Logic-Lab-1/index.html': { src: 'LESSONS/art/logic-lab-1.webp', fit: 'cover' },
       'LESSONS/Logic-Lab-2/index.html': { src: 'LESSONS/art/logic-lab-2.webp', fit: 'cover' },
