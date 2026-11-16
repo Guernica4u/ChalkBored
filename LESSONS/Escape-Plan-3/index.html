@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Escape Plan 3</title>
+  <style>html, body, #player { margin: 0; width: 100%; height: 100%; background: #000; color: #bbb; font: 16px system-ui, sans-serif; overflow: hidden; } #status { position: fixed; inset: 0; display: grid; place-items: center; margin: 0; }</style>
+    <script src="../Flash-Player-2/ruffle.js"></script>
+</head>
+<body>
+  <p id="status">Loading... 0%</p>
+  <div id="player"></div>
+  <script>
+    // the lesson file is over the 25 MB host limit, so it is stored in parts and joined here
+    const PARTS = 2;
+    window.addEventListener('load', async () => {
+      const status = document.getElementById('status');
+      const bufs = [];
+      try {
+        for (let i = 1; i <= PARTS; i++) {
+          const res = await fetch('part' + i + '.bin');
+          if (!res.ok) throw new Error('part ' + i);
+          bufs.push(await res.arrayBuffer());
+          status.textContent = 'Loading... ' + Math.round(i / PARTS * 100) + '%';
+        }
+      } catch (e) { status.textContent = 'This lesson did not load. Try again in a minute.'; return; }
+      const data = await new Blob(bufs).arrayBuffer();
+      status.remove();
+      const player = window.RufflePlayer.newest().createPlayer();
+      player.style.width = '100%';
+      player.style.height = '100%';
+      document.getElementById('player').appendChild(player);
+      player.load({ data, base: './' });
+    });
+  </script>
+</body>
+</html>
