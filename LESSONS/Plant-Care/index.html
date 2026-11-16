@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en-us" style="height: 100%;">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Plant Care</title>
+    <style type="text/css">
+      _::-webkit-full-page-media, _:future, :root .safari_only {
+        display: inline !important;
+        font-size: 1.25rem;
+        text-align: center;
+        position: absolute;
+        z-index: 100;
+        top: 0px;
+        width: 100%;
+		height: 100%;
+        padding-left: 0rem;
+        padding-right: 0rem;
+        background-color: white;
+        opacity: 0.75;
+        padding: .5em;
+        pointer-events: none;
+      }
+    </style>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      window.unityInstance = UnityLoader.instantiate("unityContainer", "Build/plantdaddy-webgl-1.2.2.json");
+    </script>
+  </head>
+  <body style="margin: 0px; height: 100%; overflow: hidden;">
+    <div id="unityContainer" style="width: 100%; height: 100%; margin: auto;"></div>
+  </body>
