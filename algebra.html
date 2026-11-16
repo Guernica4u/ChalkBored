@@ -1508,7 +1508,9 @@
       setTabLook(document, d ? d.title : ORIGINAL_TITLE, d ? d.icon : new URL('favicon.svg', location.href).href);
     }
 
-    function openCloakedTab(fullUrl, mode, title) {
+    function openCloakedTab(fullUrl, mode, title, allowTabs) {
+      // ChalkBored itself must keep its own new tabs, or every lesson it opens gets blocked
+      const blockTabs = !!settings.blockPopups && !allowTabs;
       const win = window.open('about:blank', '_blank');
       if (!win) {
         alert('Your browser blocked the new tab. Allow pop-ups for this site, then try again.');
@@ -1525,9 +1527,9 @@
       frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;background:#fff;';
       frame.setAttribute('allow', 'fullscreen; autoplay; gamepad; clipboard-read; clipboard-write');
       frame.setAttribute('allowfullscreen', '');
-      if (settings.blockPopups) frame.setAttribute('sandbox', NO_POPUPS_SANDBOX);
+      if (blockTabs) frame.setAttribute('sandbox', NO_POPUPS_SANDBOX);
       doc.body.appendChild(frame);
-      armWindow(win, settings.blockPopups);
+      armWindow(win, blockTabs);
       return true;
     }
 
@@ -1655,7 +1657,7 @@
       const url = new URL(location.href);
       url.searchParams.set('blank', '1');
       const mode = settings.disguise === 'off' ? 'normal' : settings.disguise;
-      const opened = openCloakedTab(url.href, mode, 'ChalkBored');
+      const opened = openCloakedTab(url.href, mode, 'ChalkBored', true);
       if (opened) location.replace('about:blank');
       return opened;
     }
@@ -2579,7 +2581,7 @@
       const url = new URL(location.href);
       url.searchParams.set('blank', '1');
       const mode = settings.disguise === 'off' ? 'classroom' : settings.disguise;
-      if (openCloakedTab(url.href, mode, 'ChalkBored')) location.replace('about:blank');
+      if (openCloakedTab(url.href, mode, 'ChalkBored', true)) location.replace('about:blank');
     });
 
     $('rail-collapse').addEventListener('click', () => change('railMini', !settings.railMini));
