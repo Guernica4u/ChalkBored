@@ -2356,9 +2356,12 @@
     let browserFrame = null;
     let chatFrame = null;
 
+    let panelStarted = false;
     function showPanel(name) {
       closeAllMenus();
       closeResults();
+      // the startup call doesn't count, or it would wipe the page a cloaked copy should reopen
+      if (panelStarted) try { localStorage.setItem('cb-last-panel', name); } catch (e) {}
       document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', (b.dataset.panel || b.dataset.app) === name));
       document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
       $('gear').classList.toggle('active', name === 'settings');
@@ -2845,7 +2848,14 @@
 
     saveSettings();
     applySettings();
-    showPanel('home');
+    // a cloaked copy of ChalkBored picks up where you were, not on Home
+    let startPanel = 'home';
+    try {
+      const last = localStorage.getItem('cb-last-panel');
+      if (new URLSearchParams(location.search).get('blank') === '1' && last && document.getElementById('panel-' + last)) startPanel = last;
+    } catch (e) {}
+    showPanel(startPanel);
+    panelStarted = true;
 
     // everyone walks through the new setup once per big update
     if (settings.setupVersion !== SETUP_VERSION) {
