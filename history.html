@@ -983,10 +983,6 @@
                 <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
               </div>
               <div class="setting">
-                <div><h3>Open in a blank tab</h3><p>On launch, ChalkBored opens itself in a blank tab wearing the cloak, so the address bar never shows it.</p></div>
-                <button class="switch" id="blank-launch" type="button" role="switch" aria-checked="false" aria-label="Open in a blank tab"></button>
-              </div>
-              <div class="setting">
                 <div><h3>Cloak this page</h3><p>Open ChalkBored in a blank tab wearing the cloak right now.</p></div>
                 <button class="btn" id="cloak-now" type="button">Cloak this page</button>
               </div>
@@ -1360,7 +1356,6 @@
       cloakMode: 'classroom',  // the cloak picked last
       cloakDefaults: false,    // one-time migration for the restored cloak settings
       cloakAsked: false,       // the first-load cloak question has been shown
-      blankLaunch: false,      // open ChalkBored itself in a cloaked about:blank tab on launch
     };
     let settings = Object.assign({}, DEFAULT_SETTINGS);
     let savedSettings = null;
@@ -1506,6 +1501,13 @@
     function applyDisguise() {
       const d = DISGUISES[settings.disguise];
       setTabLook(document, d ? d.title : ORIGINAL_TITLE, d ? d.icon : new URL('favicon.svg', location.href).href);
+      // inside a cloaked blank tab, the tab itself wears the cloak
+      try {
+        if (window.parent !== window && new URLSearchParams(location.search).get('blank') === '1') {
+          const c = d || DISGUISES.classroom;
+          setTabLook(window.parent.document, c.title, c.icon);
+        }
+      } catch (e) {}
     }
 
     function openCloakedTab(fullUrl, mode, title, allowTabs) {
@@ -1644,24 +1646,7 @@
       armWindow(window.open(fullUrl, '_blank'), blockTabs);
     }
 
-    // ---- open ChalkBored itself in a blank tab ----
-    // Some schools watch the address bar. With this on, ChalkBored opens a blank
-    // tab wearing the tab cloak and runs inside it, so the bar never shows this site.
-    function openInBlankTab() {
-      if (!settings.blankLaunch) return false;
-      try { if (new URLSearchParams(location.search).get('blank') === '1') return false; } catch (e) {}
-      try {
-        if (sessionStorage.getItem('cb-blank-opened') === '1') return false;
-        sessionStorage.setItem('cb-blank-opened', '1');
-      } catch (e) {}
-      const url = new URL(location.href);
-      url.searchParams.set('blank', '1');
-      const mode = settings.disguise === 'off' ? 'normal' : settings.disguise;
-      const opened = openCloakedTab(url.href, mode, 'ChalkBored', true);
-      if (opened) location.replace('about:blank');
-      return opened;
-    }
-    try { if (settings.setupDone) setTimeout(openInBlankTab, 400); } catch (e) {}
+    // opening ChalkBored in a cloaked tab is a switch on the homepage's page picker now
 
     function launch(item, mode) {
       openTab(item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
@@ -2560,7 +2545,7 @@
       if (settings.theme === 'basic') document.body.dataset.basic = settings.basic;
       else delete document.body.dataset.basic;
 
-      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs'], ['blank-launch', 'blankLaunch']]
+      [['ask-cloak', 'askCloak'], ['exp-no-tabs', 'noNewTabs']]
         .forEach(([id, key]) => $(id).setAttribute('aria-checked', String(!!settings[key])));
       document.querySelectorAll('#disguise-choice button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       applyDisguise();
@@ -2578,7 +2563,6 @@
     }
 
     $('ask-cloak').addEventListener('click', () => change('askCloak', !settings.askCloak));
-    $('blank-launch').addEventListener('click', () => change('blankLaunch', !settings.blankLaunch));
     $('exp-no-tabs').addEventListener('click', () => change('noNewTabs', !settings.noNewTabs));
     $('cloak-now').addEventListener('click', () => {
       const url = new URL(location.href);
@@ -2643,7 +2627,6 @@
         wrap.appendChild(line);
       };
       addSwitch('Ask to cloak', 'Pick a cloak each time you open an activity card.', 'askCloak', 'Ask to cloak');
-      addSwitch('Open in a blank tab', 'ChalkBored opens in a blank tab wearing the cloak, so the address bar hides it.', 'blankLaunch', 'Open in a blank tab');
       return wrap;
     }
 
