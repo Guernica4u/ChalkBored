@@ -702,16 +702,44 @@ const ytPaused = () => !yt || !yt.getPlayerState || yt.getPlayerState() !== 1;
 function ytState(s) {
   if (using !== "yt") return;
   if (s === 0) return ended();
+  if (s === 1) fails = 0;
   playingChanged();
 }
-let skipTimer = 0;
+let skipTimer = 0, fails = 0;
 function skipSoon(why) {
-  $("sub").textContent = why + " Skipping…";
   clearTimeout(skipTimer);
+  const last = ++fails >= tracks.length;
+  /* after the song's card has slid in, or it would cover this */
+  setTimeout(() => { $("sub").textContent = why + (last ? " Nothing else in this list would play either." : " Skipping…"); }, 300);
+  if (last) return;
   skipTimer = setTimeout(() => { const i = stepIndex(1); if (i >= 0 && i !== at) play(i, 1); }, 1800);
 }
-function ytError(code) {
+/* some uploads may only play on YouTube itself; another upload of the same song usually can */
+const triedVids = {};
+async function otherUpload(s) {
+  const tried = triedVids[s.id] = triedVids[s.id] || [s.vid];
+  if (tried.length > 3) return null;
+  let hits = [];
+  try { hits = await ytSearch((s.title + " " + (s.author || "")).trim(), 8); } catch (e) {}
+  const h = hits.find(v => !tried.includes(v.id));
+  if (!h) return null;
+  tried.push(h.id);
+  return h;
+}
+async function ytError(code) {
   if (using !== "yt") return;
+  const s = song(at);
+  if (s && (code === 101 || code === 150 || code === 153)) {
+    $("sub").textContent = "This upload only plays on YouTube. Looking for another…";
+    const h = await otherUpload(s);
+    if (h && song(at) === s) {
+      s.vid = h.id;
+      s.thumb = "https://i.ytimg.com/vi/" + h.id + "/hqdefault.jpg";
+      save();
+      dressUp(s);
+      return yt.loadVideoById(h.id);
+    }
+  }
   skipSoon(code === 101 || code === 150 || code === 153 ? "This one can't play outside YouTube." : "That one wouldn't play.");
 }
 const engine = {
@@ -728,13 +756,13 @@ let tracks = [], at = -1, order = [], seeking = false, slideTok = 0, playingList
 function build() {
   if (S.list !== "all" && !listById(S.list)) S.list = "all";
   if (playingList !== "all" && !listById(playingList)) playingList = "all";
-  const current = at >= 0 ? tracks[at] : null;
+  const current = at >= 0 ? tracks[at] : null, before = tracks.join("\n");
   tracks = listIds(playingList);
   at = current == null ? -1 : tracks.indexOf(current);
   if (at < 0 && current != null && S.songs[current]) { tracks.unshift(current); at = 0; }
   drawPlaylists();
   drawSongs();
-  reorder();
+  if (tracks.join("\n") !== before) reorder();
   drawQueue();
 }
 /* shuffle keeps its own running order so Previous still goes back */
@@ -852,6 +880,7 @@ function drawQueue() {
   });
 }
 function playFromList(listId, id) {
+  fails = 0;
   playingList = listId;
   tracks = listIds(listId);
   at = -1;
@@ -946,6 +975,8 @@ async function play(i, dir) {
   const back = dir != null ? dir : (i < at ? -1 : 1);
   at = i;
   const s = song(i);
+  S.now = { list: playingList, id: s.id };
+  save();
   slide(back, () => dressUp(s));
   if (s.kind === "yt") {
     audio.pause();
@@ -969,6 +1000,7 @@ function toggle() {
     if (!tracks.length) { playingList = S.list; tracks = listIds(S.list); reorder(); }
     return play(order.length ? order[0] : 0);
   }
+  if (using === "none") return play(at);
   engine.paused() ? engine.play() : engine.pause();
 }
 function step(dir) {
@@ -1303,6 +1335,7 @@ $("vol").oninput = () => {
   save();
 };
 audio.onplay = audio.onpause = playingChanged;
+audio.onplaying = () => { fails = 0; };   /* "play" comes even when the link then fails */
 audio.onended = () => { if (using === "file") ended(); };
 audio.onerror = () => { if (using === "file" && audio.getAttribute("src")) skipSoon("That link wouldn't play."); };
 /* the clock, and keeping up with YouTube's player, which says less on its own */
@@ -1334,6 +1367,12 @@ if ("mediaSession" in navigator) {
 /* nothing here scrolls; a box getting focus mustn't push the page up */
 for (const id of ["app", "main"]) $(id).addEventListener("scroll", () => { $(id).scrollTop = 0; $(id).scrollLeft = 0; });
 paintToggles();
+if (S.now && S.songs[S.now.id]) {
+  playingList = S.now.list;
+  build();
+  at = tracks.indexOf(S.now.id);
+  if (at >= 0) { reorder(); dressUp(song(at)); drawSongs(); drawQueue(); }
+}
 build();
 </script>
 </body>
