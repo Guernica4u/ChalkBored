@@ -1201,6 +1201,9 @@
         { name: '.Boxing;R5ndom?',                path: 'LESSONS/Boxing-Physics/index.html' },
         { name: '.G3t5w5y;Shootout?',             path: 'LESSONS/Getaway-Physics/index.html' },
         { name: '.Pl5nt;D5ddy?',                  path: 'LESSONS/Plant-Care/index.html' },
+        { name: '.P3opl3;Pl5yground?',            path: 'LESSONS/Ragdoll-Sandbox/index.html' },
+        { name: '.Kind3rg5rt3n?',                 path: 'LESSONS/Class-Day-1/index.html' },
+        { name: '.Kind3rg5rt3n;2?',               path: 'LESSONS/Class-Day-2/index.html' },
         { name: '.Lin3;Rid3r?'                    , path: 'LESSONS/Line-Drawing-Physics/index.html' },
       ],
     };
