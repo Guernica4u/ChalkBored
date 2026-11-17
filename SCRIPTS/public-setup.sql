@@ -1102,3 +1102,157 @@ begin
   assert has_link('go to example.com now') and has_link('https://x.y') and has_link('example dot com'), 'links';
   assert not has_link('see you at 3.30, ok?'), 'not a link';
 end $$;
+
+-- ================================================================ Voice
+-- Calls between two friends (room_key 'd:<id>:<id>', the two ids in order) and
+-- one voice room in each class ('c:<class id>', never Global), up to 6 people.
+-- The database decides who may be in a call and carries the short messages
+-- that link the browsers (voice_signals). The sound goes browser to browser,
+-- or through the Cloudflare relay (edge function voice-ice, SCRIPTS/voice-ice.ts).
+-- Site mods can end any call; class owners and class mods their class's room.
+-- Timed-out and banned accounts can't join.
+
+create table if not exists public.voice_members (
+  room_key text not null check (room_key ~ '^(c:[0-9a-f-]{36}|d:[0-9a-f-]{36}:[0-9a-f-]{36})$'),
+  user_id  uuid not null references public.profiles on delete cascade,
+  seen_at  timestamptz not null default now(),
+  primary key (room_key, user_id)
+);
+create table if not exists public.voice_signals (
+  id         bigserial primary key,
+  room_key   text not null,
+  from_id    uuid not null references public.profiles on delete cascade,
+  to_id      uuid not null references public.profiles on delete cascade,
+  kind       text not null check (kind in ('ring', 'offer', 'answer', 'ice', 'bye', 'end')),
+  body       jsonb check (body is null or octet_length(body::text) <= 8000),
+  created_at timestamptz not null default now()
+);
+create index if not exists voice_signals_to_idx on public.voice_signals (to_id, created_at);
+create index if not exists voice_signals_from_idx on public.voice_signals (from_id, created_at);
+create index if not exists voice_signals_age_idx on public.voice_signals (created_at);
+alter table public.voice_members enable row level security;   -- no policies: functions only
+alter table public.voice_signals enable row level security;
+drop policy if exists voice_signals_mine on public.voice_signals;
+create policy voice_signals_mine on public.voice_signals for select to authenticated using (to_id = auth.uid());
+
+-- May this person be in this call?
+create or replace function public.voice_allowed(p_key text, uid uuid default auth.uid())
+returns boolean language plpgsql stable security definer set search_path = public, extensions as $$
+declare a uuid; b uuid; r uuid;
+begin
+  if uid is null or is_banned(uid) then return false; end if;
+  if p_key ~ '^c:[0-9a-f-]{36}$' then
+    r := substr(p_key, 3)::uuid;
+    return exists (select 1 from rooms where id = r and not is_global)
+       and exists (select 1 from room_members where room_id = r and user_id = uid)
+       and not exists (select 1 from room_bans where room_id = r and user_id = uid);
+  elsif p_key ~ '^d:[0-9a-f-]{36}:[0-9a-f-]{36}$' then
+    a := split_part(p_key, ':', 2)::uuid;
+    b := split_part(p_key, ':', 3)::uuid;
+    return a < b and uid in (a, b) and are_friends(a, b)
+       and not exists (select 1 from dm_blocks where (blocker_id = a and blocked_id = b) or (blocker_id = b and blocked_id = a));
+  end if;
+  return false;
+end; $$;
+
+-- Join a call, or stay in it (the page calls this every 20 seconds; anyone
+-- silent for a minute drops out). One call at a time. Returns null or a reason.
+create or replace function public.voice_join(p_key text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare me profiles; cap int := case when p_key like 'd:%' then 2 else 6 end;
+begin
+  select * into me from profiles where id = auth.uid();
+  if me.id is null or me.banned then return 'Your account is banned.'; end if;
+  if me.muted_until > now() then return 'You''re timed out, so you can''t join voice for now.'; end if;
+  if not voice_allowed(p_key) then return 'You can''t join this call.'; end if;
+  perform pg_advisory_xact_lock(hashtext(p_key));   -- two people taking the last place at once
+  delete from voice_members where seen_at < now() - interval '60 seconds';
+  update voice_members set seen_at = now() where room_key = p_key and user_id = me.id;
+  if found then return null; end if;
+  delete from voice_members where user_id = me.id;
+  if (select count(*) from voice_members where room_key = p_key) >= cap then
+    return 'This call is full (' || cap || ' people).';
+  end if;
+  insert into voice_members (room_key, user_id) values (p_key, me.id);
+  return null;
+end; $$;
+
+-- Who's in a call you may join.
+create or replace function public.voice_who(p_key text)
+returns uuid[] language sql stable security definer set search_path = public, extensions as $$
+  select coalesce(array_agg(user_id), '{}') from voice_members
+   where room_key = p_key and seen_at > now() - interval '60 seconds' and voice_allowed(p_key);
+$$;
+
+-- Leave: everyone still there is told.
+create or replace function public.voice_leave(p_key text)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  delete from voice_members where room_key = p_key and user_id = auth.uid();
+  if found then
+    insert into voice_signals (room_key, from_id, to_id, kind)
+    select p_key, auth.uid(), user_id, 'bye' from voice_members where room_key = p_key;
+  end if;
+end; $$;
+
+-- Pass one link-up message to someone in the same call. 'ring' asks a friend
+-- to join a call with you. Returns null or a reason.
+create or replace function public.voice_signal(p_key text, p_to uuid, p_kind text, p_body jsonb default null)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if p_kind not in ('ring', 'offer', 'answer', 'ice', 'bye') then return 'Unknown message.'; end if;
+  if not exists (select 1 from voice_members where room_key = p_key and user_id = auth.uid()) then return 'You aren''t in this call.'; end if;
+  if p_kind = 'ring' then
+    if p_key not like 'd:%' or p_to = auth.uid() or not voice_allowed(p_key, p_to) then return 'You can''t call them.'; end if;
+    if exists (select 1 from voice_signals where from_id = auth.uid() and to_id = p_to and kind = 'ring'
+                and created_at > now() - interval '20 seconds') then return 'Already ringing.'; end if;
+  elsif not exists (select 1 from voice_members where room_key = p_key and user_id = p_to) then
+    return 'They left the call.';
+  end if;
+  if (select count(*) from voice_signals where from_id = auth.uid() and created_at > now() - interval '10 seconds') >= 150 then
+    return 'Too many voice messages at once.';
+  end if;
+  delete from voice_signals where created_at < now() - interval '2 minutes';
+  insert into voice_signals (room_key, from_id, to_id, kind, body) values (p_key, auth.uid(), p_to, p_kind, p_body);
+  return null;
+end; $$;
+
+-- End a call for everyone in it: site mods any call, class owners and class
+-- mods their class's room. Returns null or a reason.
+create or replace function public.voice_end(p_key text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not (is_site_mod() or (p_key ~ '^c:[0-9a-f-]{36}$' and can_manage_room(substr(p_key, 3)::uuid))) then
+    return 'Only mods can end this call.';
+  end if;
+  insert into voice_signals (room_key, from_id, to_id, kind)
+  select p_key, auth.uid(), user_id, 'end' from voice_members where room_key = p_key;
+  delete from voice_members where room_key = p_key;
+  return null;
+end; $$;
+
+-- Every call going on right now, for site mods.
+create or replace function public.voice_calls()
+returns table (room_key text, label text, people int)
+language sql stable security definer set search_path = public, extensions as $$
+  select v.room_key,
+         coalesce((select 'Class: ' || r.name from rooms r where v.room_key = 'c:' || r.id), 'Call')
+           || ' (' || string_agg(p.username::text, ', ' order by p.username) || ')',
+         count(*)::int
+    from voice_members v join profiles p on p.id = v.user_id
+   where is_site_mod() and v.seen_at > now() - interval '60 seconds'
+   group by v.room_key;
+$$;
+
+revoke all on public.voice_members, public.voice_signals from anon, authenticated;
+grant select on public.voice_signals to authenticated;
+revoke execute on function public.voice_allowed(text, uuid) from public, anon, authenticated;
+grant execute on function public.voice_join(text), public.voice_who(text), public.voice_leave(text),
+  public.voice_signal(text, uuid, text, jsonb), public.voice_end(text), public.voice_calls() to authenticated;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.voice_signals;
+exception when duplicate_object then null;
+end $$;
