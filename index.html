@@ -446,17 +446,6 @@
   }
   .chooser-auto input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--ink); }
   .chooser-auto + .chooser-auto { margin-top: 0; }
-  .chooser-same {
-    margin: 0 0 1rem;
-    padding: 0.7rem 0.9rem;
-    background: #eef1ed;
-    border: 1px solid #b9c4bc;
-    border-left: 4px solid var(--accent);
-    border-radius: 3px;
-    font-size: 1rem;
-    line-height: 1.45;
-  }
-  .chooser-same strong { font-weight: 600; }
   .auto-bar {
     position: fixed;
     left: 50%;
@@ -522,11 +511,6 @@
     text-transform: uppercase;
   }
   .hall.pinned:hover .tag { color: #d8dfd9; }
-  .chooser-foot {
-    margin: 1rem 0 0;
-    color: var(--muted);
-    font-size: 0.8rem;
-  }
   @media (max-width: 560px) {
     .chooser-card { padding: 1.2rem; }
     .chooser-grid { grid-template-columns: 1fr 1fr; }
@@ -596,9 +580,8 @@
   <div class="chooser" id="chooser" role="dialog" aria-modal="true" aria-labelledby="chooser-title" tabindex="-1">
     <div class="chooser-card">
       <p class="chooser-kicker">ChalkBored</p>
-      <h2 id="chooser-title">Pick your page</h2>
-      <p class="chooser-same"><strong>It doesn’t matter which one you pick.</strong> Every page opens the same ChalkBored, with the same games and saves.</p>
-      <p>There are several so you always have a backup: if one stops working or gets blocked, pick another one. The page you used last stays at the top.</p>
+      <h2 id="chooser-title">Pick a page</h2>
+      <p>They’re all the same. If one gets blocked, use another.</p>
       <div class="chooser-grid" id="chooser-grid">
         <a class="hall" href="studyhall.html">Study Hall</a>
         <a class="hall" href="algebra.html">Algebra</a>
@@ -617,16 +600,14 @@
         <a class="hall" href="archive.html">Archive</a>
       </div>
       <p class="chooser-note" id="chooser-note" role="status" aria-live="polite"></p>
-      <label class="chooser-auto"><input type="checkbox" id="open-cloaked"> Open in a cloaked tab, so the address bar doesn’t show ChalkBored</label>
-      <label class="chooser-auto"><input type="checkbox" id="auto-open"> Open my page by itself next time</label>
-      <p class="chooser-foot">When it opens by itself, press Choose another page (or Esc) to come back to this list. Click outside this box to stay on the homepage.</p>
+      <label class="chooser-auto"><input type="checkbox" id="open-cloaked"> Open in a cloaked tab</label>
+      <label class="chooser-auto"><input type="checkbox" id="auto-open"> Open my page automatically</label>
     </div>
   </div>
 
   <div class="auto-bar" id="auto-bar" role="status" hidden>
     <span id="auto-bar-text">Opening your page…</span>
     <button type="button" id="auto-bar-stop">Choose another page</button>
-    </div>
   </div>
 
   <script>
@@ -716,11 +697,15 @@
         if (!html.includes('ChalkBored study notebook') && !html.includes('data-study-shell')) {
           throw new Error('Unexpected page');
         }
+        const here = new URL(location.href);
+        here.searchParams.set('open', dest);
+        history.replaceState(null, '', here.href);
         document.open();
         document.write(html);
         document.close();
       } catch (err) {
         openingPage = false;
+        dropOpen();
         flash.classList.remove('on');
         showChooser();
         setOpenNote(err && err.name === 'AbortError'
@@ -729,6 +714,14 @@
       } finally {
         clearTimeout(timer);
       }
+    }
+
+    // a page that failed, or a choice that isn't one of ours, leaves the address
+    function dropOpen() {
+      const here = new URL(location.href);
+      if (!here.searchParams.has('open')) return;
+      here.searchParams.delete('open');
+      history.replaceState(null, '', here.href);
     }
 
     function enterArcade(dest, label) {
@@ -800,7 +793,8 @@
         doc.body.style.margin = '0';
         doc.body.style.background = '#fff';
         const frame = doc.createElement('iframe');
-        const url = new URL(href, location.href);
+        const url = new URL(location.pathname, location.href);
+        url.searchParams.set('open', href);
         url.searchParams.set('blank', '1');
         frame.src = url.href;
         frame.title = 'ChalkBored';
@@ -841,6 +835,10 @@
       // auto-open: a short pause with a way out, then your page (homepage#pick always shows the list)
       let autoTimer = null;
       function startAuto() {
+        const asked = new URL(location.href).searchParams.get('open');
+        const hall = asked && halls.find((a) => a.getAttribute('href') === asked);
+        if (hall) { chooser.hidden = true; openPage(asked, hall.textContent.replace('Last opened', '').trim()); return; }
+        dropOpen();
         if (!auto.checked || !pinned || location.hash === '#pick') { showChooser(); return; }
         chooser.hidden = true;
         const label = pinned.textContent.replace('Last opened', '').trim();
