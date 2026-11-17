@@ -5930,6 +5930,13 @@
         html.tide-mono #settingsPage .settings-card-head > i { display: none !important; }
         html.tide-mono #settingsPage .settings-card-body { padding: 0 !important; }
         html.tide-mono #settingsPage .settings-engine-btn .engine-url { display: none !important; }
+        /* one "Test every server" button (it tests them all and switches to the fastest), like the standalone */
+        html.tide-mono #tideSrvTest, html.tide-mono #tideSrvReconnect, html.tide-mono #settingsPoolBenchmarkBtn,
+        html.tide-mono #settingsPoolBenchmarkStatus { display: none !important; }
+        html.tide-mono #tideSrvFastest { width: auto !important; padding: 8px 16px !important; border-radius: 8px !important; border: 1px solid var(--bd2) !important;
+            background: var(--bg2) !important; color: var(--tx) !important; font: inherit !important; font-size: 13px !important; gap: 8px; display: inline-flex !important; align-items: center; }
+        html.tide-mono #tideSrvFastest::after { content: "Test every server"; }
+        html.tide-mono #tideSrvFastest:hover { border-color: var(--ac) !important; }
         /* the server list stays; the round-robin heading and switch don't (the standalone has neither) */
         html.tide-mono #settingsPage .settings-card:has(#settingsPoolList) > .settings-card-head,
         html.tide-mono #settingsPage .settings-switch-row:has(#settingsPoolModeSwitch) { display: none !important; }
@@ -6742,7 +6749,7 @@
                                         <div class="settings-switch-row">
                                             <div>
                                                 <div class="settings-switch-label" id="tideSrvHost">…</div>
-                                                <div class="settings-hint" id="tideSrvState">Press Test to check how fast it answers.</div>
+                                                <div class="settings-hint" id="tideSrvState">Press Test every server to find the fastest.</div>
                                             </div>
                                             <div style="display:flex; gap:8px; flex-shrink:0;">
                                                 <button class="settings-btn-icon" id="tideSrvTest" title="Test this server"><i class="fas fa-stopwatch"></i></button>
@@ -19148,6 +19155,12 @@ _VIEWER_DL_JS +
                 const pg = e.currentTarget;
                 setTimeout(() => { if (getComputedStyle(pg).display !== 'none') showNewTab(); }, 300);   // nothing to go back to
             });
+            document.addEventListener('keydown', e => {
+                const pg = document.getElementById('settingsPage');
+                if (e.key !== 'Escape' || !document.documentElement.classList.contains('tide-mono') || getComputedStyle(pg).display === 'none') return;
+                $("back").click();
+                setTimeout(() => { if (getComputedStyle(pg).display !== 'none') showNewTab(); }, 300);
+            });
             function showSettingsPage(push = true, section = null) {
                 const settingsEl = $("settingsPage");
                 if (!settingsEl) return;
@@ -19535,7 +19548,7 @@ _VIEWER_DL_JS +
                     if (wispInput) wispInput.value = url;
                     paintServer('Switching…');
                     await applyWispUrl(url);
-                    paintServer(note || 'Switched. Press Test to check it.');
+                    paintServer(note || 'Switched.');
                     renderWispPoolList();
                 }
                 paintServer();
