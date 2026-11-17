@@ -451,6 +451,7 @@
   }
   .card:hover, .card-wrap.is-open .card { border-color: var(--accent); }
   .cards.settled .card { animation: none; }
+  .card-wrap:nth-child(n+17) .card { animation: none; }   /* off screen at first; animating them only costs memory */
   @keyframes deal { from { opacity: 0; transform: translateY(-14px); } }
 
   .thumb {
@@ -2081,7 +2082,8 @@
       namePics.set(key, pic);
       return pic;
     }
-    // names further down the list are drawn only when they're about to scroll into view
+    // names and cover pictures further down the list wait until they're about to scroll into view
+    // (the browser's own lazy loading fetches and keeps far more of them than that)
     const namesToDraw = new WeakMap();
     const nameWatch = 'IntersectionObserver' in window && new IntersectionObserver((seen) => seen.forEach((e) => {
       if (!e.isIntersecting) return;
@@ -2199,9 +2201,10 @@
         if (art) {
           const img = new Image();
           img.alt = '';
-          img.loading = 'lazy';
+          img.decoding = 'async';
           img.addEventListener('error', () => img.remove());   // a missing file keeps the initials
-          img.src = art.src;
+          if (nameWatch) { namesToDraw.set(img, () => { img.src = art.src; }); nameWatch.observe(img); }
+          else { img.loading = 'lazy'; img.src = art.src; }
           if (art.fit) img.style.objectFit = art.fit;
           if (art.pos) img.style.objectPosition = art.pos;   // which part of a cropped picture to keep
           if (art.pixel) img.style.imageRendering = 'pixelated';
