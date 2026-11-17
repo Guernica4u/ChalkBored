@@ -286,6 +286,10 @@
   /* the signed-in user, bottom-left */
   .user-wrap { position: relative; margin-top: auto; border-top: 1px solid var(--line); background: var(--panel-2); flex: none; }
   .user-panel { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
+  .voice-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .voice-bar[hidden] { display: none; }
+  .voice-bar .voice-label { flex: 1 1 100%; font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .voice-room { margin: 6px 8px; }
   .user-panel .avatar { width: 30px; height: 30px; font-size: 0.82rem; flex: none; }
   .user-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
   .user-meta b { font-size: 0.76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1168,6 +1172,7 @@
       <button class="mini" id="new-channel" type="button" title="Create a channel" hidden>+</button>
     </div>
     <div class="list" id="channels"></div>
+    <button class="mini voice-room" id="voice-room" type="button" hidden>Join voice</button>
 
     <div class="dm-side" id="dm-side" hidden>
       <div class="dm-side-head"><h2>Direct messages</h2></div>
@@ -1188,6 +1193,12 @@
     </div>
 
     <div class="user-wrap">
+      <div class="voice-bar" id="voice-bar" role="status" hidden>
+        <span class="voice-label" id="voice-label"></span>
+        <button class="mini" id="voice-mute" type="button">Mute</button>
+        <button class="mini" id="voice-leave" type="button">Leave</button>
+        <button class="mini danger" id="voice-end" type="button" hidden>End for everyone</button>
+      </div>
       <div class="user-panel">
         <span class="avatar" id="me-avatar" aria-hidden="true"></span>
         <span class="user-meta">
@@ -1202,6 +1213,7 @@
       </div>
       <div class="user-menu hide" id="user-menu" role="menu">
         <button class="link" id="open-reports" type="button" role="menuitem" hidden>Reports</button>
+        <button class="link" id="voice-calls" type="button" role="menuitem" hidden>Voice calls</button>
         <button class="link" id="mod-tools" type="button" role="menuitem" hidden>Ban or unban someone</button>
         <button class="link" id="sign-out" type="button" role="menuitem">Sign out</button>
       </div>
@@ -1226,6 +1238,7 @@
     <section class="home" id="home" hidden aria-label="Direct messages">
       <header class="home-head">
         <h1 id="dm-head-name">Direct messages</h1>
+        <button class="mini" id="dm-call" type="button" hidden>Call</button>
         <button class="mini" id="dm-block" type="button" hidden>Block</button>
       </header>
       <div class="home-wrap">
@@ -1394,6 +1407,7 @@
 <script src="vendor/supabase-js-2.117.1.js" integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz"></script>
 <script type="module">
 const { createClient } = window.supabase;
+import { createVoice } from './voice.js';
 
 /* ------------------------------------------------------------------ setup
    Paste your project's two public values here. Both are safe in a public
@@ -1797,6 +1811,8 @@ async function openRoom(room) {
   $('delete-room').hidden = !(state.me.is_mod || room.owner_id === state.me.id) || room.is_global;
   $('room-mods').hidden = !(state.me.is_mod || state.membership[room.id] === 'owner');
   paintRoomTools();
+  $('voice-room').hidden = room.is_global || !state.membership[room.id];
+  paintVoice();
   $('new-channel').hidden = !canAddChannel(room);
   paintRooms();
   await loadRoomBans();
@@ -2328,6 +2344,7 @@ function paintMe() {
   $('me-tag').hidden = !state.me.is_mod;
   avatarStyle($('me-avatar'), state.me.id, state.me.username, state.me.avatar);
   $('mod-tools').hidden = !state.me.is_mod;
+  $('voice-calls').hidden = !state.me.is_mod;
   $('open-reports').hidden = !runsSomething();
   paintClassHead();
   if (state.room) {
@@ -2919,7 +2936,7 @@ async function onMention(row) {
   showToast(text, async () => { await jumpTo(row.room_id, row.channel_id, row.message_id); markSeen([row.id]); });
 }
 
-function showToast(text, onOpen) {
+function showToast(text, onOpen, openLabel, ms) {
   const t = document.createElement('div');
   t.className = 'toast';
   t.setAttribute('role', 'status');
@@ -2931,12 +2948,12 @@ function showToast(text, onOpen) {
     const open = document.createElement('button');
     open.className = 'mini';
     open.type = 'button';
-    open.textContent = 'open';
+    open.textContent = openLabel || 'open';
     open.onclick = () => { t.remove(); onOpen(); };
     t.appendChild(open);
   }
   $('toasts').appendChild(t);
-  setTimeout(() => t.remove(), 8000);
+  setTimeout(() => t.remove(), ms || 8000);
 }
 
 // ------------------------------------------------------------------ your profile
@@ -3541,6 +3558,7 @@ function openBotThread() {
   state.dmTo = BOT;
   $('dm-head-name').textContent = BOT.username;
   $('dm-block').hidden = true;
+  $('dm-call').hidden = true;
   $('dm-text').disabled = true;
   $('dm-form').querySelector('button').disabled = true;
   $('dm-text').placeholder = 'Chalk Bot can’t read replies.';
@@ -3650,6 +3668,7 @@ function paintDmBlock() {
   if (p === BOT) return;   // Chalk Bot has its own box and no Block button
   const blocked = !!(p && state.dmBlocked.has(p.id));
   $('dm-block').hidden = !p;
+  $('dm-call').hidden = !p || blocked || !state.friends.has(p.id);
   $('dm-block').textContent = blocked ? 'Unblock' : 'Block';
   $('dm-text').disabled = !p || blocked;
   $('dm-form').querySelector('button').disabled = !p || blocked;
@@ -3694,6 +3713,125 @@ $('dm-form').addEventListener('submit', async (e) => {
   paintDmThread();
   paintDmList();
 });
+
+// ------------------------------------------------------------------ voice
+// Friend calls and class voice rooms (never Global). The database says who may
+// join and passes the link-up messages; voice.js links the mics.
+const voice = { key: null, v: null, label: '', beat: null, alone: null };
+const dmKey = (id) => 'd:' + [state.me.id, id].sort().join(':');
+
+async function iceServers() {
+  try {
+    const { data } = await db.functions.invoke('voice-ice');
+    if (data && Array.isArray(data.iceServers)) return data.iceServers;
+  } catch (e) {}
+  return [{ urls: 'stun:stun.cloudflare.com:3478' }];
+}
+
+async function joinVoice(key, label, ringTo) {
+  if (voice.key === key) return;
+  if (voice.key) await leaveVoice();
+  const v = createVoice({
+    me: state.me.id, iceServers: await iceServers(), onChange: paintVoice,
+    send: (to, kind, body) => db.rpc('voice_signal', { p_key: key, p_to: to, p_kind: kind, p_body: body }),
+  });
+  try { await v.start(); } catch (e) { showToast('Allow the microphone to use voice.'); return; }
+  const { data: why, error } = await db.rpc('voice_join', { p_key: key });
+  if (error || why) { v.stop(); showToast(error ? error.message : why); return; }
+  Object.assign(voice, { key, v, label });
+  const { data: who } = await db.rpc('voice_who', { p_key: key });
+  (who || []).filter((id) => id !== state.me.id).forEach((id) => v.call(id).catch(() => {}));
+  voice.beat = setInterval(() => db.rpc('voice_join', { p_key: key }), 20000);
+  if (ringTo) {
+    const { data: rang } = await db.rpc('voice_signal', { p_key: key, p_to: ringTo, p_kind: 'ring', p_body: null });
+    if (rang) showToast(rang);
+    voice.alone = setTimeout(() => {
+      if (voice.key === key && !v.connected().length) { leaveVoice(); showToast('No answer.'); }
+    }, 45000);
+  }
+  paintVoice();
+}
+
+async function leaveVoice(quiet) {
+  const { key, v } = voice;
+  if (!key) return;
+  clearInterval(voice.beat);
+  clearTimeout(voice.alone);
+  Object.assign(voice, { key: null, v: null, label: '' });
+  v.stop();
+  paintVoice();
+  if (!quiet) await db.rpc('voice_leave', { p_key: key });
+}
+
+function canEndVoice(key) {
+  if (state.me.is_mod) return true;
+  const room = key && key.startsWith('c:') && state.rooms.find((r) => 'c:' + r.id === key);
+  return !!room && canManage(room);
+}
+
+async function endVoice(key) {
+  if (!confirm('End this call for everyone in it?')) return;
+  const { data: why, error } = await db.rpc('voice_end', { p_key: key });
+  if (error || why) { showToast(error ? error.message : why); return; }
+  if (voice.key === key) leaveVoice(true);
+  showToast('Call ended.');
+}
+
+function paintVoice() {
+  const on = !!voice.key;
+  $('voice-bar').hidden = !on;
+  if (on) {
+    const n = voice.v.connected().length;
+    $('voice-label').textContent = voice.label + ' · ' + (n ? (n + 1) + ' in the call' : 'waiting for others…');
+    $('voice-mute').textContent = voice.v.muted ? 'Unmute' : 'Mute';
+    $('voice-end').hidden = !canEndVoice(voice.key);
+  }
+  $('voice-room').textContent = state.room && voice.key === 'c:' + state.room.id ? 'Leave voice' : 'Join voice';
+}
+
+$('voice-mute').onclick = () => { if (voice.v) voice.v.setMuted(!voice.v.muted); };
+$('voice-leave').onclick = () => leaveVoice();
+$('voice-end').onclick = () => endVoice(voice.key);
+$('voice-room').onclick = () => {
+  const key = 'c:' + state.room.id;
+  if (voice.key === key) leaveVoice(); else joinVoice(key, state.room.name + ' voice');
+};
+$('dm-call').onclick = () => {
+  const p = state.dmTo;
+  if (p && p.id) joinVoice(dmKey(p.id), 'Call with ' + p.username, p.id);
+};
+$('voice-calls').onclick = async () => {
+  const { data } = await db.rpc('voice_calls');
+  if (!data || !data.length) { showToast('No voice calls right now.'); return; }
+  const answer = await openForm({
+    title: 'Voice calls',
+    text: 'Ending a call disconnects everyone in it.',
+    fields: [{ key: 'key', label: 'Call', type: 'select',
+      options: data.map((c) => ({ value: c.room_key, label: c.label })) }],
+    submit: 'End call',
+  });
+  if (answer) endVoice(answer.key);
+};
+window.addEventListener('pagehide', () => { if (voice.key) leaveVoice(); });
+
+function watchVoice() {
+  db.channel('voice:' + state.me.id)
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'voice_signals', filter: 'to_id=eq.' + state.me.id },
+      async ({ new: s }) => {
+        if (s.kind === 'ring') {
+          if (voice.key === s.room_key) return;
+          const { data: from } = await db.from('profiles').select('username').eq('id', s.from_id).maybeSingle();
+          const who = (from && from.username) || 'A friend';
+          showToast(who + ' is calling you.', () => joinVoice(s.room_key, 'Call with ' + who), 'Answer', 30000);
+          return;
+        }
+        if (!voice.v || s.room_key !== voice.key) return;
+        if (s.kind === 'end') { leaveVoice(true); showToast('A mod ended the call.'); return; }
+        voice.v.signal(s.from_id, s.kind, s.body).catch(() => {});
+      })
+    .subscribe();
+}
 
 function watchDms() {
   if (state.dmFeed || !caps.dms) return;
@@ -3995,6 +4133,7 @@ async function start() {
   refreshMentionBadge();
   restorePeople();
   if (caps.dms) watchDms();
+  watchVoice();
   loadFriends();
   botHello();
   paintSettings();
