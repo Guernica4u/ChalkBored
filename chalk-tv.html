@@ -407,9 +407,8 @@ const choose = show;
 function start() {
   $("servers").hidden = true;
   if (currentSite) return openTide(currentSite);
-  const boot = BOOT_SITE;
-  const bootUrl = siteUrl(boot && boot.url);
-  if (bootUrl) return choose({ name: (boot.name || hostOf(bootUrl)), url: bootUrl });
+  /* the site list first: opening a streaming site straight away made Chalk TV ~580 MB at once,
+     enough for a Chromebook to kill the tab. BOOT_SITE is ready under the cursor instead. */
   openPicker(false);
 }
 function openPicker(canCancel) {
@@ -426,6 +425,7 @@ function openPicker(canCancel) {
     b.querySelector("small").textContent = url ? hostOf(url) : "Not set up yet";
     b.disabled = !url;
     if (url) b.onclick = () => choose({ name: (s.name || hostOf(url)), url });
+    if (url && url === siteUrl(BOOT_SITE && BOOT_SITE.url)) { b.classList.add("now"); setTimeout(() => b.focus(), 0); }
     list.appendChild(b);
   });
   $("pick-msg").textContent = "";
