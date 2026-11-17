@@ -18,6 +18,10 @@ if (window !== window.parent) {
   catch (e) { window.parent = window; }
 }
 </script>
+  <script>
+// the game sends you back to the menu unless it thinks it runs on YouTube; the engine reads this instead of the real address
+try { window.__fakeURL = new URLSearchParams(location.search).get('u') || 'https://www.youtube.com/playables/UgkxSupremeDuelist'; } catch (e) {}
+</script>
   <script src="ytgame.js" nonce="S-a_6RaCChDj2Rp8rU1UyQ">// Load YT Game API code</script>
   <script>
 // off YouTube nobody answers the helper's requests, so answer them here
