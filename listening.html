@@ -194,6 +194,8 @@
   #songs-head .x { color: var(--pencil); }
 
   .row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; border-radius: 8px; font-size: 0.85rem; }
+  /* long lists: rows out of sight aren't drawn, and their pictures aren't fetched */
+  .list .row { content-visibility: auto; contain-intrinsic-size: auto 48px; }
   .row:hover { background: var(--card); }
   #queue .row:hover { background: var(--paper-2); }
   .row.on { background: var(--highlight); }
@@ -263,17 +265,17 @@
     </div></div>
 
     <div id="seekbar">
-      <input id="seek" type="range" min="0" max="1000" value="0" title="Seek" aria-label="Seek">
+      <input id="seek" type="range" min="0" max="1000" value="0" title="Seek (Shift and an arrow: 10 seconds)" aria-label="Seek">
       <div id="times"><span id="at">0:00</span><span id="of">0:00</span></div>
     </div>
     <div id="controls">
       <button id="shuffle" type="button" title="Shuffle"><svg viewBox="0 0 16 16"><path d="M2 4.5h2.5c2.5 0 4 7 6.5 7H14M2 11.5h2.5c1 0 1.8-1 2.5-2.3M9 6.8c.6-1.3 1.2-2.3 2-2.3H14M12 2.5l2 2-2 2M12 9.5l2 2-2 2"/></svg></button>
-      <button id="prev" type="button" title="Previous"><svg viewBox="0 0 16 16"><path d="M4 3v10M13 3 6 8l7 5z"/></svg></button>
-      <button id="play" type="button" title="Play or pause"><svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></button>
-      <button id="next" type="button" title="Next"><svg viewBox="0 0 16 16"><path d="M12 3v10M3 3l7 5-7 5z"/></svg></button>
+      <button id="prev" type="button" title="Previous (Left arrow)"><svg viewBox="0 0 16 16"><path d="M4 3v10M13 3 6 8l7 5z"/></svg></button>
+      <button id="play" type="button" title="Play or pause (Space)"><svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></button>
+      <button id="next" type="button" title="Next (Right arrow)"><svg viewBox="0 0 16 16"><path d="M12 3v10M3 3l7 5-7 5z"/></svg></button>
       <button id="repeat" type="button" title="Repeat"></button>
     </div>
-    <div id="volrow"><span>&#128264;</span><input id="vol" type="range" min="0" max="100" value="90" title="Volume" aria-label="Volume"></div>
+    <div id="volrow"><span>&#128264;</span><input id="vol" type="range" min="0" max="100" value="90" title="Volume (Up and Down arrows, M to mute)" aria-label="Volume"></div>
 
     <button id="handle" type="button" title="Up next" aria-label="Up next"><svg viewBox="0 0 60 18"><path d="M4 14 30 4l26 10"/></svg></button>
 
@@ -1328,12 +1330,15 @@ $("seek").onchange = () => {
 };
 $("vol").value = S.vol;
 audio.volume = S.vol / 100;
-$("vol").oninput = () => {
-  S.vol = Number($("vol").value);
+let unmuted = 0;
+function setVol(v) {
+  S.vol = Math.max(0, Math.min(100, Math.round(v)));
+  $("vol").value = S.vol;
   audio.volume = S.vol / 100;
   if (yt && yt.setVolume) yt.setVolume(S.vol);
   save();
-};
+}
+$("vol").oninput = () => setVol(Number($("vol").value));
 audio.onplay = audio.onpause = playingChanged;
 audio.onplaying = () => { fails = 0; };   /* "play" comes even when the link then fails */
 audio.onended = () => { if (using === "file") ended(); };
@@ -1351,8 +1356,13 @@ document.addEventListener("keydown", e => {
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || document.querySelector(".veil")) return;
   if (e.key === " ") { e.preventDefault(); toggle(); }
+  else if (e.key === "ArrowRight" && e.shiftKey) { e.preventDefault(); engine.seek(engine.time() + 10); }
+  else if (e.key === "ArrowLeft" && e.shiftKey) { e.preventDefault(); engine.seek(Math.max(0, engine.time() - 10)); }
   else if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
   else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); setVol(S.vol + 5); }
+  else if (e.key === "ArrowDown") { e.preventDefault(); setVol(S.vol - 5); }
+  else if (e.key === "m" || e.key === "M") { if (S.vol) { unmuted = S.vol; setVol(0); } else setVol(unmuted || 90); }
   else if (e.key === "/") { e.preventDefault(); $("q").focus({ preventScroll: true }); }
   else if (e.key === "Escape") { openQueue(false); closeSide(); closeMenu(); }
 });
@@ -1362,6 +1372,7 @@ if ("mediaSession" in navigator) {
   h("pause", () => engine.pause());
   h("nexttrack", () => step(1));
   h("previoustrack", () => step(-1));
+  h("seekto", d => engine.seek(d.seekTime));
 }
 
 /* nothing here scrolls; a box getting focus mustn't push the page up */
