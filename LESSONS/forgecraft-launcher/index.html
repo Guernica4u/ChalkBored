@@ -5,52 +5,155 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lesson</title>
 <style>
-  :root { color-scheme: dark; }
-  html, body { margin: 0; min-height: 100%; background: #14171c; color: #e6e8eb; font: 16px/1.4 system-ui, sans-serif; }
-  main { max-width: 520px; margin: 0 auto; padding: 32px 16px; }
-  h1 { font-size: 22px; margin: 0 0 16px; }
+  :root { color-scheme: dark; --bg: #14171c; --card: #1c2027; --line: #2c323b; --dim: #9aa3ae; --accent: #6aa7ff; --ok: #5fd08a; --bad: #ff7a7a; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: #e6e8eb; font: 16px/1.4 system-ui, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 28px 16px 40px; }
+  h1 { font-size: 22px; margin: 0 0 14px; }
+  h2 { font-size: 15px; margin: 26px 0 10px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  #continue { width: 100%; padding: 14px 16px; margin-bottom: 14px; border: 0; border-radius: 10px; background: var(--accent); color: #0b1220; font-weight: 700; font-size: 17px; }
+  #continue[hidden] { display: none; }
   .list { display: grid; gap: 10px; }
-  button.v { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
-    padding: 14px 16px; border: 1px solid #2c323b; border-radius: 10px; background: #1c2027; color: inherit;
-    font: inherit; text-align: left; cursor: pointer; }
-  button.v:hover, button.v:focus-visible { border-color: #6aa7ff; background: #222833; outline: none; }
+  .v { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; width: 100%; padding: 12px 16px; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--card); text-align: left; }
+  .v:hover, .v:focus-visible { border-color: var(--accent); background: #222833; outline: none; }
   .v b { font-size: 18px; }
-  .v span { color: #9aa3ae; font-size: 14px; }
-  .relay { margin-top: 24px; padding: 14px 16px; border: 1px solid #2c323b; border-radius: 10px; }
-  .relay label { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
-  .relay input { width: 20px; height: 20px; }
-  .relay p { margin: 8px 0 0; color: #9aa3ae; font-size: 14px; }
+  .v .tag { justify-self: end; align-self: center; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: #2a3342; color: #cfe0ff; }
+  .v .tag:empty { display: none; }
+  .v small { grid-column: 1 / -1; color: var(--dim); font-size: 14px; }
+  .v.off { opacity: .55; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .seg label { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; }
+  .seg input { margin: 0 6px 0 0; }
+  .seg label:has(input:checked) { border-color: var(--accent); }
+  .seg small { display: block; color: var(--dim); font-size: 13px; margin-top: 2px; }
+  ul.status { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; }
+  ul.status li { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .dim { color: var(--dim); }
+  #hint { margin: 10px 0 0; font-size: 14px; }
+  #hint button { margin-left: 6px; padding: 2px 10px; border: 1px solid var(--accent); border-radius: 8px; background: none; color: var(--accent); }
+  #retest { margin-top: 8px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 8px; background: none; color: var(--dim); font-size: 13px; }
+  p.note { color: var(--dim); font-size: 14px; margin: 10px 0 0; }
 </style>
 </head>
 <body>
 <main>
   <h1>Pick a version</h1>
-  <div class="list">
-    <button class="v" data-go="../forgecraft.html"><b>1.8</b><span>fast</span></button>
-    <button class="v" data-go="../forgecraft.1.12.html"><b>1.12</b><span>fast</span></button>
-    <button class="v" data-go="../forgecraft-26.3/index.html"><b>26.3</b><span>big download</span></button>
-    <button class="v" data-go="../forgecraft-26.2/index.html"><b>26.2</b><span>big download</span></button>
-    <button class="v" data-go="../forgecraft.1.5.html"><b>1.5.2</b><span>slow on Chromebooks</span></button>
+  <button id="continue" hidden></button>
+  <div class="list" id="list"></div>
+
+  <h2>Shared worlds</h2>
+  <div class="seg">
+    <label><input type="radio" name="relay" value="0">Normal<small>Each version's own relay</small></label>
+    <label><input type="radio" name="relay" value="1">Backup<small>Through this site first</small></label>
   </div>
-  <div class="relay">
-    <label><input type="checkbox" id="backup"> Backup relay</label>
-    <p>For shared (LAN) worlds. Turn this on if hosting or joining a shared world doesn't work.
-      It reaches the same main relay through this site's own address, with another relay as a spare.
-      Turn it on before you open the version. If joining still fails, both players turn it on.</p>
-  </div>
+  <ul class="status" id="status"></ul>
+  <p id="hint"></p>
+  <button id="retest">Test again</button>
+  <p class="note">The relay only connects players; the world itself then goes straight between the two computers.
+    Pick this before you open a version. If joining fails, both players pick Backup.</p>
 </main>
 <script>
-  const KEY = 'cb-backup-relay';
-  const box = document.getElementById('backup');
-  try { box.checked = localStorage.getItem(KEY) === '1'; } catch (e) {}
-  box.addEventListener('change', () => {
-    try {
-      localStorage.setItem(KEY, box.checked ? '1' : '0');
-      // the builds keep their own saved relay list, which beats the one passed in; clear it so the switch takes effect
-      for (const k of Object.keys(localStorage)) if (/^_eaglercraft.*\.r$/.test(k)) localStorage.removeItem(k);
-    } catch (e) {}
+  const VERSIONS = [
+    { id: '1.8', go: '../forgecraft.html', wasm: true, tag: 'Best on Chromebooks', info: 'Fast to load and play. 17 MB.' },
+    { id: '1.12', go: '../forgecraft.1.12.html', wasm: true, tag: 'Fast', info: 'More blocks and mobs. 23 MB.' },
+    { id: '26.3', go: '../forgecraft-26.3/index.html', wasm: true, tag: 'Newest', info: 'Big first download (about 78 MB).' },
+    { id: '26.2', go: '../forgecraft-26.2/index.html', wasm: true, tag: '', info: 'Big first download (about 76 MB).' },
+    { id: '1.5.2', go: '../forgecraft.1.5.html', wasm: false, tag: 'Slow', info: 'Older version. Runs on any browser but slow on Chromebooks. 24 MB.' }
+  ];
+  const RELAYS = [
+    { name: 'Main relay', url: 'wss://relay.eaglercraft.net/' },
+    { name: 'Main relay through this site', url: 'wss://chalkbored.guernica4u.workers.dev/lessons-sync' },
+    { name: 'Spare relay', url: 'wss://relay.shhnowisnottheti.me/' }
+  ];
+  const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const set = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+  // the fast versions need WebAssembly GC (Chrome 119+); this is the smallest module that uses it
+  let gc = false;
+  try { gc = WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 3, 1, 0x5f, 0])); } catch (e) {}
+
+  const open = (v) => { set('cb-forge-last', v.id); location.href = v.go; };
+  const list = document.getElementById('list');
+  for (const v of VERSIONS) {
+    const b = document.createElement('button');
+    b.className = 'v' + (v.wasm && !gc ? ' off' : '');
+    b.innerHTML = '<b></b><span class="tag"></span><small></small>';
+    b.querySelector('b').textContent = v.id;
+    b.querySelector('.tag').textContent = v.wasm && !gc ? "Won't run here" : (!gc && !v.wasm ? 'Use this one' : v.tag);
+    b.querySelector('small').textContent = v.wasm && !gc ? 'This browser is too old for it. Try 1.5.2, or update the browser.' : v.info;
+    b.addEventListener('click', () => open(v));
+    list.appendChild(b);
+  }
+  const last = VERSIONS.find((v) => v.id === get('cb-forge-last'));
+  if (last && (gc || !last.wasm)) {
+    const c = document.getElementById('continue');
+    c.textContent = 'Continue with ' + last.id;
+    c.hidden = false;
+    c.addEventListener('click', () => open(last));
+  }
+
+  const radios = [...document.querySelectorAll('input[name=relay]')];
+  const setRelay = (on) => {
+    set('cb-backup-relay', on ? '1' : '0');
+    radios.forEach((r) => { r.checked = r.value === (on ? '1' : '0'); });
+    // the versions keep their own saved relay list, which beats the one passed in; clear it so the choice takes effect
+    try { for (const k of Object.keys(localStorage)) if (/^_eaglercraft.*\.r$/.test(k)) localStorage.removeItem(k); } catch (e) {}
+    showHint();
+  };
+  radios.forEach((r) => { r.checked = r.value === (get('cb-backup-relay') === '1' ? '1' : '0'); r.addEventListener('change', () => setRelay(r.value === '1')); });
+
+  // a relay counts as working if a websocket to it opens within 5 seconds
+  const ping = (url) => new Promise((res) => {
+    const t0 = performance.now();
+    let ws;
+    const done = (ms) => { clearTimeout(timer); try { ws.close(); } catch (e) {} res(ms); };
+    const timer = setTimeout(() => done(null), 5000);
+    try { ws = new WebSocket(url); } catch (e) { return done(null); }
+    ws.onopen = () => done(Math.round(performance.now() - t0));
+    ws.onerror = () => done(null);
   });
-  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { location.href = b.dataset.go; }));
+  let results = [];
+  const status = document.getElementById('status');
+  const hint = document.getElementById('hint');
+  function showHint() {
+    hint.textContent = '';
+    if (results.length < RELAYS.length) return;
+    const [main, site, spare] = results;
+    const backup = get('cb-backup-relay') === '1';
+    let msg = '', fix = null;
+    if (main == null && site == null && spare == null) msg = "This network blocks every relay, so shared worlds won't work here. Single player still works.";
+    else if (main == null && !backup) { msg = 'This network blocks the main relay. Backup should get around it.'; fix = true; }
+    else if (main == null) msg = 'This network blocks the main relay. Backup is on, so you go around it.';
+    else msg = 'Relays are reachable. If a friend still can’t join, your network may block the direct link between computers.';
+    hint.textContent = msg;
+    if (fix) {
+      const b = document.createElement('button');
+      b.textContent = 'Use Backup';
+      b.addEventListener('click', () => setRelay(true));
+      hint.appendChild(b);
+    }
+  }
+  async function test() {
+    results = [];
+    status.innerHTML = '';
+    const rows = RELAYS.map((r) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span></span><span class="dim">testing…</span>';
+      li.firstChild.textContent = r.name;
+      status.appendChild(li);
+      return li.lastChild;
+    });
+    showHint();
+    results = await Promise.all(RELAYS.map((r, i) => ping(r.url).then((ms) => {
+      rows[i].className = ms == null ? 'bad' : 'ok';
+      rows[i].textContent = ms == null ? 'not reachable' : 'working · ' + ms + ' ms';
+      return ms;
+    })));
+    showHint();
+  }
+  document.getElementById('retest').addEventListener('click', test);
+  test();
 </script>
 </body>
 </html>
