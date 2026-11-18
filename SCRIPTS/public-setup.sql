@@ -510,6 +510,7 @@ begin
   insert into rooms (name, is_private, owner_id) values (btrim(p_name), true, auth.uid()) returning id into new_id;
   insert into room_members (room_id, user_id, role) values (new_id, auth.uid(), 'owner');
   insert into channels (room_id, name, created_by) values (new_id, 'general', auth.uid());
+  insert into channels (room_id, name, kind, created_by) values (new_id, 'voice', 'voice', auth.uid());
   return new_id;
 end; $$;
 
@@ -585,14 +586,6 @@ begin
   return null;
 end; $$;
 
--- Owners, class mods and site mods turn links on or off for one channel.
-create or replace function public.set_channel_links(p_channel uuid, p_allow boolean)
-returns text language plpgsql security definer set search_path = public, extensions as $$
-begin
-  if not can_manage_room(channel_room(p_channel)) then return 'Only the people who run this class can do that.'; end if;
-  update channels set allow_links = coalesce(p_allow, false) where id = p_channel;
-  return null;
-end; $$;
 
 create or replace function public.check_name()
 returns trigger language plpgsql security definer set search_path = public, extensions as $$
@@ -664,13 +657,14 @@ end; $$;
 drop function if exists public.send_message(uuid, text);
 create or replace function public.send_message(p_channel uuid, p_body text, p_reply_to bigint default null)
 returns text language plpgsql security definer set search_path = public, extensions as $$
-declare me profiles; ch channels; v_body text := btrim(coalesce(p_body, '')); why text; glob boolean;
+declare me profiles; ch channels; v_body text := btrim(coalesce(p_body, '')); why text; glob boolean; runs boolean;
 begin
   if auth.uid() is null then return 'Sign in first.'; end if;
   select * into me from profiles where id = auth.uid();
   if me.id is null or me.banned then return 'Your account is banned.'; end if;
   select * into ch from channels where id = p_channel;
   if ch.id is null then return 'That channel is gone.'; end if;
+  if ch.kind <> 'text' then return 'That''s a voice channel.'; end if;
   select is_global into glob from rooms where id = ch.room_id;
   if glob and not me.is_mod then return 'Only mods post in Global. Add friends to talk with them.'; end if;
   if not me.is_mod and not exists (select 1 from room_members where room_id = ch.room_id and user_id = me.id) then
@@ -679,7 +673,16 @@ begin
   if char_length(v_body) = 0 then return null; end if;
   if char_length(v_body) > 500 then return 'Messages max out at 500 characters.'; end if;
 
-  why := check_post(me, v_body, ch.room_id, ch.allow_links or can_manage_room(ch.room_id), 'room');
+  runs := can_manage_room(ch.room_id);
+  if ch.post_role = 'mods' and not runs then return 'Only the people who run this class can post here.'; end if;
+  if ch.slow_seconds > 0 and not runs and exists (
+    select 1 from messages where channel_id = p_channel and user_id = me.id
+      and created_at > now() - make_interval(secs => ch.slow_seconds)
+  ) then
+    return 'Slow mode: one message every ' || ch.slow_seconds || ' seconds here.';
+  end if;
+
+  why := check_post(me, v_body, ch.room_id, ch.allow_links or runs, 'room');
   if why is not null then return why; end if;
 
   if p_reply_to is not null and not exists (select 1 from messages where id = p_reply_to and channel_id = p_channel) then
@@ -996,10 +999,6 @@ create policy invites_cancel on public.room_invites for delete to authenticated
 
 drop policy if exists channels_read on public.channels;
 create policy channels_read on public.channels for select to authenticated using (can_read_room(room_id));
-drop policy if exists channels_create on public.channels;
-create policy channels_create on public.channels for insert to authenticated
-  with check (not is_banned() and created_by = auth.uid() and not allow_links and
-              case when (select is_global from rooms r where r.id = room_id) then is_site_mod() else can_manage_room(room_id) end);
 drop policy if exists channels_delete on public.channels;
 create policy channels_delete on public.channels for delete to authenticated using (can_manage_room(room_id));
 
@@ -1050,14 +1049,13 @@ grant select on public.profiles, public.rooms, public.room_members, public.room_
   public.messages, public.reports, public.mentions, public.room_bans, public.dm_messages, public.dm_blocks,
   public.friendships to authenticated;
 grant delete on public.rooms, public.room_members, public.room_invites, public.channels, public.messages to authenticated;
-grant insert on public.channels to authenticated;
 
 grant execute on function
   public.can_manage_room(uuid), public.can_read_room(uuid), public.channel_room(uuid),
   public.is_banned(uuid), public.is_site_mod(uuid),
   public.create_room(text, boolean, text), public.invite_to_room(uuid, uuid), public.my_invites(),
   public.answer_invite(uuid, boolean), public.set_room_role(uuid, text, text), public.set_room_banned(uuid, uuid, boolean),
-  public.set_channel_links(uuid, boolean), public.send_message(uuid, text, bigint), public.send_dm(uuid, text),
+  public.send_message(uuid, text, bigint), public.send_dm(uuid, text),
   public.mark_dms_read(uuid), public.set_dm_blocked(uuid, boolean), public.save_profile(text, text, text),
   public.report_message(bigint, text), public.report_dm(bigint, text), public.report_body(bigint),
   public.resolve_report(bigint, text), public.mark_mentions_seen(bigint[]), public.set_banned(text, boolean),
@@ -1113,7 +1111,7 @@ end $$;
 -- Timed-out and banned accounts can't join.
 
 create table if not exists public.voice_members (
-  room_key text not null check (room_key ~ '^(c:[0-9a-f-]{36}|d:[0-9a-f-]{36}:[0-9a-f-]{36})$'),
+  room_key text not null check (room_key ~ '^(v:[0-9a-f-]{36}|d:[0-9a-f-]{36}:[0-9a-f-]{36})$'),
   user_id  uuid not null references public.profiles on delete cascade,
   seen_at  timestamptz not null default now(),
   primary key (room_key, user_id)
@@ -1141,9 +1139,10 @@ returns boolean language plpgsql stable security definer set search_path = publi
 declare a uuid; b uuid; r uuid;
 begin
   if uid is null or is_banned(uid) then return false; end if;
-  if p_key ~ '^c:[0-9a-f-]{36}$' then
-    r := substr(p_key, 3)::uuid;
-    return exists (select 1 from rooms where id = r and not is_global)
+  if p_key ~ '^v:[0-9a-f-]{36}$' then
+    select c.room_id into r from channels c join rooms g on g.id = c.room_id
+     where c.id = substr(p_key, 3)::uuid and c.kind = 'voice' and not g.is_global;
+    return r is not null
        and exists (select 1 from room_members where room_id = r and user_id = uid)
        and not exists (select 1 from room_bans where room_id = r and user_id = uid);
   elsif p_key ~ '^d:[0-9a-f-]{36}:[0-9a-f-]{36}$' then
@@ -1159,19 +1158,20 @@ end; $$;
 -- silent for a minute drops out). One call at a time. Returns null or a reason.
 create or replace function public.voice_join(p_key text)
 returns text language plpgsql security definer set search_path = public, extensions as $$
-declare me profiles; cap int := case when p_key like 'd:%' then 2 else 6 end;
+declare me profiles; cap int := 2;
 begin
   select * into me from profiles where id = auth.uid();
   if me.id is null or me.banned then return 'Your account is banned.'; end if;
   if me.muted_until > now() then return 'You''re timed out, so you can''t join voice for now.'; end if;
   if not voice_allowed(p_key) then return 'You can''t join this call.'; end if;
+  if p_key like 'v:%' then select user_limit into cap from channels where id = substr(p_key, 3)::uuid; end if;
   perform pg_advisory_xact_lock(hashtext(p_key));   -- two people taking the last place at once
   delete from voice_members where seen_at < now() - interval '60 seconds';
   update voice_members set seen_at = now() where room_key = p_key and user_id = me.id;
   if found then return null; end if;
   delete from voice_members where user_id = me.id;
   if (select count(*) from voice_members where room_key = p_key) >= cap then
-    return 'This call is full (' || cap || ' people).';
+    return 'This channel is full (' || cap || ' people).';
   end if;
   insert into voice_members (room_key, user_id) values (p_key, me.id);
   return null;
@@ -1223,7 +1223,7 @@ end; $$;
 create or replace function public.voice_end(p_key text)
 returns text language plpgsql security definer set search_path = public, extensions as $$
 begin
-  if not (is_site_mod() or (p_key ~ '^c:[0-9a-f-]{36}$' and can_manage_room(substr(p_key, 3)::uuid))) then
+  if not (is_site_mod() or (p_key ~ '^v:[0-9a-f-]{36}$' and can_manage_room(channel_room(substr(p_key, 3)::uuid)))) then
     return 'Only mods can end this call.';
   end if;
   insert into voice_signals (room_key, from_id, to_id, kind)
@@ -1237,7 +1237,7 @@ create or replace function public.voice_calls()
 returns table (room_key text, label text, people int)
 language sql stable security definer set search_path = public, extensions as $$
   select v.room_key,
-         coalesce((select 'Class: ' || r.name from rooms r where v.room_key = 'c:' || r.id), 'Call')
+         coalesce((select r.name || ' / ' || c.name from channels c join rooms r on r.id = c.room_id where v.room_key = 'v:' || c.id), 'Call')
            || ' (' || string_agg(p.username::text, ', ' order by p.username) || ')',
          count(*)::int
     from voice_members v join profiles p on p.id = v.user_id
@@ -1256,3 +1256,123 @@ begin
   alter publication supabase_realtime add table public.voice_signals;
 exception when duplicate_object then null;
 end $$;
+
+-- ================================================================ Channels
+-- Text and voice channels. Text channels have a topic, who can post, slow mode
+-- and links; voice channels have a user limit (6 at most, because every person
+-- links directly to every other). Only the people who run a class change them,
+-- through save_channel().
+
+alter table public.channels add column if not exists kind text not null default 'text';
+alter table public.channels add column if not exists topic text;
+alter table public.channels add column if not exists post_role text not null default 'everyone';
+alter table public.channels add column if not exists slow_seconds int not null default 0;
+alter table public.channels add column if not exists user_limit int not null default 6;
+alter table public.channels drop constraint if exists channels_kind_check;
+alter table public.channels add constraint channels_kind_check check (kind in ('text', 'voice'));
+alter table public.channels drop constraint if exists channels_topic_check;
+alter table public.channels add constraint channels_topic_check check (topic is null or char_length(topic) <= 160);
+alter table public.channels drop constraint if exists channels_post_role_check;
+alter table public.channels add constraint channels_post_role_check check (post_role in ('everyone', 'mods'));
+alter table public.channels drop constraint if exists channels_slow_check;
+alter table public.channels add constraint channels_slow_check check (slow_seconds in (0, 5, 10, 30, 60, 300));
+alter table public.channels drop constraint if exists channels_limit_check;
+alter table public.channels add constraint channels_limit_check check (user_limit between 2 and 6);
+
+-- voice now lives in voice channels ('v:<channel id>') instead of one room per class
+delete from public.voice_members where room_key like 'c:%';
+alter table public.voice_members drop constraint if exists voice_members_room_key_check;
+alter table public.voice_members add constraint voice_members_room_key_check
+  check (room_key ~ '^(v:[0-9a-f-]{36}|d:[0-9a-f-]{36}:[0-9a-f-]{36})$');
+
+-- channels are only made through save_channel
+drop policy if exists channels_create on public.channels;
+revoke insert on public.channels from authenticated;
+drop function if exists public.set_channel_links(uuid, boolean);
+
+-- every class has a voice channel to start with
+insert into public.channels (room_id, name, kind)
+select r.id, 'voice', 'voice' from public.rooms r
+ where not r.is_global and not exists (select 1 from public.channels c where c.room_id = r.id and c.kind = 'voice')
+on conflict do nothing;
+
+-- Make a channel (p_channel null) or change one. Returns null or a reason.
+create or replace function public.save_channel(p_room uuid, p_channel uuid, p_name text, p_kind text, p_category text,
+  p_topic text, p_post_role text, p_slow int, p_links boolean, p_limit int)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_name  text := lower(regexp_replace(btrim(coalesce(p_name, '')), '\s+', '-', 'g'));
+  v_cat   text := coalesce(nullif(btrim(coalesce(p_category, '')), ''), 'General');
+  v_topic text := nullif(btrim(coalesce(p_topic, '')), '');
+  v_role  text := coalesce(p_post_role, 'everyone');
+  v_slow  int  := coalesce(p_slow, 0);
+  v_limit int  := coalesce(p_limit, 6);
+  ch channels; glob boolean;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if is_banned() then return 'Your account is banned.'; end if;
+  if p_channel is not null then
+    select * into ch from channels where id = p_channel;
+    if ch.id is null then return 'That channel is gone.'; end if;
+    p_room := ch.room_id;
+    p_kind := ch.kind;
+  end if;
+  select is_global into glob from rooms where id = p_room;
+  if glob is null then return 'That class is gone.'; end if;
+  if not can_manage_room(p_room) then return 'Only the people who run this class can do that.'; end if;
+  if coalesce(p_kind, '') not in ('text', 'voice') then return 'Pick text or voice.'; end if;
+  if glob and p_kind = 'voice' then return 'Global has no voice channels.'; end if;
+  if char_length(v_name) not between 1 and 30 then return 'Channel names are 1-30 characters.'; end if;
+  if char_length(v_cat) > 24 then return 'Categories max out at 24 characters.'; end if;
+  if char_length(v_topic) > 160 then return 'Topics max out at 160 characters.'; end if;
+  if v_role not in ('everyone', 'mods') then return 'Pick who can post.'; end if;
+  if v_slow not in (0, 5, 10, 30, 60, 300) then return 'Pick a slow mode from the list.'; end if;
+  if v_limit not between 2 and 6 then return 'Voice channels hold 2 to 6 people.'; end if;
+  if not is_site_mod() and v_topic is not null and (has_blocked_word(v_topic) or has_link(v_topic)) then
+    return 'That topic isn''t allowed.';
+  end if;
+  if exists (select 1 from channels where room_id = p_room and name = v_name and id is distinct from p_channel) then
+    return 'There''s already a channel with that name.';
+  end if;
+  if p_channel is null then
+    if (select count(*) from channels where room_id = p_room) >= 30 then return 'A class can have 30 channels.'; end if;
+    insert into channels (room_id, name, kind, category, topic, post_role, slow_seconds, allow_links, user_limit, created_by)
+    values (p_room, v_name, p_kind, v_cat, v_topic, v_role, v_slow, coalesce(p_links, false), v_limit, auth.uid());
+  else
+    update channels set name = v_name, category = v_cat, topic = v_topic, post_role = v_role, slow_seconds = v_slow,
+                        allow_links = coalesce(p_links, false), user_limit = v_limit
+     where id = p_channel;
+  end if;
+  return null;
+exception when raise_exception then
+  return sqlerrm;   -- the blocked-words check on names
+end; $$;
+
+-- Deleting a voice channel hangs up everyone in it.
+create or replace function public.end_channel_voice()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  insert into voice_signals (room_key, from_id, to_id, kind)
+  select 'v:' || old.id, user_id, user_id, 'end' from voice_members where room_key = 'v:' || old.id;
+  delete from voice_members where room_key = 'v:' || old.id;
+  return old;
+end; $$;
+drop trigger if exists channels_end_voice on public.channels;
+create trigger channels_end_voice before delete on public.channels
+  for each row execute function public.end_channel_voice();
+
+-- Who's in each voice channel of a class you're in.
+create or replace function public.voice_room_people(p_room uuid)
+returns table (channel_id uuid, user_id uuid, username text, avatar text)
+language sql stable security definer set search_path = public, extensions as $$
+  select c.id, v.user_id, p.username::text, p.avatar
+    from channels c join voice_members v on v.room_key = 'v:' || c.id join profiles p on p.id = v.user_id
+   where c.room_id = p_room and c.kind = 'voice' and can_read_room(p_room)
+     and v.seen_at > now() - interval '60 seconds' and not p.banned
+   order by p.username;
+$$;
+
+revoke execute on function public.end_channel_voice() from public, anon, authenticated;
+revoke execute on function public.voice_allowed(text, uuid) from public, anon, authenticated;
+grant execute on function public.save_channel(uuid, uuid, text, text, text, text, text, int, boolean, int),
+  public.voice_room_people(uuid) to authenticated;
