@@ -245,6 +245,27 @@
     .cp-nav h2 { display: none; }
     .cp-main { padding: 16px; }
   }
+  .channel.unread { color: var(--ink); font-weight: 700; }
+  .channel .chan-dot { width: 7px; height: 7px; flex: none; margin-left: auto; background: var(--ink); border-radius: 1px; }
+  .channel .chan-dot ~ .chan-tool.first { margin-left: 4px; }
+  .server { position: relative; }
+  .server .rail-dot { position: absolute; top: 2px; right: 10px; width: 9px; height: 9px; background: var(--ink); border: 2px solid var(--rail-bg); border-radius: 2px; }
+  .msg-mark { margin-left: 6px; font-size: 0.6rem; color: var(--muted); }
+  .reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .reactions:empty { display: none; }
+  .reaction { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--muted); font: inherit; font-size: 0.68rem; cursor: pointer; }
+  .reaction:hover, .reaction:focus-visible { border-color: var(--accent-dim); outline: none; }
+  .reaction.on { border-color: var(--accent); color: var(--ink); }
+  .ctx.react-pick { display: flex; gap: 2px; min-width: 0; padding: 4px; }
+  .ctx.react-pick.hide { display: none; }
+  .ctx.react-pick button { width: 32px; padding: 4px 0; text-align: center; font-size: 1rem; }
+  .msg-edit { display: block; width: 100%; padding: 6px 8px; background: var(--panel-2); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm); color: var(--ink); font: inherit; }
+  .msg-edit-hint { margin-top: 3px; font-size: 0.6rem; color: var(--muted); }
+  .pin-row { display: block; width: 100%; padding: 8px 4px; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); font: inherit; font-size: 0.76rem; text-align: left; cursor: pointer; }
+  .pin-row:hover, .pin-row:focus-visible { background: var(--hover); outline: none; }
+  .pin-row b { display: block; font-size: 0.66rem; color: var(--muted); }
+  .veil.pop { background: transparent; padding: 0; }
+  .veil.pop .person-card { position: fixed; left: var(--pop-x, 40px); top: var(--pop-y, 40px); width: min(320px, calc(100vw - 16px)); max-height: min(520px, calc(100vh - 16px)); border: 1px solid var(--line); box-shadow: var(--shadow); }
   .voice-people { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px 30px; }
   .voice-person { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.72rem; color: var(--muted); }
   .voice-person .avatar { width: 20px; height: 20px; flex: none; }
@@ -920,9 +941,6 @@
 
   /* ---------------- settings ---------------- */
 
-  .set-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
-  .set-rows.first { margin-top: 0; padding-top: 0; border-top: 0; }
-  .set-rows .link { text-align: left; padding: 6px 2px; }
 
   /* ---------------- picking a banner ---------------- */
 
@@ -1035,6 +1053,9 @@
   <symbol id="pfp-13" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.2 L14.1 6.1 l3.8 3.8 L6.8 21 H3 Z M15.6 4.6 l1.8 -1.8 3.8 3.8 -1.8 1.8 Z"/></symbol>
 
   <symbol id="ic-voice" viewBox="0 0 24 24"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></symbol>
+  <symbol id="ic-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></symbol>
+  <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol>
+  <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3v2H7v-2l3-3zM12 15v6"/></symbol>
   <symbol id="ic-chev-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
   <symbol id="ic-chev-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="ic-reply" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a6 6 0 0 1 6 6v1"/></symbol>
@@ -1121,6 +1142,7 @@
         <span class="topic" id="channel-topic"></span>
       </div>
       <span class="spacer"></span>
+      <button class="mini" id="pins-btn" type="button" hidden>Pins</button>
       <span class="presence"><span class="dot"></span><span id="online">—</span></span>
       <button class="members-btn" id="members-btn" type="button" aria-controls="people" aria-expanded="false" title="Show members" aria-label="Show members">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-left"></use></svg>
@@ -1249,12 +1271,10 @@
   </div>
 </div>
 
-<div class="veil hide" id="settings-veil">
-  <div class="card" role="dialog" aria-labelledby="settings-title">
-    <div class="rp-head"><h3 id="settings-title">Settings</h3><button class="mini" id="settings-close" type="button">close</button></div>
-    <div class="set-rows first">
-      <button class="link" id="set-profile" type="button">Edit your profile</button>
-    </div>
+<div class="veil hide" id="pins-veil">
+  <div class="card wide" role="dialog" aria-labelledby="pins-title">
+    <div class="rp-head"><h3 id="pins-title">Pinned messages</h3><button class="mini" id="pins-close" type="button">close</button></div>
+    <div id="pins-list"></div>
   </div>
 </div>
 
@@ -1316,7 +1336,7 @@ const $ = (id) => document.getElementById(id);
 const state = {
   me: null, rooms: [], room: null, channels: [], channel: null, membership: {}, feed: null,
   members: [], everyone: [], online: new Set(), peopleScope: 'room', unseen: 0, mentionsReady: true,
-  reply: null, bans: new Set(), voicePeople: new Map(), pickWho: null, dmTo: null, dmRows: [], dmFeed: null, dmBlocked: new Set(),
+  reply: null, bans: new Set(), voicePeople: new Map(), unread: new Map(), pickWho: null, dmTo: null, dmRows: [], dmFeed: null, dmBlocked: new Set(),
   closedCats: new Set(), profSym: 0, profColor: 0, profBanner: 0, messageById: new Map(), dmThread: [],
   homeOn: false, friends: new Set(), friendIn: new Set(), friendOut: new Set(), pfWho: null,
   pickMode: 'ban',
@@ -1627,6 +1647,11 @@ function paintRooms() {
     name.textContent = room.name;
 
     btn.append(pill, ini, name);
+    if ([...state.unread.entries()].some(([id, r]) => r === room.id && !(state.channel && state.channel.id === id))) {
+      const dot = make('span', 'rail-dot');
+      dot.title = 'New messages';
+      btn.appendChild(dot);
+    }
     // the class you're already in: its icon opens its settings
     btn.onclick = () => (state.room && state.room.id === room.id && !state.homeOn ? openClassPage() : openRoom(room));
     wrap.appendChild(btn);
@@ -1722,7 +1747,7 @@ $('new-room').onclick = async () => {
 
 // ------------------------------------------------------------------ class settings page
 // Everything about one class in its own full view. The database checks every change.
-const cp = { tab: 'overview', icon: null };
+const cp = { tab: 'overview', icon: null, user: false };
 const make = (tag, cls, text) => {
   const el = document.createElement(tag);
   if (cls) el.className = cls;
@@ -1737,14 +1762,24 @@ function classTabs() {
     .concat(canManage(room) ? [['invites', 'Invites'], ['bans', 'Bans']] : []);
 }
 
+const USER_TABS = [['profile', 'Profile'], ['friends', 'Friends'], ['blocked', 'Blocked'], ['account', 'Account']];
+
+function openUserPage() {
+  cp.user = true;
+  cp.tab = 'profile';
+  $('class-page').hidden = false;
+  paintClassPage();
+}
+
 function openClassPage(tab) {
   if (!state.room) return;
+  cp.user = false;
   cp.tab = tab || 'overview';
   cp.icon = state.room.icon || null;
   $('class-page').hidden = false;
   paintClassPage();
 }
-function closeClassPage() { $('class-page').hidden = true; }
+function closeClassPage() { $('class-page').hidden = true; cp.user = false; }
 $('cp-close').onclick = closeClassPage;
 $('class-head').onclick = () => openClassPage();
 document.addEventListener('keydown', (e) => {
@@ -1753,19 +1788,102 @@ document.addEventListener('keydown', (e) => {
 
 function paintClassPage() {
   const room = state.room;
+  const tabs = cp.user ? USER_TABS : classTabs();
+  $('class-page').setAttribute('aria-label', cp.user ? 'Your settings' : 'Class settings');
   const nav = $('cp-nav');
   nav.innerHTML = '';
-  nav.appendChild(make('h2', '', room.name));
-  classTabs().forEach(([id, label]) => {
+  nav.appendChild(make('h2', '', cp.user ? state.me.username : room.name));
+  tabs.forEach(([id, label]) => {
     const b = make('button', cp.tab === id ? 'on' : '', label);
     b.type = 'button';
     if (cp.tab === id) b.setAttribute('aria-current', 'page');
     b.onclick = () => { cp.tab = id; paintClassPage(); };
     nav.appendChild(b);
   });
-  $('cp-title').textContent = (classTabs().find(([id]) => id === cp.tab) || ['', 'Overview'])[1];
+  $('cp-title').textContent = (tabs.find(([id]) => id === cp.tab) || ['', ''])[1];
   $('cp-body').innerHTML = '';
-  ({ overview: cpOverview, members: cpMembers, invites: cpInvites, bans: cpBans })[cp.tab]($('cp-body'), room);
+  ({ overview: cpOverview, members: cpMembers, invites: cpInvites, bans: cpBans,
+    profile: upProfile, friends: upFriends, blocked: upBlocked, account: upAccount })[cp.tab]($('cp-body'), room);
+}
+
+function upProfile(box) {
+  const row = make('div', 'cp-row');
+  row.append(makeAvatar(state.me.id, state.me.username, 'sm', state.me.avatar), make('span', 'cp-name', state.me.username));
+  box.append(row, make('p', '', state.me.bio || 'No about line yet.'));
+  box.lastChild.style.marginTop = '12px';
+  const edit = make('button', 'primary', 'Edit profile');
+  edit.type = 'button';
+  edit.onclick = () => openProfile();
+  const actions = make('div', 'cp-actions');
+  actions.appendChild(edit);
+  box.appendChild(actions);
+}
+
+async function upFriends(box) {
+  box.appendChild(make('p', '', 'Loading…'));
+  await Promise.all([loadEveryone(), loadFriends()]);
+  if (!cp.user || cp.tab !== 'friends') return;
+  box.innerHTML = '';
+  const byId = everyoneById();
+  const again = () => paintClassPage();
+  const person = (p, ...buttons) => {
+    const row = make('div', 'cp-row');
+    const name = make('button', 'cp-name', p.username);
+    name.type = 'button';
+    name.onclick = () => openPersonCard(p);
+    row.append(makeAvatar(p.id, p.username, 'sm', p.avatar), name, ...buttons);
+    box.appendChild(row);
+  };
+  const act = (label, fn) => {
+    const b = make('button', 'mini', label);
+    b.type = 'button';
+    b.onclick = async () => { await fn(); again(); };
+    return b;
+  };
+  const incoming = [...state.friendIn].map((id) => byId.get(id)).filter(Boolean);
+  if (incoming.length) box.appendChild(make('h3', '', 'Friend requests (' + incoming.length + ')'));
+  incoming.forEach((p) => person(p, act('Accept', () => answerFriendRequest(p, true)), act('Ignore', () => answerFriendRequest(p, false))));
+  const friends = [...state.friends].map((id) => byId.get(id)).filter(Boolean).sort((a, b) => a.username.localeCompare(b.username));
+  box.appendChild(make('h3', '', 'Friends (' + friends.length + ')'));
+  if (!friends.length) box.appendChild(make('p', '', 'No friends yet. Open someone’s profile and add them.'));
+  friends.forEach((p) => {
+    const msg = make('button', 'mini', 'Message');
+    msg.type = 'button';
+    msg.onclick = () => { closeClassPage(); openHome(p); };
+    person(p, msg, act('Remove', () => dropFriend(p)));
+  });
+}
+
+async function upBlocked(box) {
+  box.appendChild(make('p', '', 'Loading…'));
+  await loadDmBlocks();
+  const ids = [...state.dmBlocked];
+  const { data } = ids.length ? await db.from('profiles').select('id, username, avatar').in('id', ids) : { data: [] };
+  if (!cp.user || cp.tab !== 'blocked') return;
+  box.innerHTML = '';
+  if (!ids.length) box.appendChild(make('p', '', 'You haven’t blocked anyone.'));
+  ids.forEach((id) => {
+    const p = (data || []).find((x) => x.id === id) || { id, username: 'A removed account' };
+    const row = make('div', 'cp-row');
+    const un = make('button', 'mini', 'Unblock');
+    un.type = 'button';
+    un.onclick = async () => {
+      const { data: why, error } = await db.rpc('set_dm_blocked', { p_user: id, p_blocked: false });
+      if (error || why) showToast(error ? error.message : why); else paintClassPage();
+    };
+    row.append(makeAvatar(p.id, p.username, 'sm', p.avatar), make('span', 'cp-name', p.username), un);
+    box.appendChild(row);
+  });
+}
+
+function upAccount(box) {
+  box.appendChild(make('p', '', 'Signed in as ' + state.me.username + '.'));
+  const out = make('button', 'ghost', 'Sign out');
+  out.type = 'button';
+  out.onclick = () => $('sign-out').click();
+  const actions = make('div', 'cp-actions');
+  actions.appendChild(out);
+  box.appendChild(actions);
 }
 
 // run a database call, show its answer, and redraw this section
@@ -2060,6 +2178,7 @@ function paintChannels() {
       const name = document.createElement('span');
       name.className = 'chan-name';
       name.textContent = ch.name;
+      if (state.unread.has(ch.id) && !(state.channel && state.channel.id === ch.id)) btn.classList.add('unread');
       if (isVoice) btn.append(shape('ic-voice', 'chan-ic'), name);
       else {
         const hash = document.createElement('span');
@@ -2067,6 +2186,11 @@ function paintChannels() {
         hash.textContent = '#';
         hash.setAttribute('aria-hidden', 'true');
         btn.append(hash, name);
+        if (btn.classList.contains('unread')) {
+          const dot = make('span', 'chan-dot');
+          dot.title = 'New messages';
+          btn.appendChild(dot);
+        }
       }
       btn.onclick = () => {
         if (!isVoice) openChannel(ch);
@@ -2177,7 +2301,9 @@ async function openChannel(ch) {
   $('messages').innerHTML = '';
   if (!rows.length) renderEmpty('Nothing here yet. Say something.');
   rows.forEach(addMessage);
+  loadReactions(rows.map((r) => r.id));
   scrollDown();
+  markRead();
   markChannelSeen(ch.id);
   watchFeed();
 }
@@ -2191,6 +2317,7 @@ function paintChannelHead() {
   $('channel-name').title = ch.name;
   $('channel-topic').textContent = ch.topic || '';
   $('channel-topic').hidden = !ch.topic;
+  $('pins-btn').hidden = false;
   const globalOnly = state.room.is_global && !state.me.is_mod;
   const modsOnly = ch.post_role === 'mods' && !runs;
   lockComposer(globalOnly || modsOnly);
@@ -2201,7 +2328,7 @@ function paintChannelHead() {
 
 // replies need the extra column, and the quoted message comes along with it
 function fetchMessages(ch) {
-  const base = 'id, body, created_at, user_id, profiles(' + profileCols() + ')';
+  const base = 'id, body, created_at, user_id, edited_at, pinned_at, profiles(' + profileCols() + ')';
   const query = (cols) => db.from('messages').select(cols)
     .eq('channel_id', ch.id).order('id', { ascending: false }).limit(80);
   return query(base + ', reply_to, reply:messages!messages_reply_to_fkey(id, body, user_id, profiles(username))')
@@ -2255,7 +2382,8 @@ function addMessage(m) {
   const when = document.createElement('span');
   when.className = 'when';
   when.textContent = at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  head.append(who, when);
+  const marks = make('span', 'msg-marks');
+  head.append(who, when, marks);
 
   const text = document.createElement('div');
   text.className = 'bubble';
@@ -2285,6 +2413,7 @@ function addMessage(m) {
   }
 
   body.appendChild(text);
+  body.appendChild(make('div', 'reactions'));
 
   const tools = document.createElement('div');
   tools.className = 'msg-tools';
@@ -2301,7 +2430,10 @@ function addMessage(m) {
     return b;
   };
 
-  tool('ic-reply', 'Reply', () => setReply({ id: m.id, name, body: m.body }));
+  tool('ic-reply', 'Reply', () => setReply({ id: m.id, name, body: state.messageById.get(String(m.id)).body }));
+  if (!state.room.is_global || state.me.is_mod) tool('ic-smile', 'Add a reaction', (e) => { e.stopPropagation(); openReactionPicker(m.id, e.currentTarget); });
+  if (mine) tool('ic-edit', 'Edit your message', () => startEdit(row, m.id));
+  if (canManage(state.room)) tool('ic-pin', 'Pin or unpin', () => togglePin(m.id));
   if (!mine) tool('ic-flag', 'Report this message', () => reportMessage(m.id));
   if (mine || canManage(state.room)) {
     tool('ic-trash', 'Delete this message', async () => {
@@ -2329,7 +2461,166 @@ function addMessage(m) {
 
   row.append(gutter, faceEl, body);
   holder.appendChild(row);
-  state.messageById.set(String(m.id), { id: m.id, body: m.body, profiles: m.profiles || { username: name } });
+  state.messageById.set(String(m.id), { id: m.id, body: m.body, pinned_at: m.pinned_at, profiles: m.profiles || { username: name } });
+  paintMarks(row, m);
+}
+
+// "edited" and "pinned" next to the time
+function paintMarks(row, m) {
+  const box = row.querySelector('.msg-marks');
+  box.textContent = '';
+  if (m.edited_at) box.appendChild(make('span', 'msg-mark', 'edited'));
+  if (m.pinned_at) box.appendChild(make('span', 'msg-mark', 'pinned'));
+}
+
+// someone edited, pinned or reacted to a message on screen
+function applyMessageChange(m) {
+  const row = $('messages').querySelector('[data-id="' + m.id + '"]');
+  const known = state.messageById.get(String(m.id));
+  if (!row || !known) return;
+  if (m.body !== known.body && !row.querySelector('.msg-edit')) {
+    const text = row.querySelector('.bubble');
+    text.textContent = '';
+    renderBody(text, m.body);
+  }
+  known.body = m.body;
+  known.pinned_at = m.pinned_at;
+  paintMarks(row, m);
+  loadReactions([m.id]);
+}
+
+function startEdit(row, id) {
+  const text = row.querySelector('.bubble');
+  if (!text || row.querySelector('.msg-edit')) return;
+  const known = state.messageById.get(String(id));
+  const box = make('input', 'msg-edit');
+  box.value = known.body;
+  box.maxLength = 500;
+  box.setAttribute('aria-label', 'Edit your message');
+  const hint = make('div', 'msg-edit-hint', 'Enter to save, Esc to cancel');
+  text.hidden = true;
+  text.after(box, hint);
+  box.focus();
+  const done = () => { box.remove(); hint.remove(); text.hidden = false; };
+  box.onkeydown = async (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); done(); return; }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const { data: why, error } = await db.rpc('edit_message', { p_message: id, p_body: box.value });
+    if (error || why) { composeNote(error ? error.message : why); return; }
+    const body = box.value.trim();
+    done();
+    applyMessageChange({ ...known, body, edited_at: body === known.body ? null : new Date().toISOString() });
+  };
+}
+
+async function togglePin(id) {
+  const known = state.messageById.get(String(id));
+  const { data: why, error } = await db.rpc('set_pin', { p_message: id, p_pinned: !known.pinned_at });
+  if (error || why) showToast(error ? error.message : why);
+  else showToast(known.pinned_at ? 'Unpinned.' : 'Pinned.');
+}
+
+$('pins-btn').onclick = async () => {
+  const ch = state.channel;
+  const list = $('pins-list');
+  list.innerHTML = '<p class="note">Loading…</p>';
+  $('pins-veil').classList.remove('hide');
+  const { data } = await db.from('messages').select('id, body, profiles(username)')
+    .eq('channel_id', ch.id).not('pinned_at', 'is', null).order('pinned_at', { ascending: false });
+  list.innerHTML = '';
+  if (!(data || []).length) list.appendChild(make('p', 'note', 'Nothing is pinned in this channel yet.'));
+  (data || []).forEach((m) => {
+    const row = make('button', 'pin-row');
+    row.type = 'button';
+    row.append(make('b', '', (m.profiles && m.profiles.username) || 'someone'), m.body);
+    row.onclick = () => { $('pins-veil').classList.add('hide'); flashMessage(m.id); };
+    list.appendChild(row);
+  });
+};
+$('pins-close').onclick = () => $('pins-veil').classList.add('hide');
+$('pins-veil').addEventListener('click', (e) => { if (e.target.id === 'pins-veil') $('pins-close').click(); });
+
+// ---- reactions
+const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉'];
+
+async function loadReactions(ids) {
+  if (!ids.length) return;
+  const { data } = await db.from('message_reactions').select('message_id, user_id, emoji').in('message_id', ids);
+  ids.forEach((id) => paintReactions(id, (data || []).filter((r) => r.message_id === id)));
+}
+
+function paintReactions(id, rows) {
+  const box = $('messages').querySelector('[data-id="' + id + '"] .reactions');
+  if (!box) return;
+  box.innerHTML = '';
+  REACTIONS.forEach((emoji) => {
+    const who = rows.filter((r) => r.emoji === emoji);
+    if (!who.length) return;
+    const b = make('button', 'reaction' + (who.some((r) => r.user_id === state.me.id) ? ' on' : ''));
+    b.type = 'button';
+    b.setAttribute('aria-label', emoji + ' ' + who.length);
+    b.append(emoji, make('span', '', String(who.length)));
+    b.onclick = () => react(id, emoji);
+    box.appendChild(b);
+  });
+}
+
+async function react(id, emoji) {
+  const { data: why, error } = await db.rpc('toggle_reaction', { p_message: id, p_emoji: emoji });
+  if (error || why) composeNote(error ? error.message : why);
+  else loadReactions([id]);
+}
+
+function openReactionPicker(id, anchor) {
+  const menu = $('ctx');
+  menu.innerHTML = '';
+  menu.classList.add('react-pick');
+  REACTIONS.forEach((emoji) => {
+    const b = make('button', '', emoji);
+    b.type = 'button';
+    b.setAttribute('role', 'menuitem');
+    b.onclick = () => { closeMenu(); react(id, emoji); };
+    menu.appendChild(b);
+  });
+  menu.style.left = '0px';
+  menu.style.top = '0px';
+  menu.classList.remove('hide');
+  const at = anchor.getBoundingClientRect();
+  const box = menu.getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(at.right - box.width, window.innerWidth - box.width - 8)) + 'px';
+  menu.style.top = Math.max(8, at.top - box.height - 6) + 'px';
+  menu.querySelector('button').focus();
+}
+
+// ---- what you've read
+async function loadUnread() {
+  const { data } = await db.rpc('unread_channels');
+  state.unread = new Map((data || []).map((r) => [r.channel_id, r.room_id]));
+  if (state.channel && !document.hidden && !state.homeOn) state.unread.delete(state.channel.id);
+  paintRooms();
+  paintChannels();
+}
+
+function markRead() {
+  const ch = state.channel;
+  const rows = $('messages').querySelectorAll('.msg');
+  if (!ch || document.hidden || state.homeOn || !rows.length) return;
+  db.rpc('mark_read', { p_channel: ch.id, p_last: Number(rows[rows.length - 1].dataset.id) }).then(() => {});   // a call only goes out once something waits for it
+  if (state.unread.delete(ch.id)) { paintRooms(); paintChannels(); }
+}
+
+let unreadTimer = null;
+function watchUnread() {
+  loadUnread();
+  document.addEventListener('visibilitychange', markRead);
+  db.channel('unread:' + state.me.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, ({ new: row }) => {
+      if (row.user_id === state.me.id) return;
+      clearTimeout(unreadTimer);
+      unreadTimer = setTimeout(loadUnread, 600);
+    })
+    .subscribe();
 }
 
 // scroll to one message and give it a flash
@@ -2422,7 +2713,11 @@ function watchFeed() {
           addMessage({ ...row, profiles: data });
         }
         scrollDown();
+        markRead();
       })
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'messages', filter: 'channel_id=eq.' + state.channel.id },
+      ({ new: row }) => applyMessageChange(row))
     .on('postgres_changes',
       { event: 'DELETE', schema: 'public', table: 'messages' },
       ({ old: row }) => {
@@ -2837,8 +3132,15 @@ function paintPeople() {
       list.appendChild(b);
     });
   };
-  group('Online', online);
-  group('Offline', offline);
+  if (scope === 'room' && state.room && !state.room.is_global) {
+    group('Owner', pool.filter((p) => p.role === 'owner'));
+    group('Class mods', pool.filter((p) => p.role === 'mod'));
+    group('Online', online.filter((p) => p.role === 'member'));
+    group('Offline', offline.filter((p) => p.role === 'member'));
+  } else {
+    group('Online', online);
+    group('Offline', offline);
+  }
 }
 
 function insertMention(name) {
@@ -3132,7 +3434,6 @@ function paintProfileChoices() {
   paintProfilePreview();
 }
 
-$('set-profile').onclick = () => { $('settings-veil').classList.add('hide'); openProfile(); };
 $('me-avatar').addEventListener('click', () => openProfile());
 $('me-name').addEventListener('click', () => openProfile());
 $('prof-cancel').onclick = () => $('profile-veil').classList.add('hide');
@@ -3362,7 +3663,7 @@ async function setClassBan(p, banned, noteEl) {
 
 // ------------------------------------------------------------------ right-click a person
 
-function closeMenu() { $('ctx').classList.add('hide'); }
+function closeMenu() { $('ctx').classList.add('hide'); $('ctx').classList.remove('react-pick'); }
 
 document.addEventListener('click', (e) => { if (!e.target.closest('#ctx')) closeMenu(); });
 document.addEventListener('scroll', closeMenu, true);
@@ -3631,7 +3932,7 @@ async function openDmThread(p) {
   await Promise.all([loadDmThread(p), loadDmList()]);
   paintDmThread();
   paintDmList();
-  db.rpc('mark_dms_read', { p_from: p.id });
+  db.rpc('mark_dms_read', { p_from: p.id }).then(() => {});
   setTimeout(() => $('dm-text').focus(), 30);
 }
 
@@ -3825,7 +4126,7 @@ async function joinVoice(key, label, ringTo) {
   if (voice.key) await leaveVoice();
   const v = createVoice({
     me: state.me.id, iceServers: await iceServers(), onChange: paintVoice,
-    send: (to, kind, body) => db.rpc('voice_signal', { p_key: key, p_to: to, p_kind: kind, p_body: body }),
+    send: (to, kind, body) => db.rpc('voice_signal', { p_key: key, p_to: to, p_kind: kind, p_body: body }).then(() => {}),
   });
   try { await v.start(); } catch (e) { showToast('Allow the microphone to use voice.'); return; }
   const { data: why, error } = await db.rpc('voice_join', { p_key: key });
@@ -3952,7 +4253,7 @@ function watchDms() {
           if (state.dmTo && row.sender_id === state.dmTo.id) {
             state.dmThread.push(row);
             paintDmThread();
-            db.rpc('mark_dms_read', { p_from: state.dmTo.id });
+            db.rpc('mark_dms_read', { p_from: state.dmTo.id }).then(() => {});
           }
           paintDmList();
         }
@@ -3999,6 +4300,9 @@ function paintPersonActions(p) {
   }
 }
 
+const lastClick = { x: 40, y: 40 };
+document.addEventListener('pointerdown', (e) => { lastClick.x = e.clientX; lastClick.y = e.clientY; }, true);
+
 async function openPersonCard(p) {
   if (!p || !state.me) return;
   if (p.id === state.me.id) { openProfile(); return; }
@@ -4013,7 +4317,12 @@ async function openPersonCard(p) {
   paintPersonAbout(p);
   paintPersonActions(p);
   $('pf-note').textContent = '';
+  $('person-veil').classList.add('pop');
   $('person-veil').classList.remove('hide');
+  const card = $('person-veil').querySelector('.person-card');
+  const fit = card.getBoundingClientRect();
+  card.style.setProperty('--pop-x', Math.max(8, Math.min(lastClick.x + 12, window.innerWidth - fit.width - 8)) + 'px');
+  card.style.setProperty('--pop-y', Math.max(8, Math.min(lastClick.y - 40, window.innerHeight - fit.height - 8)) + 'px');
   loadMutuals(p);
 
   const cols = 'username, is_mod, banned, avatar, bio, banner';
@@ -4116,11 +4425,7 @@ function answerFriendRequest(p, accept) {
 
 // ------------------------------------------------------------------ settings
 
-$('settings-btn').onclick = () => $('settings-veil').classList.remove('hide');
-$('settings-close').onclick = () => $('settings-veil').classList.add('hide');
-$('settings-veil').addEventListener('click', (e) => {
-  if (e.target.id === 'settings-veil') $('settings-close').click();
-});
+$('settings-btn').onclick = () => openUserPage();
 
 // ------------------------------------------------------------------ go
 
@@ -4163,6 +4468,7 @@ async function start() {
   restorePeople();
   watchDms();
   watchVoice();
+  watchUnread();
   loadFriends();
   botHello();
 
