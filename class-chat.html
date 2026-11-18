@@ -203,7 +203,21 @@
   .voice-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
   .voice-bar[hidden] { display: none; }
   .voice-bar .voice-label { flex: 1 1 100%; font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .voice-room { margin: 6px 8px; }
+  .channel .chan-ic { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .channel.on .chan-ic { stroke: var(--accent); }
+  .channel .chan-tool { padding: 0 2px; color: var(--muted); opacity: 0; display: inline-flex; }
+  .channel .chan-tool svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .channel:hover .chan-tool, .channel:focus-within .chan-tool { opacity: 1; }
+  .channel .chan-tool:hover { color: var(--ink); }
+  .channel .chan-tool.first { margin-left: auto; }
+  .channel .chan-tool.first ~ .chan-x { margin-left: 0; }
+  .channel .chan-end { margin-left: auto; padding: 0 4px; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--muted); font-size: 0.6rem; }
+  .channel .chan-end:hover { color: var(--ink); border-color: var(--accent-dim); }
+  .channel .chan-end ~ .chan-tool.first { margin-left: 4px; }
+  .voice-people { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px 30px; }
+  .voice-person { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.72rem; color: var(--muted); }
+  .voice-person .avatar { width: 20px; height: 20px; flex: none; }
+  .voice-person span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .user-panel .avatar { width: 30px; height: 30px; font-size: 0.82rem; flex: none; }
   .user-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
   .user-meta b { font-size: 0.76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -990,6 +1004,7 @@
   <symbol id="pfp-12" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6.4 L20 4.4 V14.6 a3.2 3.2 0 1 1 -2 -2.96 V8.1 L12 9.7 V16.6 a3.2 3.2 0 1 1 -2 -2.96 Z"/></symbol>
   <symbol id="pfp-13" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.2 L14.1 6.1 l3.8 3.8 L6.8 21 H3 Z M15.6 4.6 l1.8 -1.8 3.8 3.8 -1.8 1.8 Z"/></symbol>
 
+  <symbol id="ic-voice" viewBox="0 0 24 24"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></symbol>
   <symbol id="ic-chev-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
   <symbol id="ic-chev-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="ic-reply" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a6 6 0 0 1 6 6v1"/></symbol>
@@ -1024,11 +1039,10 @@
     </div>
 
     <div class="chan-head">
-      <span>Text channels</span>
+      <span>Channels</span>
       <button class="mini" id="new-channel" type="button" title="Create a channel" hidden>+</button>
     </div>
     <div class="list" id="channels"></div>
-    <button class="mini voice-room" id="voice-room" type="button" hidden>Join voice</button>
 
     <div class="dm-side" id="dm-side" hidden>
       <div class="dm-side-head"><h2>Direct messages</h2></div>
@@ -1081,10 +1095,9 @@
       <span class="hash" aria-hidden="true">#</span>
       <div class="chat-titles">
         <h1 id="channel-name">—</h1>
-        <span class="topic">moderated and safe for students</span>
+        <span class="topic" id="channel-topic"></span>
       </div>
       <span class="spacer"></span>
-      <button class="mini" id="links-btn" type="button" hidden title="Links in this channel"></button>
       <span class="presence"><span class="dot"></span><span id="online">—</span></span>
       <button class="members-btn" id="members-btn" type="button" aria-controls="people" aria-expanded="false" title="Show members" aria-label="Show members">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-left"></use></svg>
@@ -1272,7 +1285,7 @@ const $ = (id) => document.getElementById(id);
 const state = {
   me: null, rooms: [], room: null, channels: [], channel: null, membership: {}, feed: null,
   members: [], everyone: [], online: new Set(), peopleScope: 'room', unseen: 0, mentionsReady: true,
-  reply: null, bans: new Set(), pickWho: null, dmTo: null, dmRows: [], dmFeed: null, dmBlocked: new Set(),
+  reply: null, bans: new Set(), voicePeople: new Map(), pickWho: null, dmTo: null, dmRows: [], dmFeed: null, dmBlocked: new Set(),
   closedCats: new Set(), profSym: 0, profColor: 0, profBanner: 0, messageById: new Map(), dmThread: [],
   homeOn: false, friends: new Set(), friendIn: new Set(), friendOut: new Set(), pfWho: null,
   pickMode: 'ban',
@@ -1434,6 +1447,12 @@ function openForm({ title, text, fields, submit }) {
       label.appendChild(input);
       box.appendChild(label);
     });
+
+    const syncOnly = () => (fields || []).forEach((f) => {
+      if (f.only) $('form-f-' + f.key).closest('label').hidden = $('form-f-' + f.only[0]).value !== f.only[1];
+    });
+    box.onchange = syncOnly;
+    syncOnly();
 
     const close = (value) => {
       $('form-veil').classList.add('hide');
@@ -1624,12 +1643,13 @@ async function openRoom(room) {
   $('delete-room').hidden = !(state.me.is_mod || room.owner_id === state.me.id) || room.is_global;
   $('room-mods').hidden = !(state.me.is_mod || state.membership[room.id] === 'owner');
   paintRoomTools();
-  $('voice-room').hidden = room.is_global || !state.membership[room.id];
   paintVoice();
   $('new-channel').hidden = !canAddChannel(room);
   paintRooms();
   await loadRoomBans();
+  state.voicePeople = new Map();
   await loadChannels();
+  loadVoicePeople();
   state.members = [];
   paintPeople();
   watchPresence();
@@ -1733,15 +1753,16 @@ $('room-mods').onclick = async () => {
 async function loadChannels() {
   const room = state.room;
   const { data } = await db.from('channels')
-    .select('id, name, room_id, allow_links, category')
+    .select('id, name, room_id, allow_links, category, kind, topic, post_role, slow_seconds, user_limit')
     .eq('room_id', room.id).order('created_at');
   if (state.room !== room) return;   // switched rooms while this was loading
-  const keep = state.channel && (data || []).find((c) => c.id === state.channel.id);
-  if (keep) { state.channels = data; paintChannels(); return; }
   state.channels = data || [];
+  const keep = state.channel && state.channels.find((c) => c.id === state.channel.id);
+  if (keep) { state.channel = keep; paintChannels(); paintChannelHead(); return; }
   paintChannels();
-  if (state.channels.length) openChannel(state.channels[0]);
-  else { state.channel = null; $('channel-name').textContent = ''; $('channel-name').title = ''; $('text').placeholder = 'Pick a channel…'; renderEmpty('No channels in this class yet.'); lockComposer(true); }
+  const first = state.channels.find((c) => c.kind === 'text');
+  if (first) openChannel(first);
+  else { state.channel = null; $('channel-name').textContent = ''; $('channel-name').title = ''; $('channel-topic').textContent = ''; $('text').placeholder = 'Pick a channel…'; renderEmpty('No text channels in this class yet.'); lockComposer(true); }
 }
 
 function paintChannels() {
@@ -1791,62 +1812,114 @@ function paintChannels() {
     if (!open) return;
 
     channels.forEach((ch) => {
+      const isVoice = ch.kind === 'voice';
+      const key = 'v:' + ch.id;
       const btn = document.createElement('button');
-      btn.className = 'channel' + (state.channel && state.channel.id === ch.id ? ' on' : '');
+      btn.className = 'channel' + ((isVoice ? voice.key === key : state.channel && state.channel.id === ch.id) ? ' on' : '');
       btn.type = 'button';
-      btn.title = '# ' + ch.name;
+      btn.title = isVoice ? (voice.key === key ? 'Leave ' : 'Join ') + ch.name : '# ' + ch.name;
 
-      const hash = document.createElement('span');
-      hash.className = 'hash';
-      hash.textContent = '#';
-      hash.setAttribute('aria-hidden', 'true');
       const name = document.createElement('span');
       name.className = 'chan-name';
       name.textContent = ch.name;
-      btn.append(hash, name);
-      btn.onclick = () => openChannel(ch);
+      if (isVoice) btn.append(shape('ic-voice', 'chan-ic'), name);
+      else {
+        const hash = document.createElement('span');
+        hash.className = 'hash';
+        hash.textContent = '#';
+        hash.setAttribute('aria-hidden', 'true');
+        btn.append(hash, name);
+      }
+      btn.onclick = () => {
+        if (!isVoice) openChannel(ch);
+        else if (voice.key === key) leaveVoice();
+        else joinVoice(key, ch.name + ' · ' + state.room.name);
+      };
 
+      const inside = isVoice ? (state.voicePeople.get(ch.id) || []) : [];
       if (canManage(state.room)) {
+        const tool = (el, label, fn) => {
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', label);
+          el.title = label;
+          el.onclick = (e) => { e.stopPropagation(); fn(); };
+          btn.appendChild(el);
+        };
+        if (inside.length) {
+          const end = document.createElement('span');
+          end.className = 'chan-end';
+          end.textContent = 'End';
+          tool(end, 'End the call in ' + ch.name, () => endVoice(key));
+        }
+        const gear = document.createElement('span');
+        gear.className = 'chan-tool first';
+        gear.appendChild(shape('ic-gear'));
+        tool(gear, 'Edit ' + ch.name, () => channelForm(ch));
         const x = document.createElement('span');
         x.className = 'chan-x';
         x.textContent = '×';
-        x.title = 'Delete channel';
-        x.setAttribute('role', 'button');
-        x.setAttribute('aria-label', 'Delete #' + ch.name);
-        x.onclick = async (e) => {
-          e.stopPropagation();
-          if (!confirm('Delete #' + ch.name + '?')) return;
+        tool(x, 'Delete ' + ch.name, async () => {
+          if (!confirm('Delete ' + ch.name + '?')) return;
           const { error } = await db.from('channels').delete().eq('id', ch.id);
           if (error) alert(error.message); else loadChannels();
-        };
-        btn.appendChild(x);
+        });
       }
       wrap.appendChild(btn);
+
+      if (inside.length) {
+        const list = document.createElement('div');
+        list.className = 'voice-people';
+        inside.forEach((p) => {
+          const row = document.createElement('div');
+          row.className = 'voice-person';
+          const who = document.createElement('span');
+          who.textContent = p.username;
+          row.append(makeAvatar(p.user_id, p.username, 'sm', p.avatar), who);
+          list.appendChild(row);
+        });
+        wrap.appendChild(list);
+      }
     });
   });
 }
 
-$('new-channel').onclick = async () => {
+// Add a channel, or change one (ch)
+async function channelForm(ch) {
+  const forText = (f) => (ch ? (ch.kind === 'text' ? f : null) : { ...f, only: ['kind', 'text'] });
+  const forVoice = (f) => (ch ? (ch.kind === 'voice' ? f : null) : { ...f, only: ['kind', 'voice'] });
   const cats = [...new Set(state.channels.map((c) => c.category || 'General'))];
-  const fields = [{ key: 'name', label: 'Channel name', placeholder: 'homework', required: true, max: 30 }];
-  fields.push({ key: 'category', label: 'Category', value: 'General', list: cats.length ? cats : ['General'], max: 24,
-    placeholder: 'General' });
+  const fields = [
+    !ch && { key: 'kind', label: 'Type', type: 'select', options: [{ value: 'text', label: 'Text' }]
+      .concat(state.room.is_global ? [] : [{ value: 'voice', label: 'Voice' }]) },
+    { key: 'name', label: 'Name', value: ch ? ch.name : '', placeholder: 'homework', required: true, max: 30 },
+    { key: 'category', label: 'Category', value: ch ? ch.category : 'General', list: cats, max: 24 },
+    forText({ key: 'topic', label: 'Topic', value: ch ? ch.topic : '', placeholder: 'What this channel is for', max: 160 }),
+    forText({ key: 'post_role', label: 'Who can post', type: 'select', value: ch ? ch.post_role : 'everyone',
+      options: [{ value: 'everyone', label: 'Everyone in the class' }, { value: 'mods', label: 'Only the people who run it' }] }),
+    forText({ key: 'slow', label: 'Slow mode', type: 'select', value: String(ch ? ch.slow_seconds : 0),
+      options: [['0', 'Off'], ['5', '5 seconds'], ['10', '10 seconds'], ['30', '30 seconds'], ['60', '1 minute'], ['300', '5 minutes']]
+        .map(([value, label]) => ({ value, label })) }),
+    forText({ key: 'links', label: 'Links', type: 'select', value: ch && ch.allow_links ? 'on' : 'off',
+      options: [{ value: 'off', label: 'Not allowed' }, { value: 'on', label: 'Allowed' }] }),
+    forVoice({ key: 'limit', label: 'User limit', type: 'select', value: String(ch ? ch.user_limit : 6),
+      options: ['2', '3', '4', '5', '6'].map((n) => ({ value: n, label: n + ' people' })) }),
+  ].filter(Boolean);
   const answer = await openForm({
-    title: 'New channel',
-    text: 'In ' + state.room.name + '. Pick an existing category or type a new one.',
+    title: ch ? 'Edit ' + ch.name : 'New channel',
+    text: ch ? '' : 'In ' + state.room.name + '.',
     fields,
-    submit: 'Create channel',
+    submit: ch ? 'Save' : 'Create channel',
   });
   if (!answer) return;
-
-  const row = { room_id: state.room.id, name: answer.name, created_by: state.me.id };
-  const cat = (answer.category || '').trim() || 'General';
-  if (cat.length > 24) return alert('Categories max out at 24 characters.');
-  row.category = cat;
-  const { error } = await db.from('channels').insert(row);
-  if (error) return alert(error.message);
+  const { data: why, error } = await db.rpc('save_channel', {
+    p_room: state.room.id, p_channel: ch ? ch.id : null, p_name: answer.name, p_kind: ch ? ch.kind : answer.kind,
+    p_category: answer.category, p_topic: answer.topic || null, p_post_role: answer.post_role || 'everyone',
+    p_slow: Number(answer.slow || 0), p_links: answer.links === 'on', p_limit: Number(answer.limit || 6),
+  });
+  if (error || why) { showToast(error ? error.message : why); return; }
   loadChannels();
-};
+}
+$('new-channel').onclick = () => channelForm();
 
 // ------------------------------------------------------------------ messages
 async function openChannel(ch) {
@@ -1856,13 +1929,8 @@ async function openChannel(ch) {
   state.messageById.clear();
   $('channel-name').textContent = ch.name;
   $('channel-name').title = ch.name;
-  $('text').placeholder = 'Message #' + ch.name;
   paintChannels();
-  // Global is for the mods' news; everyone else reads it
-  const readOnly = state.room && state.room.is_global && !state.me.is_mod;
-  lockComposer(readOnly);
-  if (readOnly) $('text').placeholder = 'Only mods post in Global. Add friends to talk with them.';
-  paintLinks();
+  paintChannelHead();
 
   const { data } = await fetchMessages(ch);
 
@@ -1876,22 +1944,22 @@ async function openChannel(ch) {
   watchFeed();
 }
 
-// people who run a class choose which channels take links
-function paintLinks() {
-  const ch = state.channel;
-  const b = $('links-btn');
-  b.hidden = !ch || !state.room || !canManage(state.room);
-  if (!b.hidden) b.textContent = ch.allow_links ? 'Links: on' : 'Links: off';
-}
-$('links-btn').onclick = async () => {
+// the channel's topic, and whether you can write in it
+function paintChannelHead() {
   const ch = state.channel;
   if (!ch) return;
-  const { data: why, error } = await db.rpc('set_channel_links', { p_channel: ch.id, p_allow: !ch.allow_links });
-  if (error || why) return showToast(error ? error.message : why);
-  ch.allow_links = !ch.allow_links;
-  paintLinks();
-  showToast(ch.allow_links ? 'Links are allowed in #' + ch.name + '.' : 'Links are off in #' + ch.name + '.');
-};
+  const runs = canManage(state.room);
+  $('channel-name').textContent = ch.name;
+  $('channel-name').title = ch.name;
+  $('channel-topic').textContent = ch.topic || '';
+  $('channel-topic').hidden = !ch.topic;
+  const globalOnly = state.room.is_global && !state.me.is_mod;
+  const modsOnly = ch.post_role === 'mods' && !runs;
+  lockComposer(globalOnly || modsOnly);
+  $('text').placeholder = globalOnly ? 'Only mods post in Global. Add friends to talk with them.'
+    : modsOnly ? 'Only the people who run this class can post here.'
+      : 'Message #' + ch.name + (ch.slow_seconds && !runs ? ' · slow mode ' + ch.slow_seconds + 's' : '');
+}
 
 // replies need the extra column, and the quoted message comes along with it
 function fetchMessages(ch) {
@@ -3538,6 +3606,8 @@ async function joinVoice(key, label, ringTo) {
     }, 45000);
   }
   paintVoice();
+  paintChannels();
+  loadVoicePeople();
 }
 
 async function leaveVoice(quiet) {
@@ -3548,13 +3618,27 @@ async function leaveVoice(quiet) {
   Object.assign(voice, { key: null, v: null, label: '' });
   v.stop();
   paintVoice();
+  paintChannels();
   if (!quiet) await db.rpc('voice_leave', { p_key: key });
+  loadVoicePeople();
 }
 
 function canEndVoice(key) {
   if (state.me.is_mod) return true;
-  const room = key && key.startsWith('c:') && state.rooms.find((r) => 'c:' + r.id === key);
-  return !!room && canManage(room);
+  return !!state.room && state.channels.some((c) => 'v:' + c.id === key) && canManage(state.room);
+}
+
+// shortcut: checks every 8 seconds who's in the class's voice channels; a live feed would show the names of private calls
+async function loadVoicePeople() {
+  const room = state.room;
+  if (!room || room.is_global) return;
+  const { data } = await db.rpc('voice_room_people', { p_room: room.id });
+  if (state.room !== room) return;
+  const next = new Map();
+  (data || []).forEach((r) => next.set(r.channel_id, (next.get(r.channel_id) || []).concat(r)));
+  const changed = JSON.stringify([...next]) !== JSON.stringify([...state.voicePeople]);
+  state.voicePeople = next;
+  if (changed) paintChannels();
 }
 
 async function endVoice(key) {
@@ -3562,6 +3646,7 @@ async function endVoice(key) {
   const { data: why, error } = await db.rpc('voice_end', { p_key: key });
   if (error || why) { showToast(error ? error.message : why); return; }
   if (voice.key === key) leaveVoice(true);
+  loadVoicePeople();
   showToast('Call ended.');
 }
 
@@ -3574,16 +3659,11 @@ function paintVoice() {
     $('voice-mute').textContent = voice.v.muted ? 'Unmute' : 'Mute';
     $('voice-end').hidden = !canEndVoice(voice.key);
   }
-  $('voice-room').textContent = state.room && voice.key === 'c:' + state.room.id ? 'Leave voice' : 'Join voice';
 }
 
 $('voice-mute').onclick = () => { if (voice.v) voice.v.setMuted(!voice.v.muted); };
 $('voice-leave').onclick = () => leaveVoice();
 $('voice-end').onclick = () => endVoice(voice.key);
-$('voice-room').onclick = () => {
-  const key = 'c:' + state.room.id;
-  if (voice.key === key) leaveVoice(); else joinVoice(key, state.room.name + ' voice');
-};
 $('dm-call').onclick = () => {
   const p = state.dmTo;
   if (p && p.id) joinVoice(dmKey(p.id), 'Call with ' + p.username, p.id);
@@ -3603,6 +3683,7 @@ $('voice-calls').onclick = async () => {
 window.addEventListener('pagehide', () => { if (voice.key) leaveVoice(); });
 
 function watchVoice() {
+  setInterval(() => { if (!document.hidden) loadVoicePeople(); }, 8000);
   db.channel('voice:' + state.me.id)
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'voice_signals', filter: 'to_id=eq.' + state.me.id },
