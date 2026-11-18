@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fencing Physics</title>
+<style>
+  :root { --board: #26332e; --deep: #1a221f; --chalk: #efece2; --dim: #a9b0a6; --line: #55635b; --yellow: #e9c46a; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--deep); color: var(--chalk); font-family: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; background: var(--board); }
+  #overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 26, 24, .72); overflow: auto; }
+  #overlay[hidden], .panel[hidden] { display: none; }
+  .panel { width: min(560px, 100%); margin: auto; padding: 22px 24px; background: var(--board); border: 1px solid var(--line); border-radius: 4px; }
+  h1 { margin: 0 0 4px; font-size: 1.9rem; font-weight: 700; }
+  p { margin: 0 0 16px; color: var(--dim); line-height: 1.4; }
+  h2 { margin: 16px 0 8px; font-size: .95rem; font-weight: 700; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { flex: 1 1 110px; padding: 9px 12px; font: inherit; font-weight: 700; color: var(--chalk); background: transparent; border: 1px solid var(--dim); border-radius: 4px; cursor: pointer; }
+  button:hover, button:focus-visible { background: var(--chalk); color: var(--board); outline: none; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 400; }
+  td:nth-child(3) { color: var(--yellow); }
+  .note { margin: 10px 0 0; font-size: .86rem; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="game" aria-label="Chalk Duel game board"></canvas></div>
+
+<div id="overlay">
+  <section class="panel" id="menu">
+    <h1>Chalk Duel</h1>
+    <p>Two chalk fencers, one board. Blades have weight: a slow touch does nothing, a full swing knocks someone down. First to 3 rounds.</p>
+    <h2>1 Player</h2>
+    <div class="row">
+      <button data-level="easy">Easy</button>
+      <button data-level="normal">Normal</button>
+      <button data-level="hard">Hard</button>
+    </div>
+    <h2>2 Players</h2>
+    <div class="row"><button id="two">Same keyboard</button></div>
+    <h2>Controls</h2>
+    <table>
+      <tr><th></th><th>Player 1</th><th>Player 2</th></tr>
+      <tr><td>Move</td><td>A D</td><td>&larr; &rarr;</td></tr>
+      <tr><td>Hop / Duck</td><td>W / S</td><td>&uarr; / &darr;</td></tr>
+      <tr><td>Swing up / down</td><td>F / G</td><td>K / L</td></tr>
+      <tr><td>Thrust</td><td>H</td><td>;</td></tr>
+    </table>
+    <p class="note">Playing alone? You can also aim with the mouse and click to thrust. Esc pauses, M mutes.</p>
+  </section>
+
+  <section class="panel" id="paused" hidden>
+    <h1>Paused</h1>
+    <p>Take your time.</p>
+    <div class="row"><button id="resume">Keep playing</button><button class="to-menu">Main menu</button></div>
+  </section>
+
+  <section class="panel" id="ended" hidden>
+    <h1 id="end-title"></h1>
+    <p id="end-score"></p>
+    <div class="row"><button id="again">Rematch</button><button class="to-menu">Main menu</button></div>
+  </section>
+</div>
+
+<script src="sim.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
