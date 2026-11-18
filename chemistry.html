@@ -694,6 +694,16 @@
   body.full-panel footer { display: none; }
   .ver { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; }
   .ver:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* the version stays in the bottom-left corner on every page */
+  .ver-corner { position: fixed; left: 1.2rem; bottom: 0.7rem; z-index: 21; padding: 0; background: none; border: 0; font-size: 0.72rem; color: var(--pencil); cursor: pointer; }
+  .ver-corner b { font-weight: 700; color: var(--ink); }
+  .ver-corner:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .rail-foot { padding-bottom: 2.1rem; }
+  @media (min-width: 761px) {
+    body.os.rail-mini .ver-corner { left: 0; width: 64px; text-align: center; }
+    body.os.rail-mini .ver-tag { display: none; }
+  }
+  @media (max-width: 760px) { body:not(.on-home) .ver-corner { display: none; } }
   .tip {
     margin: 0 0 0 auto;
     max-width: 50ch;
@@ -734,10 +744,19 @@
   .modal-body .choice { justify-content: flex-start; }
   .modal-body .setup-note { margin: 0; color: var(--pencil); }
   .modal-body > .btn { align-self: flex-start; }
-  /* setup's cloak choices get their own row, so every cloak fits */
-  .setup-cloak .setting { flex-wrap: wrap; }
-  .setup-cloak .setting > div:first-child { flex: 1 1 100%; }
-  .setup-cloak .choice { flex: 1 1 100%; margin-left: 0; justify-content: flex-start; }
+  /* setup's cloak step: what the tab will look like, then the choices */
+  .setup-cloak { display: flex; flex-direction: column; gap: 0.7rem; }
+  .tab-preview { display: flex; align-items: center; gap: 0.55rem; min-width: 0; padding: 0.55rem 0.7rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); font-size: 0.85rem; }
+  .tab-preview img { flex: none; }
+  .tab-preview span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .setup-cloak .choice { display: grid; grid-template-columns: 1fr 1fr; }
+  .setup-cloak .choice button:last-child { grid-column: 1 / -1; }
+  /* the Games page's one-time question */
+  .way { display: flex; flex-direction: column; gap: 0.1rem; width: 100%; padding: 0.6rem 0.75rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); text-align: left; cursor: pointer; }
+  .way span { font-size: 0.82rem; color: var(--pencil); }
+  .way:hover { border-color: var(--pencil); }
+  .way[aria-pressed="true"] { border-color: var(--accent); background: var(--highlight); }
+  .way[aria-pressed="true"] span { color: inherit; }
   /* first-load cloak ask */
   .cloak-ask-choice { justify-content: flex-start; margin-bottom: 0.6rem; }
   .cloak-ask-hint { margin-bottom: 0.8rem; font-size: 0.82rem; }
@@ -916,6 +935,8 @@
 
     </nav>
 
+    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2</b> <span class="ver-tag">Early Access</span></button>
+
     <div class="main">
       <header class="topbar">
         <h1><span class="scribble">ChalkBored</span></h1>
@@ -939,7 +960,6 @@
             <div id="hero-search-slot"></div>
             <p class="hello-meta">
               <span class="meta-link static" id="stat-online" title="People online now"><span class="stat-dot"></span><b id="online-count" aria-live="polite">&hellip;</b> <span id="online-note">online now</span></span>
-              <button class="meta-link" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2 Early Access</b> <span id="updated-when">updated Nov 6 · what’s new</span></button>
             </p>
           </div>
         </section>
@@ -1044,6 +1064,17 @@
         <span class="spacer"></span>
         <button class="btn" id="cloak-ask-later" type="button">Not now</button>
       </div>
+    </div>
+  </div>
+
+  <!-- first visit to Games: how activities open -->
+  <div class="modal" id="games-setup" hidden role="dialog" aria-modal="true" aria-labelledby="games-setup-title">
+    <div class="modal-box">
+      <p class="modal-step">Quick setup</p>
+      <h2 id="games-setup-title">How should activities open?</h2>
+      <p>You can change this later in Settings.</p>
+      <div class="modal-body" id="games-setup-pick"></div>
+      <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="games-setup-done" type="button">Done</button></div>
     </div>
   </div>
 
@@ -1363,7 +1394,6 @@
     const SEEN_STORE = 'vault-seen-version';
     const FAVS_STORE = 'vault-favorites';
     const VERSION = '1.2';
-    const VERSION_LABEL = 'v1.2 Early Access';   // what the footer shows
     const SETUP_VERSION = '1.2';   // bump this when everyone should see setup again
     const THEMES = ['basic'];
     const BASIC_COLORS = [['mono', 'Mono']];
@@ -1381,6 +1411,7 @@
       cloakMode: 'classroom',  // the cloak picked last
       cloakDefaults: false,    // one-time migration for the restored cloak settings
       cloakAsked: false,       // the first-load cloak question has been shown
+      gamesSetup: false,       // the one-time question on the Games page has been shown
     };
     let settings = Object.assign({}, DEFAULT_SETTINGS);
     let savedSettings = null;
@@ -1392,6 +1423,8 @@
       returningVisitor = !!savedSettings;
     } catch (e) {}
     if (returningVisitor && !(savedSettings && 'setupDone' in savedSettings)) settings.setupDone = true;
+    // people who were already here know how Games works
+    if (returningVisitor && settings.setupDone && !('gamesSetup' in savedSettings)) settings.gamesSetup = true;
     // OS look and Mono are the defaults for new people only: older saves keep Classic and Night
     if (savedSettings && !savedSettings.shell) settings.shell = 'os';
     if (savedSettings && !savedSettings.basic) settings.basic = 'mono';
@@ -2382,7 +2415,7 @@
       document.body.classList.toggle('app-open', ['music', 'tv', 'browser', 'chat'].includes(name));
       document.body.classList.toggle('full-panel', ['music', 'tv', 'browser', 'chat'].includes(name));
       placeSearch();
-      if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); }
+      if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); if (panelStarted) maybeGamesSetup(); }
       else if (lessonsBuilt) { $('games').innerHTML = ''; lessonsBuilt = false; }
       if (name !== 'tv' && tvFrame) { tvFrame.remove(); tvFrame = null; }
       if (name !== 'browser' && browserFrame) { browserFrame.remove(); browserFrame = null; }
@@ -2604,18 +2637,28 @@
     const setupEl = $('setup');
     let setupStep = 0;
 
-    // setup borrows the same cloak controls as Settings, so the two always match
+    // setup borrows the same cloak list as Settings, so the two always match
     function makeCloakSetup() {
       const wrap = document.createElement('div');
-      wrap.className = 'settings setup-cloak';
+      wrap.className = 'setup-cloak';
 
-      const row = document.createElement('div');
-      row.className = 'setting';
-      const text = document.createElement('div');
-      text.innerHTML = '<h3>Subject</h3><p>Changes the tab name and icon.</p>';
+      const tab = document.createElement('div');
+      tab.className = 'tab-preview';
+      tab.setAttribute('aria-live', 'polite');
+      const icon = document.createElement('img');
+      icon.alt = '';
+      icon.width = icon.height = 16;
+      const name = document.createElement('span');
+      tab.append(icon, name);
+
       const choice = document.createElement('div');
       choice.className = 'choice';
-      const paint = () => choice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      const paint = () => {
+        const d = DISGUISES[settings.disguise];
+        icon.src = d ? d.icon : 'favicon.svg';
+        name.textContent = d ? d.title : ORIGINAL_TITLE;
+        choice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
+      };
       Object.entries(DISGUISES).forEach(([key, d]) => {
         const b = document.createElement('button');
         b.type = 'button';
@@ -2631,57 +2674,38 @@
         choice.appendChild(b);
       });
       paint();
-      row.append(text, choice);
-      wrap.appendChild(row);
-
-      const addSwitch = (title, note, key, label) => {
-        const line = document.createElement('div');
-        line.className = 'setting';
-        line.innerHTML = '<div><h3></h3><p></p></div>';
-        line.querySelector('h3').textContent = title;
-        line.querySelector('p').textContent = note;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'switch';
-        btn.setAttribute('role', 'switch');
-        btn.setAttribute('aria-label', label);
-        btn.setAttribute('aria-checked', String(!!settings[key]));
-        btn.addEventListener('click', () => {
-          change(key, !settings[key]);
-          btn.setAttribute('aria-checked', String(!!settings[key]));
-        });
-        line.appendChild(btn);
-        wrap.appendChild(line);
-      };
-      addSwitch('Ask to cloak', 'Pick a cloak each time you open an activity card.', 'askCloak', 'Ask to cloak');
+      wrap.append(tab, choice);
       return wrap;
     }
 
     const SETUP_STEPS = [
       {
-        step: 'Welcome',
-        title: 'Let\u2019s set up your notebook',
-        text: 'It takes about a minute.',
+        step: 'First-time setup',
+        title: 'Welcome to ChalkBored',
+        text: 'Two quick choices and you\u2019re in.',
         body: () => null,
-        next: 'Let\u2019s go',
-        skip: 'Skip setup',
+        next: 'Start',
       },
       {
         step: 'Wallpaper',
-        title: 'Choose wallpaper',
-        text: 'It sits behind everything in the OS look.',
-        body: () => makeWallpapers(renderSetup),
+        title: 'Pick a wallpaper',
+        text: 'It shows behind every page.',
+        body: () => makeWallpapers(() => {
+          renderSetup();
+          const on = $('setup-body').querySelector('.wall.on');
+          if (on) on.focus();
+        }),
       },
       {
         step: 'Tab cloak',
         title: 'Pick a tab cloak',
-        text: 'What this tab and the pages you open pretend to be. You can change it later in Settings.',
+        text: 'Your tab takes this name and icon.',
         body: () => makeCloakSetup(),
       },
       {
-        step: 'All set',
-        title: 'You\u2019re ready',
-        text: 'Click the version at the bottom any time to see what’s new in 1.2.',
+        step: 'First-time setup',
+        title: 'You\u2019re all set',
+        text: 'Change these any time with the gear at the top right. The version in the bottom left shows what\u2019s new.',
         body: () => null,
         next: 'Done',
       },
@@ -2697,7 +2721,8 @@
       body.innerHTML = '';
       const content = st.body();
       if (content) body.appendChild(content);
-      $('setup-back').hidden = setupStep === 0;
+      $('setup-back').textContent = setupStep === 0 ? 'Skip' : 'Back';
+      setupEl.querySelector('.modal-box').scrollTop = 0;
       $('setup-next').textContent = st.next || 'Next';
     }
 
@@ -2711,12 +2736,16 @@
     function closeSetup() {
       setupEl.hidden = true;
       if (notesPending) { notesPending = false; setTimeout(showNewNotes, 300); }
-      else setTimeout(maybeAskCloak, 600);
+      settings.cloakAsked = true;   // setup already covered the cloak
       settings.setupVersion = SETUP_VERSION;
       change('setupDone', true);
     }
 
-    $('setup-back').addEventListener('click', () => { if (setupStep > 0) { setupStep--; renderSetup(); } });
+    $('setup-back').addEventListener('click', () => {
+      if (setupStep === 0) { closeSetup(); showPanel('home'); return; }   // on the first step this button is Skip
+      setupStep--;
+      renderSetup();
+    });
     $('setup-next').addEventListener('click', () => {
       if (setupStep < SETUP_STEPS.length - 1) { setupStep++; renderSetup(); return; }
       closeSetup();
@@ -2727,8 +2756,7 @@
     // ---- patch notes: once per version, then behind the version number ----
     const notesEl = $('notes');
     $('hello-updated').addEventListener('click', () => { notesEl.hidden = false; });
-    $('updated-ver').textContent = VERSION_LABEL;
-    $('updated-when').textContent = 'updated Nov 6 · what’s new';
+    $('updated-ver').textContent = 'v' + VERSION;
     $('ver').addEventListener('click', () => { notesEl.hidden = false; });
     $('notes-close').addEventListener('click', () => { notesEl.hidden = true; setTimeout(maybeAskCloak, 300); });
 
@@ -2786,7 +2814,7 @@
     }
     function maybeAskCloak() {
       if (settings.cloakAsked || settings.noNewTabs || !settings.setupDone) return;
-      if (!$('setup').hidden || !$('milestone').hidden || !$('notes').hidden || !$('cloak-ask').hidden) return;
+      if (!$('setup').hidden || !$('milestone').hidden || !$('notes').hidden || !$('cloak-ask').hidden || !$('games-setup').hidden) return;
       buildCloakAsk();
       $('cloak-ask').hidden = false;
       $('cloak-ask-later').focus();
@@ -2796,6 +2824,56 @@
       saveSettings();
       $('cloak-ask').hidden = true;
     });
+
+    // ---- first visit to Games: how activities open (shown once) ----
+    function gamesWays() {
+      const look = DISGUISES[settings.disguise];
+      return [
+        ['ask', 'Ask each time', 'Choose how it opens when you pick a card.'],
+        ['tab', look ? 'Cloaked tab' : 'New tab', look ? 'Opens right away in a tab that looks like ' + look.label + '.' : 'Opens right away in a new tab.'],
+        ['here', 'On this page', 'Opens on top of ChalkBored, with no new tab.'],
+      ];
+    }
+    function setGamesWay(way) {
+      settings.noNewTabs = way === 'here';
+      if (way !== 'here') settings.askCloak = way === 'ask';
+      if (way === 'tab') settings.cloakMode = DISGUISES[settings.disguise] ? settings.disguise : 'normal';
+      saveSettings();
+      applySettings();
+    }
+    function maybeGamesSetup() {
+      if (settings.gamesSetup) return;
+      if (!$('setup').hidden || !$('milestone').hidden || !$('notes').hidden || !$('cloak-ask').hidden) return;
+      const box = $('games-setup-pick');
+      const now = settings.noNewTabs ? 'here' : settings.askCloak ? 'ask' : 'tab';
+      box.replaceChildren(...gamesWays().map(([way, title, note]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'way';
+        b.setAttribute('aria-pressed', String(way === now));
+        const name = document.createElement('b');
+        name.textContent = title;
+        const about = document.createElement('span');
+        about.textContent = note;
+        b.append(name, about);
+        b.addEventListener('click', () => {
+          setGamesWay(way);
+          box.querySelectorAll('.way').forEach((w) => w.setAttribute('aria-pressed', String(w === b)));
+        });
+        return b;
+      }));
+      $('games-setup').hidden = false;
+      $('games-setup-done').focus();
+    }
+    function closeGamesSetup() {
+      $('games-setup').hidden = true;
+      settings.gamesSetup = true;
+      settings.cloakAsked = true;   // this answers the same question
+      saveSettings();
+      $('nav-games').focus();
+    }
+    $('games-setup-done').addEventListener('click', closeGamesSetup);
+    $('games-setup').addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGamesSetup(); });
 
     // ---- people online ----
     const ONLINE_URL = 'https://thrwgeuljtqjfcohzfdt.supabase.co';
