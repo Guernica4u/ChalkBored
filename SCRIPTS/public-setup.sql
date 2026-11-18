@@ -1575,3 +1575,9 @@ $$;
 
 grant execute on function public.edit_message(bigint, text), public.toggle_reaction(bigint, text),
   public.set_pin(bigint, boolean), public.mark_read(uuid, bigint), public.unread_channels() to authenticated;
+
+-- ================================================================ Last step
+-- Signed-out visitors can only reach the Requests poll and the online count.
+revoke execute on all functions in schema public from public, anon;
+grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
+  public.i_am_here(uuid), public.online_count() to anon, authenticated;
