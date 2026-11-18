@@ -151,9 +151,12 @@
   .class-head {
     display: flex; align-items: center; gap: 10px;
     padding: 12px;
-    border-bottom: 1px solid var(--line);
+    width: 100%;
+    background: none; border: 0; border-bottom: 1px solid var(--line);
+    color: inherit; font: inherit; text-align: left; cursor: pointer;
     flex: none;
   }
+  .class-head:hover, .class-head:focus-visible { background: var(--hover); outline: none; }
   .class-icon {
     width: 32px; height: 32px; flex: none;
     display: grid; place-items: center;
@@ -163,7 +166,7 @@
   }
   .class-titles { min-width: 0; }
   .class-kicker { display: block; font-size: 0.52rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
-  .class-head h2 { margin: 1px 0 0; font-size: 0.92rem; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .class-head b { display: block; margin: 1px 0 0; font-size: 0.92rem; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .class-role {
     margin-left: auto; flex: none;
     font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase;
@@ -192,9 +195,6 @@
   .channel:hover .chan-x, .channel:focus-within .chan-x { opacity: 1; }
   .channel .chan-x:hover { color: var(--danger); }
   .chan-empty { margin: 8px 6px; font-size: 0.72rem; color: var(--muted); }
-  .class-tools { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 14px 8px; flex: none; }
-  .class-tools:not(:has(button:not([hidden]))) { display: none; }
-  .class-tools .link { font-size: 0.62rem; }
   .danger-link:hover { color: var(--danger); }
 
   /* the signed-in user, bottom-left */
@@ -214,6 +214,37 @@
   .channel .chan-end { margin-left: auto; padding: 0 4px; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--muted); font-size: 0.6rem; }
   .channel .chan-end:hover { color: var(--ink); border-color: var(--accent-dim); }
   .channel .chan-end ~ .chan-tool.first { margin-left: 4px; }
+  .server-ini svg, .class-icon svg { width: 58%; height: 58%; display: block; margin: auto; }
+  .class-page { position: absolute; inset: 0 0 0 var(--rail-w); z-index: 30; display: grid; grid-template-columns: 220px minmax(0, 1fr); background: var(--bg); }
+  .cp-nav { display: flex; flex-direction: column; gap: 2px; padding: 20px 10px; background: var(--panel); border-right: 1px solid var(--line); min-width: 0; }
+  .cp-nav h2 { margin: 0 8px 12px; font-size: 0.72rem; font-weight: 600; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cp-nav button { padding: 7px 8px; background: none; border: 0; border-radius: var(--radius-sm); color: var(--muted); font: inherit; font-size: 0.78rem; text-align: left; cursor: pointer; }
+  .cp-nav button:hover, .cp-nav button:focus-visible { background: var(--hover); color: var(--ink); outline: none; }
+  .cp-nav button.on { background: var(--sel); color: var(--ink); }
+  .cp-main { min-width: 0; overflow-y: auto; padding: 24px 32px 48px; }
+  .cp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 640px; margin-bottom: 18px; }
+  .cp-top h1 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .cp-sec { max-width: 640px; }
+  .cp-sec h3 { margin: 22px 0 8px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .cp-sec label { display: block; margin-bottom: 12px; font-size: 0.7rem; color: var(--muted); }
+  .cp-sec input, .cp-sec textarea, .cp-sec select { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font: inherit; font-size: 0.8rem; }
+  .cp-sec textarea { min-height: 72px; resize: vertical; }
+  .cp-sec p { margin: 0 0 12px; font-size: 0.76rem; line-height: 1.5; color: var(--muted); }
+  .cp-pick { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .cp-pick button { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); cursor: pointer; }
+  .cp-pick button svg { width: 18px; height: 18px; }
+  .cp-pick button.on { border-color: var(--accent); }
+  .cp-row { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 0.78rem; }
+  .cp-row .cp-name { flex: 1; min-width: 0; padding: 0; background: none; border: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cp-row select { width: auto; margin: 0; padding: 3px 6px; font-size: 0.68rem; }
+  .cp-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .cp-note { min-height: 1.2em; margin-top: 8px; font-size: 0.72rem; color: var(--muted); }
+  @media (max-width: 720px) {
+    .class-page { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .cp-nav { flex-direction: row; flex-wrap: wrap; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .cp-nav h2 { display: none; }
+    .cp-main { padding: 16px; }
+  }
   .voice-people { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px 30px; }
   .voice-person { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.72rem; color: var(--muted); }
   .voice-person .avatar { width: 20px; height: 20px; flex: none; }
@@ -856,7 +887,7 @@
   .dm-side-tools { display: flex; gap: 6px; }
   .dm-side-tools .mini { flex: 1; }
   .dm-side-label { padding: 6px 6px 0; font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-  .channels.home-on .class-head, .channels.home-on .chan-head, .channels.home-on #channels, .channels.home-on .class-tools { display: none; }
+  .channels.home-on .class-head, .channels.home-on .chan-head, .channels.home-on #channels { display: none; }
   .home-wrap { grid-template-columns: minmax(0, 1fr); }
   .pick-row .unread-dot { width: 8px; height: 8px; flex: none; margin-left: 6px; border-radius: 50%; background: var(--danger); }
   .pick-row .bot-tag { margin-left: 6px; padding: 0 5px; border-radius: 4px; background: var(--accent); color: var(--on-accent, #000); font-size: 0.5rem; font-weight: 700; letter-spacing: 0.06em; }
@@ -962,7 +993,6 @@
     .channels { border-right: 0; border-bottom: 1px solid var(--line); max-height: 44vh; }
     .channels .list { max-height: 24vh; }
     .class-head { padding: 10px 14px 8px; }
-    .class-tools { padding: 0 14px 6px; }
     .user-panel { padding: 6px 10px; }
     .chat-head { height: 46px; padding: 0 12px; }
     .chat-head .presence { display: none; }
@@ -1029,14 +1059,14 @@
   </nav>
 
   <aside class="channels" aria-label="Channels">
-    <div class="class-head">
+    <button class="class-head" id="class-head" type="button" title="Class settings" aria-label="Class settings">
       <span class="class-icon" id="class-icon" aria-hidden="true">#</span>
-      <div class="class-titles">
+      <span class="class-titles">
         <span class="class-kicker">Class</span>
-        <h2 id="room-name">—</h2>
-      </div>
+        <b id="room-name">—</b>
+      </span>
       <span class="class-role" id="class-role" hidden></span>
-    </div>
+    </button>
 
     <div class="chan-head">
       <span>Channels</span>
@@ -1053,13 +1083,6 @@
       </div>
       <span class="dm-side-label">Recent</span>
       <div class="dm-list" id="dm-list"></div>
-    </div>
-
-    <div class="class-tools">
-      <button class="link" id="room-invite" type="button" hidden>invite friends</button>
-      <button class="link" id="room-mods" type="button" hidden>class mods</button>
-      <button class="link" id="room-leave" type="button" hidden>leave class</button>
-      <button class="link danger-link" id="delete-room" type="button" hidden>delete class</button>
     </div>
 
     <div class="user-wrap">
@@ -1134,6 +1157,14 @@
     </form>
     <p class="compose-note" id="compose-note" role="status"></p>
   </div>
+
+  <section class="class-page" id="class-page" aria-label="Class settings" hidden>
+    <nav class="cp-nav" id="cp-nav" aria-label="Class settings sections"></nav>
+    <div class="cp-main">
+      <div class="cp-top"><h1 id="cp-title"></h1><button class="mini" id="cp-close" type="button">Close</button></div>
+      <div class="cp-sec" id="cp-body"></div>
+    </div>
+  </section>
 
   <aside class="people" id="people" aria-label="Members">
     <div class="people-inner">
@@ -1368,6 +1399,15 @@ function classInitials(name) {
   return (first + second).toUpperCase();
 }
 
+// a class's picked picture, or its initials
+function paintClassIcon(el, room) {
+  const picked = splitAvatar(room.icon);
+  el.textContent = '';
+  if (picked) el.appendChild(shape('pfp-' + picked.sym, 'av-sym'));
+  else el.textContent = classInitials(room.name);
+}
+const classBg = (room) => { const picked = splitAvatar(room.icon); return picked ? AVATAR_COLORS[picked.color] : classColor(room.name); };
+
 function paintClassHead() {
   const icon = $('class-icon');
   if (!state.room || !state.me) {
@@ -1376,15 +1416,13 @@ function paintClassHead() {
     icon.textContent = '#';
     icon.style.removeProperty('--class-bg');
     $('class-role').hidden = true;
-    $('delete-room').hidden = true;
-    $('room-mods').hidden = true;
     $('new-channel').hidden = true;
     return;
   }
   $('room-name').textContent = state.room.name;
   $('room-name').title = state.room.name;
-  icon.textContent = classInitials(state.room.name);
-  icon.style.setProperty('--class-bg', classColor(state.room.name));
+  paintClassIcon(icon, state.room);
+  icon.style.setProperty('--class-bg', classBg(state.room));
   const role = state.me.is_mod ? 'site mod'
     : state.membership[state.room.id] === 'owner' ? 'owner'
       : state.membership[state.room.id] === 'mod' ? 'class mod' : '';
@@ -1539,7 +1577,7 @@ $('sign-out').onclick = async () => { await db.auth.signOut(); location.reload()
 // ------------------------------------------------------------------ rooms
 async function loadRooms() {
   const [{ data: rooms }, { data: mine }] = await Promise.all([
-    db.from('rooms').select('id, name, is_private, is_global, owner_id').order('is_global', { ascending: false }).order('name'),
+    db.from('rooms').select('id, name, is_private, is_global, owner_id, icon, about').order('is_global', { ascending: false }).order('name'),
     db.from('room_members').select('room_id, role').eq('user_id', state.me.id),
   ]);
 
@@ -1549,6 +1587,8 @@ async function loadRooms() {
   state.rooms = (rooms || []).filter((r) => state.membership[r.id] || state.me.is_mod);
   const { data: invites } = await db.rpc('my_invites');
   state.invites = invites || [];
+  const fresh = state.room && state.rooms.find((r) => r.id === state.room.id);
+  if (fresh) state.room = Object.assign(state.room, fresh);
   paintRooms();
   paintMe();
   refreshReportCount();
@@ -1574,20 +1614,21 @@ function paintRooms() {
     btn.type = 'button';
     btn.title = room.name + (locked ? ' (locked)' : '');
     btn.setAttribute('aria-label', 'Class: ' + room.name);
-    btn.style.setProperty('--class-bg', classColor(room.name));
+    btn.style.setProperty('--class-bg', classBg(room));
 
     const pill = document.createElement('span');
     pill.className = 'pill';
     pill.setAttribute('aria-hidden', 'true');
     const ini = document.createElement('span');
     ini.className = 'server-ini';
-    ini.textContent = classInitials(room.name);
+    paintClassIcon(ini, room);
     const name = document.createElement('span');
     name.className = 'server-name';
     name.textContent = room.name;
 
     btn.append(pill, ini, name);
-    btn.onclick = () => openRoom(room);
+    // the class you're already in: its icon opens its settings
+    btn.onclick = () => (state.room && state.room.id === room.id && !state.homeOn ? openClassPage() : openRoom(room));
     wrap.appendChild(btn);
   });
 
@@ -1636,13 +1677,11 @@ async function openRoom(room) {
   if (!joined && !state.me.is_mod) return;
 
   closeHome();
+  closeClassPage();
   state.room = room;
   state.channel = null;
   clearReply();
   paintClassHead();
-  $('delete-room').hidden = !(state.me.is_mod || room.owner_id === state.me.id) || room.is_global;
-  $('room-mods').hidden = !(state.me.is_mod || state.membership[room.id] === 'owner');
-  paintRoomTools();
   paintVoice();
   $('new-channel').hidden = !canAddChannel(room);
   paintRooms();
@@ -1681,73 +1720,272 @@ $('new-room').onclick = async () => {
   if (room) openRoom(room);
 };
 
-// invite, leave, and links: the bits of a class that depend on who you are there
-function paintRoomTools() {
+// ------------------------------------------------------------------ class settings page
+// Everything about one class in its own full view. The database checks every change.
+const cp = { tab: 'overview', icon: null };
+const make = (tag, cls, text) => {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (text != null) el.textContent = text;
+  return el;
+};
+
+function classTabs() {
   const room = state.room;
-  const role = room && state.membership[room.id];
-  $('room-invite').hidden = !room || room.is_global || !canManage(room);
-  $('room-leave').hidden = !room || room.is_global || !role || role === 'owner';
+  if (room.is_global) return [['overview', 'Overview']];
+  return [['overview', 'Overview'], ['members', 'Members']]
+    .concat(canManage(room) ? [['invites', 'Invites'], ['bans', 'Bans']] : []);
 }
 
-$('room-invite').onclick = async () => {
+function openClassPage(tab) {
+  if (!state.room) return;
+  cp.tab = tab || 'overview';
+  cp.icon = state.room.icon || null;
+  $('class-page').hidden = false;
+  paintClassPage();
+}
+function closeClassPage() { $('class-page').hidden = true; }
+$('cp-close').onclick = closeClassPage;
+$('class-head').onclick = () => openClassPage();
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('class-page').hidden && $('form-veil').classList.contains('hide')) closeClassPage();
+});
+
+function paintClassPage() {
   const room = state.room;
-  await Promise.all([loadEveryone(), loadFriends(), loadMembers()]);
-  const inside = new Set(state.members.map((p) => p.id));
-  const byId = everyoneById();
-  const friends = [...state.friends].map((id) => byId.get(id)).filter((p) => p && !inside.has(p.id))
-    .sort((a, b) => a.username.localeCompare(b.username));
-  if (!friends.length) {
-    showToast(state.friends.size ? 'All your friends are in this class already.' : 'Add some friends first. Only friends can be invited.');
-    return;
+  const nav = $('cp-nav');
+  nav.innerHTML = '';
+  nav.appendChild(make('h2', '', room.name));
+  classTabs().forEach(([id, label]) => {
+    const b = make('button', cp.tab === id ? 'on' : '', label);
+    b.type = 'button';
+    if (cp.tab === id) b.setAttribute('aria-current', 'page');
+    b.onclick = () => { cp.tab = id; paintClassPage(); };
+    nav.appendChild(b);
+  });
+  $('cp-title').textContent = (classTabs().find(([id]) => id === cp.tab) || ['', 'Overview'])[1];
+  $('cp-body').innerHTML = '';
+  ({ overview: cpOverview, members: cpMembers, invites: cpInvites, bans: cpBans })[cp.tab]($('cp-body'), room);
+}
+
+// run a database call, show its answer, and redraw this section
+async function cpDo(note, call, done) {
+  const { data: why, error } = await call;
+  if (error || why) { note.textContent = error ? error.message : why; return false; }
+  if (done) showToast(done);
+  return true;
+}
+
+function cpOverview(box, room) {
+  const runs = canManage(room);
+  const role = state.membership[room.id];
+  if (runs) {
+    const name = make('input'); name.value = room.name; name.maxLength = 40;
+    const about = make('textarea'); about.value = room.about || ''; about.maxLength = 160;
+    const nameLabel = make('label', '', 'Class name'); nameLabel.appendChild(name);
+    const aboutLabel = make('label', '', 'Description'); aboutLabel.appendChild(about);
+    box.append(nameLabel, aboutLabel, make('h3', '', 'Picture'));
+
+    const picked = () => splitAvatar(cp.icon);
+    const syms = make('div', 'cp-pick');
+    const colors = make('div', 'cp-pick');
+    // redraws only the picker, so what you typed above stays
+    const paintPick = () => {
+      syms.innerHTML = '';
+      colors.innerHTML = '';
+      const choose = (b, label, icon) => {
+        b.type = 'button';
+        b.setAttribute('aria-label', label);
+        b.onclick = () => { cp.icon = icon(); paintPick(); };
+      };
+      const plain = make('button', picked() ? '' : 'on', 'Aa');
+      choose(plain, 'Use the first letters', () => null);
+      syms.appendChild(plain);
+      for (let i = 0; i < AVATAR_ICONS; i++) {
+        const b = make('button', picked() && picked().sym === i ? 'on' : '');
+        choose(b, 'Picture ' + (i + 1), () => i + '.' + (picked() ? picked().color : 0));
+        b.appendChild(shape('pfp-' + i));
+        syms.appendChild(b);
+      }
+      AVATAR_COLORS.forEach((c, i) => {
+        const b = make('button', picked() && picked().color === i ? 'on' : '');
+        choose(b, 'Colour ' + (i + 1), () => (picked() ? picked().sym : 0) + '.' + i);
+        b.style.background = c;
+        colors.appendChild(b);
+      });
+    };
+    paintPick();
+    box.append(syms, colors);
+
+    const note = make('p', 'cp-note');
+    const save = make('button', 'primary', 'Save changes');
+    save.type = 'button';
+    save.onclick = async () => {
+      note.textContent = '';
+      const ok = await cpDo(note, db.rpc('save_room', { p_room: room.id, p_name: name.value, p_icon: cp.icon, p_about: about.value }), 'Class saved.');
+      if (ok) { await loadRooms(); paintClassHead(); paintClassPage(); }
+    };
+    const row = make('div', 'cp-actions');
+    row.appendChild(save);
+    box.append(row, note);
+  } else {
+    box.appendChild(make('p', '', room.about || 'No description yet.'));
   }
-  const answer = await openForm({
-    title: 'Invite to ' + room.name,
-    text: 'Only your friends can be invited. They join when they say yes.',
-    fields: [{ key: 'who', label: 'Friend', type: 'select', options: friends.map((p) => ({ value: p.id, label: p.username })) }],
-    submit: 'Invite',
-  });
-  if (!answer) return;
-  const { data: why, error } = await db.rpc('invite_to_room', { p_room: room.id, p_user: answer.who });
-  showToast(error ? error.message : why || 'Invite sent.');
-};
 
-$('room-leave').onclick = async () => {
-  const room = state.room;
-  if (!room || !confirm('Leave ' + room.name + '? You need a new invite to come back.')) return;
-  const { error } = await db.from('room_members').delete().eq('room_id', room.id).eq('user_id', state.me.id);
-  if (error) return alert(error.message);
-  state.room = null;
-  await loadRooms();
-};
+  if (room.is_global) return;
+  const isOwner = state.me.is_mod || room.owner_id === state.me.id;
+  if (!role || role !== 'owner' || isOwner) box.appendChild(make('h3', '', 'Leave or delete'));
+  const danger = make('div', 'cp-actions');
+  if (role && role !== 'owner') {
+    const leave = make('button', 'ghost', 'Leave class');
+    leave.type = 'button';
+    leave.onclick = async () => {
+      if (!confirm('Leave ' + room.name + '? You need a new invite to come back.')) return;
+      const { error } = await db.from('room_members').delete().eq('room_id', room.id).eq('user_id', state.me.id);
+      if (error) { showToast(error.message); return; }
+      closeClassPage();
+      state.room = null;
+      await loadRooms();
+    };
+    danger.appendChild(leave);
+  }
+  if (isOwner) {
+    const del = make('button', 'ghost', 'Delete class');
+    del.type = 'button';
+    del.onclick = async () => {
+      if (!confirm('Delete the class "' + room.name + '" and everything in it?')) return;
+      const { error } = await db.from('rooms').delete().eq('id', room.id);
+      if (error) { showToast(error.message); return; }
+      closeClassPage();
+      state.room = null;
+      await loadRooms();
+    };
+    danger.appendChild(del);
+  }
+  box.appendChild(danger);
+}
 
-$('delete-room').onclick = async () => {
-  if (!state.room || !confirm('Delete the class "' + state.room.name + '" and everything in it?')) return;
-  const { error } = await db.from('rooms').delete().eq('id', state.room.id);
-  if (error) return alert(error.message);
-  state.room = null;
-  await loadRooms();
-};
+async function cpMembers(box, room) {
+  box.appendChild(make('p', '', 'Loading…'));
+  await loadMembers();
+  if (cp.tab !== 'members' || state.room !== room) return;
+  box.innerHTML = '';
+  const note = make('p', 'cp-note');
+  const top = state.me.is_mod || state.membership[room.id] === 'owner';
+  const again = () => paintClassPage();
 
-$('room-mods').onclick = async () => {
-  const people = state.members.filter((p) => p.id !== state.me.id && !p.is_mod);
-  if (!people.length) { showToast('No one else in this class yet.'); return; }
-  const answer = await openForm({
-    title: 'Class moderators',
-    text: 'A class mod can add and delete channels here, and delete anyone’s messages in this class.',
-    fields: [
-      { key: 'username', label: 'Person', type: 'select',
-        options: people.map((p) => ({ value: p.username, label: p.username + (p.role === 'mod' ? ' (mod)' : '') })) },
-      { key: 'role', label: 'What should they be?', type: 'select',
-        options: [{ value: 'mod', label: 'Class mod' }, { value: 'member', label: 'Just a member' }] },
-    ],
-    submit: 'Save',
+  [['owner', 'Owner'], ['mod', 'Class mods'], ['member', 'Members']].forEach(([role, title]) => {
+    const people = state.members.filter((m) => m.role === role).sort((a, b) => a.username.localeCompare(b.username));
+    if (!people.length) return;
+    box.appendChild(make('h3', '', title + ' (' + people.length + ')'));
+    people.forEach((m) => {
+      const row = make('div', 'cp-row');
+      const name = make('button', 'cp-name', m.username);
+      name.type = 'button';
+      name.onclick = () => openPersonCard(m);
+      row.append(makeAvatar(m.id, m.username, 'sm', m.avatar), name);
+      if (m.id !== state.me.id && role !== 'owner') {
+        if (top) {
+          const pick = make('select');
+          pick.setAttribute('aria-label', 'Role for ' + m.username);
+          [['member', 'Member'], ['mod', 'Class mod']].forEach(([v, l]) => { const o = make('option', '', l); o.value = v; pick.appendChild(o); });
+          pick.value = role;
+          pick.onchange = async () => {
+            const { error } = await db.rpc('set_room_role', { p_room: room.id, p_username: m.username, p_role: pick.value });
+            if (error) note.textContent = error.message; else again();
+          };
+          row.appendChild(pick);
+        }
+        if (top || (canManage(room) && role === 'member')) {
+          const kick = make('button', 'mini', 'Remove');
+          kick.type = 'button';
+          kick.onclick = async () => {
+            if (!confirm('Remove ' + m.username + ' from ' + room.name + '? They can come back if they are invited again.')) return;
+            if (await cpDo(note, db.rpc('kick_member', { p_room: room.id, p_user: m.id }))) again();
+          };
+          const ban = make('button', 'mini danger', 'Ban');
+          ban.type = 'button';
+          ban.onclick = async () => {
+            if (!confirm('Ban ' + m.username + ' from ' + room.name + '? They can\'t be invited back until they are unbanned.')) return;
+            if (await cpDo(note, db.rpc('set_room_banned', { p_room: room.id, p_user: m.id, p_banned: true }))) again();
+          };
+          row.append(kick, ban);
+        }
+      }
+      box.appendChild(row);
+    });
   });
-  if (!answer) return;
-  const { error } = await db.rpc('set_room_role', {
-    p_room: state.room.id, p_username: answer.username, p_role: answer.role,
+  box.appendChild(note);
+}
+
+async function cpInvites(box, room) {
+  box.appendChild(make('p', '', 'Loading…'));
+  const [, , , { data: waiting }] = await Promise.all([loadEveryone(), loadFriends(), loadMembers(),
+    db.from('room_invites').select('user_id, profiles!room_invites_user_id_fkey(username, avatar)').eq('room_id', room.id)]);
+  if (cp.tab !== 'invites' || state.room !== room) return;
+  box.innerHTML = '';
+  const note = make('p', 'cp-note');
+  const asked = new Set((waiting || []).map((w) => w.user_id));
+  const inside = new Set(state.members.map((m) => m.id));
+  const byId = everyoneById();
+  const friends = [...state.friends].map((id) => byId.get(id)).filter((f) => f && !inside.has(f.id) && !asked.has(f.id))
+    .sort((a, b) => a.username.localeCompare(b.username));
+
+  box.appendChild(make('p', '', 'Only your friends can be invited. They join when they say yes.'));
+  if (friends.length) {
+    const pick = make('select');
+    pick.setAttribute('aria-label', 'Friend to invite');
+    friends.forEach((f) => { const o = make('option', '', f.username); o.value = f.id; pick.appendChild(o); });
+    const send = make('button', 'primary', 'Invite');
+    send.type = 'button';
+    send.onclick = async () => {
+      if (await cpDo(note, db.rpc('invite_to_room', { p_room: room.id, p_user: pick.value }), 'Invite sent.')) paintClassPage();
+    };
+    const row = make('div', 'cp-actions');
+    row.append(pick, send);
+    box.appendChild(row);
+  } else {
+    box.appendChild(make('p', '', state.friends.size ? 'All your friends are here or already invited.' : 'Add some friends first.'));
+  }
+  box.appendChild(note);
+
+  box.appendChild(make('h3', '', 'Waiting for an answer (' + asked.size + ')'));
+  (waiting || []).forEach((w) => {
+    const name = (w.profiles && w.profiles.username) || 'someone';
+    const row = make('div', 'cp-row');
+    row.append(makeAvatar(w.user_id, name, 'sm', w.profiles && w.profiles.avatar), make('span', 'cp-name', name));
+    const cancel = make('button', 'mini', 'Cancel');
+    cancel.type = 'button';
+    cancel.onclick = async () => {
+      const { error } = await db.from('room_invites').delete().eq('room_id', room.id).eq('user_id', w.user_id);
+      if (error) note.textContent = error.message; else paintClassPage();
+    };
+    row.appendChild(cancel);
+    box.appendChild(row);
   });
-  alert(error ? error.message : (answer.role === 'mod' ? answer.username + ' is now a class mod.' : answer.username + ' is a member again.'));
-};
+}
+
+async function cpBans(box, room) {
+  box.appendChild(make('p', '', 'Loading…'));
+  const { data } = await db.from('room_bans').select('user_id, profiles!room_bans_user_id_fkey(username, avatar)').eq('room_id', room.id);
+  if (cp.tab !== 'bans' || state.room !== room) return;
+  box.innerHTML = '';
+  const note = make('p', 'cp-note');
+  if (!(data || []).length) box.appendChild(make('p', '', 'Nobody is banned from this class.'));
+  (data || []).forEach((b) => {
+    const name = (b.profiles && b.profiles.username) || 'A removed account';
+    const row = make('div', 'cp-row');
+    row.append(makeAvatar(b.user_id, name, 'sm', b.profiles && b.profiles.avatar), make('span', 'cp-name', name));
+    const un = make('button', 'mini', 'Unban');
+    un.type = 'button';
+    un.onclick = async () => {
+      if (await cpDo(note, db.rpc('set_room_banned', { p_room: room.id, p_user: b.user_id, p_banned: false }))) { state.bans.delete(b.user_id); paintClassPage(); }
+    };
+    row.appendChild(un);
+    box.appendChild(row);
+  });
+  box.appendChild(note);
+}
 
 // ------------------------------------------------------------------ channels
 async function loadChannels() {
@@ -2219,8 +2457,6 @@ function paintMe() {
   paintClassHead();
   if (state.room) {
     $('new-channel').hidden = !canAddChannel(state.room);
-    $('delete-room').hidden = !(state.me.is_mod || state.room.owner_id === state.me.id) || state.room.is_global;
-    $('room-mods').hidden = !(state.me.is_mod || state.membership[state.room.id] === 'owner');
   }
 }
 
@@ -3597,7 +3833,10 @@ async function joinVoice(key, label, ringTo) {
   Object.assign(voice, { key, v, label });
   const { data: who } = await db.rpc('voice_who', { p_key: key });
   (who || []).filter((id) => id !== state.me.id).forEach((id) => v.call(id).catch(() => {}));
-  voice.beat = setInterval(() => db.rpc('voice_join', { p_key: key }), 20000);
+  voice.beat = setInterval(async () => {
+    const { data: stop } = await db.rpc('voice_join', { p_key: key });
+    if (stop && voice.key === key) { leaveVoice(); showToast(stop); }
+  }, 20000);
   if (ringTo) {
     const { data: rang } = await db.rpc('voice_signal', { p_key: key, p_to: ringTo, p_kind: 'ring', p_body: null });
     if (rang) showToast(rang);
