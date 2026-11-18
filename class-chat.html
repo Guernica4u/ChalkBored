@@ -8,110 +8,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* The chat follows the theme picked in ChalkBored (Settings -> Look).
-     Basic Night is the default; Mono swaps its colors further down. */
-  :root, body[data-theme="basic"] {
-    --bg: #1a1d24;          /* a shade off Notebook's page, so Chat stands apart from it */
-    --panel: #14161a;
-    --panel-2: #1f232a;
-    --ink: #d9d5cc;
-    --muted: #8b909a;
-    --line: #2b3039;
-    --accent: #8fb3d9;
-    --accent-dim: #4b6480;
-    --danger: #d98b7f;
-    --sel: #232a34;
-    --mine: #1f2a36;
-    --btn: #22303f;
-    --btn-hover: #2a3a4c;
-    --flash: #2e3d50;
-    --at-bg: rgba(143, 179, 217, 0.16);
-    --veil: rgba(8, 9, 12, 0.7);
-    --font: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
-    color-scheme: dark;
-  }
-  /* Space: soft see-through panels over a dim starry sky (matches ChalkBored) */
-  body[data-theme="space"] {
-    --bg: #0b0f1c;
-    --panel: rgba(24, 30, 48, 0.72);
-    --panel-2: rgba(46, 54, 80, 0.6);
-    --ink: #e6e9f2;
-    --muted: #a4adc4;
-    --line: rgba(200, 212, 255, 0.15);
-    --accent: #dbe3f6;
-    --accent-dim: rgba(200, 212, 255, 0.4);
-    --danger: #f2a3a3;
-    --sel: rgba(200, 212, 255, 0.11);
-    --mine: rgba(200, 212, 255, 0.07);
-    --btn: rgba(200, 212, 255, 0.12);
-    --btn-hover: rgba(200, 212, 255, 0.2);
-    --flash: rgba(200, 212, 255, 0.18);
-    --at-bg: rgba(200, 212, 255, 0.16);
-    --veil: rgba(6, 9, 18, 0.6);
-    --font: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
-    color-scheme: dark;
-    background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c;
-  }
-  /* let the sky show through the chat, the way the site's own pages do */
-  body[data-theme="space"] .app, body[data-theme="space"] .main { background: transparent; }
-  /* a faint tint over the sky, so Chat stands apart from Notebook's page */
-  body[data-theme="space"] .app { background: rgba(200, 212, 255, 0.04); }
-  body[data-theme="space"] .chat-head, body[data-theme="space"] #composer { background: rgba(12, 16, 30, 0.6); }
-  body[data-theme="space"] .card, body[data-theme="space"] .toast { border-radius: 18px; }
-  body[data-theme="space"] .gate { background: rgba(9, 12, 24, 0.82); }
-
-  /* the readable themes run a touch bigger than the monospace one */
-  body[data-theme="space"], body[data-theme="basic"] { font-size: 17px; }
-
-  /* ---- layout tokens that sit on top of the theme colours ---- */
+  /* Chalk Chat has one look: plain black and white, small square corners. */
   :root {
-    --rail-bg: #090a0c;
-    --hover: #15181d;
-    --on-accent: #06120c;
-    --radius: 0px;
-    --radius-sm: 0px;
-    --server-radius: 0px;
-    --shadow: none;
-    --ping-bg: #121b16;
-    --online: #3ba55d;
-    /* dialogs and menus sit on this, never on a see-through panel */
-    --card-bg: #121419;
-    --card-2: #191d24;
-    --rail-w: 72px;
-    --side-w: 232px;
-    --member-w: 232px;
-    --avatar-font: 'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', ui-sans-serif, sans-serif;
-  }
-  body[data-theme="basic"] {
-    --rail-bg: #121419;
-    --hover: #20242b;
-    --on-accent: #0f1720;
-    --radius: 8px;
-    --radius-sm: 5px;
-    --server-radius: 14px;
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-    --ping-bg: #1c2430;
-    --online: #4cc57e;
-    --card-bg: #1a1e25;
-    --card-2: #232830;
-  }
-  /* Mono: the same Basic layout in plain black and white */
-  body[data-basic="mono"] {
     --bg: #121212; --panel: #080808; --panel-2: #171717; --ink: #f2f2f2; --muted: #9a9a9a; --line: #2e2e2e;
     --accent: #f2f2f2; --accent-dim: #6b6b6b; --danger: #e6e6e6;
     --sel: #1f1f1f; --mine: #202020; --btn: #2a2a2a; --btn-hover: #383838; --flash: #3a3a3a;
     --at-bg: rgba(255, 255, 255, 0.14);
-    --rail-bg: #070707; --hover: #1c1c1c; --on-accent: #0b0b0b; --ping-bg: #222222; --card-bg: #131313; --card-2: #1d1d1d;
-  }
-  body[data-theme="space"] {
-    --rail-bg: rgba(14, 18, 32, 0.6);
-    --hover: rgba(200, 212, 255, 0.08);
-    --on-accent: #0e1328;
-    --ping-bg: rgba(200, 212, 255, 0.12);
-    --online: #8ee0b0;
-    /* solid on purpose: text on these has to stay readable over the sky */
-    --card-bg: #141a2c;
-    --card-2: #1c2338;
+    --veil: rgba(0, 0, 0, 0.7);
+    --rail-bg: #070707; --hover: #1c1c1c; --on-accent: #0b0b0b; --ping-bg: #222222;
+    --card-bg: #131313; --card-2: #1d1d1d;
+    --online: #4cc57e;
+    --radius: 3px; --radius-sm: 3px; --server-radius: 3px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    --rail-w: 72px; --side-w: 232px; --member-w: 232px;
+    --font: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    --avatar-font: 'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols', ui-sans-serif, sans-serif;
+    color-scheme: dark;
+    background: #121212;
+    font-size: 17px;
   }
   [hidden] { display: none !important; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -253,7 +167,7 @@
   .class-role {
     margin-left: auto; flex: none;
     font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 999px;
+    color: var(--accent); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm);
     padding: 1px 6px;
   }
   .chan-head {
@@ -294,7 +208,7 @@
   .user-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
   .user-meta b { font-size: 0.76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .user-sub { font-size: 0.6rem; color: var(--muted); }
-  .tag { flex: none; font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 999px; padding: 1px 5px; }
+  .tag { flex: none; font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm); padding: 1px 5px; }
   .icon-btn {
     margin-left: auto; flex: none;
     width: 26px; height: 26px; display: grid; place-items: center;
@@ -398,7 +312,6 @@
   /* pictures are drawn, not typed: no font metrics to knock them off centre */
   .avatar svg { width: 56%; height: 56%; display: block; fill: currentColor; }
   .avatar.sm { width: 26px; height: 26px; }
-  .avatar.lg { width: 72px; height: 72px; }
 
   .msg-body { min-width: 0; flex: 1; padding: 0; }
   .msg-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 1px; }
@@ -576,7 +489,6 @@
   .ghost:hover { color: var(--ink); border-color: var(--accent-dim); }
 
   .gate p.safe { margin: -0.2rem 0 1rem; font-size: 0.7rem; letter-spacing: 0.08em; color: var(--accent); }
-  .safe-tag { font-size: 0.62rem; letter-spacing: 0.08em; color: var(--accent-dim); }
   @media (max-width: 680px) { .safe-tag { display: none; } }
 
   .err { min-height: 1.2rem; margin-top: 0.7rem; font-size: 0.72rem; color: var(--danger); }
@@ -621,7 +533,6 @@
   .field > span { display: block; margin-bottom: 5px; font-size: 0.56rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); }
   .card .field { margin-bottom: 0.85rem; }
   /* the old line prompt is gone; these are real forms now */
-  .form-foot { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
 
   /* ---------------- members ---------------- */
 
@@ -701,7 +612,6 @@
   .ptag { margin-left: auto; flex: none; font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-dim); }
   .person.online .ptag { color: var(--accent); }
   .people-note { margin: 0; padding: 8px 10px 10px; font-size: 0.6rem; color: var(--muted); border-top: 1px solid var(--line); }
-  .people-note.inline { border-top: 0; padding: 4px 6px 8px; }
 
   /* ---------------- mentions ---------------- */
 
@@ -716,16 +626,12 @@
     font-weight: 700;
     line-height: 1.5;
     text-align: center;
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
   }
   .at { color: var(--accent); }
   .at.at-me { background: var(--at-bg); padding: 0 0.15rem; }
   @keyframes flash { 0%, 45% { background: var(--flash); } }
 
-  .mn { display: block; width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .mn:hover, .mn:focus-visible { border-color: var(--accent-dim); outline: none; }
-  .mn.unseen { border-left: 2px solid var(--accent); }
-  .rp-head .btns { display: flex; gap: 0.4rem; }
 
   /* @ autocomplete above the text box */
   .suggest {
@@ -910,13 +816,10 @@
   .home-head h1 { flex: 1; min-width: 0; margin: 0; font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-head .mini { margin-left: auto; }
   .home-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 228px minmax(0, 1fr); }
-  .home-list { display: flex; flex-direction: column; min-height: 0; padding: 10px; gap: 8px; border-right: 1px solid var(--line); }
   #dm-find { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font: inherit; font-size: 0.74rem; padding: 7px 9px; outline: none; }
   #dm-find:focus { border-color: var(--accent-dim); }
   .dm-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
   .dm-thread-wrap { display: flex; flex-direction: column; min-height: 0; }
-  .dm-head { flex: none; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 0.82rem; font-weight: 600; }
-  .dm-head #dm-head-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dm-msg .dm-report { margin-left: 6px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; text-decoration: underline; cursor: pointer; }
   .dm-msg .dm-report:hover { color: var(--danger); }
   .dm-thread { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -946,10 +849,6 @@
   .bot-link { padding: 0 3px; border: 0; border-radius: 4px; background: var(--at-bg, var(--hover)); color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
   .bot-link:hover, .bot-link:focus-visible { filter: brightness(1.2); outline: none; }
 
-  /* Space: the sky shows through your messages too, like it does in classes */
-  body[data-theme="space"] .home { background: transparent; }
-  body[data-theme="space"] .home-head, body[data-theme="space"] .dm-form { background: rgba(12, 16, 30, 0.6); }
-
   /* ---------------- someone's profile ---------------- */
 
   .card.person-card { width: min(420px, 100%); max-height: 90vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
@@ -959,7 +858,7 @@
   .pf-body { padding: 36px 18px 18px; overflow-y: auto; min-height: 0; }
   .pf-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .pf-name-row b { font-size: 1.05rem; }
-  .pf-tag { font-size: 0.5rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 999px; padding: 1px 6px; }
+  .pf-tag { font-size: 0.5rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm); padding: 1px 6px; }
   .pf-about { margin: 10px 0 0; font-size: 0.8rem; line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
   .pf-about.none { color: var(--muted); font-style: italic; }
   .pf-sec { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
@@ -967,7 +866,7 @@
   .pf-stack { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
   .pf-stack .avatar { width: 26px; height: 26px; }
   .pf-stack .avatar + .avatar { margin-left: -12px; box-shadow: 0 0 0 2px var(--card-bg); }
-  .pf-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.7rem; color: var(--ink); }
+  .pf-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 0.7rem; color: var(--ink); }
   .pf-chip b { color: var(--muted); font-weight: 400; }
   .pf-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
   .pf-actions button { flex: 1 1 auto; padding: 8px 10px; font-size: 0.72rem; }
@@ -976,25 +875,8 @@
 
   /* ---------------- settings ---------------- */
 
-  .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 4px; }
-  .theme-card {
-    padding: 8px; background: none; border: 1px solid var(--line); border-radius: var(--radius-sm);
-    color: var(--ink); font: inherit; font-size: 0.68rem; cursor: pointer; text-align: left;
-  }
-  .theme-card:hover, .theme-card:focus-visible { border-color: var(--accent-dim); outline: none; }
-  .theme-card.on { border-color: var(--accent); background: var(--sel); }
-  .theme-note { display: block; color: var(--muted); font-size: 0.58rem; }
-  .theme-swatch { display: block; height: 34px; margin-bottom: 6px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
-  .theme-card[data-theme-pick="basic"] .theme-swatch { background: linear-gradient(135deg, #16181d 55%, #8fb3d9 55%); }
-  /* Basic's colors, a small row under the cards, only while Basic is picked */
-  .basic-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; }
-  .basic-row[hidden] { display: none; }
-  .basic-label { color: var(--muted); font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; }
-  .basic-chip { padding: 3px 9px; background: none; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); font: inherit; font-size: 0.64rem; cursor: pointer; }
-  .basic-chip:hover, .basic-chip:focus-visible { border-color: var(--accent-dim); outline: none; }
-  .basic-chip.on { border-color: var(--accent); background: var(--sel); }
-  .theme-card[data-theme-pick="space"] .theme-swatch { background: radial-gradient(circle at 30% 30%, #eef1ff 0 1px, transparent 2px), radial-gradient(circle at 70% 60%, #eef1ff 0 1px, transparent 2px), linear-gradient(135deg, #1a2140, #090c18); }
   .set-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .set-rows.first { margin-top: 0; padding-top: 0; border-top: 0; }
   .set-rows .link { text-align: left; padding: 6px 2px; }
 
   /* ---------------- picking a banner ---------------- */
@@ -1014,7 +896,6 @@
 
   @media (max-width: 980px) {
     .home-wrap { grid-template-columns: 1fr; }
-    .home-list { border-right: 0; border-bottom: 1px solid var(--line); max-height: 40%; }
     .pf-banner { height: 80px; }
   }
 
@@ -1118,32 +999,7 @@
   <symbol id="ic-chat" viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7.2L7 21v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path class="chalk" d="M6.4 8.4h11.2M6.4 12h7"/></symbol>
 </svg>
 
-<script>
-  // match ChalkBored's theme (same browser storage the Notebook uses)
-  (function () {
-    const THEMES = ['basic', 'space'];
-    const BASICS = ['night', 'mono'];
-    function apply() {
-      let theme = 'basic', basic = 'mono';   // the default look for someone new
-      try {
-        const saved = JSON.parse(localStorage.getItem('vault-settings') || 'null') || {};
-        if (BASICS.includes(saved.basic)) basic = saved.basic;
-        if (saved.theme === 'glass') theme = 'space';   // Glass is called Space now
-        else if (THEMES.includes(saved.theme)) theme = saved.theme;
-        if (saved.plain || saved.theme === 'night' || saved.theme === 'terminal') { theme = 'basic'; basic = 'night'; }   // Night is a Basic color now; Terminal is retired
-      } catch (e) {}
-      document.body.dataset.theme = theme;
-      if (theme === 'basic') document.body.dataset.basic = basic;
-      else delete document.body.dataset.basic;
-    }
-    apply();
-    window.matchNotebookLook = apply;
-    // change the theme in ChalkBored and an open chat follows along
-    window.addEventListener('storage', (e) => { if (e.key === 'vault-settings') apply(); });
-  })();
-</script>
-
-<div class="app" id="app">
+<div class="app" id="app" style="visibility: hidden">
   <nav class="servers" aria-label="Classes">
     <div class="brand-wrap">
       <span class="pill" aria-hidden="true"></span>
@@ -1352,15 +1208,7 @@
 <div class="veil hide" id="settings-veil">
   <div class="card" role="dialog" aria-labelledby="settings-title">
     <div class="rp-head"><h3 id="settings-title">Settings</h3><button class="mini" id="settings-close" type="button">close</button></div>
-    <p class="prof-label">Look</p>
-    <div class="theme-grid" id="theme-grid" role="radiogroup" aria-label="Theme"></div>
-    <div class="basic-row" id="basic-row" hidden>
-      <span class="basic-label">Basic colors</span>
-      <button type="button" class="basic-chip" data-basic-pick="night">Night</button>
-      <button type="button" class="basic-chip" data-basic-pick="mono">Mono</button>
-    </div>
-    <p class="note">The same looks as ChalkBored. Picking one here changes it there too.</p>
-    <div class="set-rows">
+    <div class="set-rows first">
       <button class="link" id="set-profile" type="button">Edit your profile</button>
     </div>
   </div>
@@ -1368,7 +1216,7 @@
 
 <div class="ctx hide" id="ctx" role="menu"></div>
 
-<div class="gate" id="gate">
+<div class="gate hide" id="gate">
   <div class="gate-box">
     <h2>Chalk Chat</h2>
     <p class="safe">Moderated and safe for students</p>
@@ -1418,8 +1266,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0NGQlBRZ08bdTFpT4aRw6Q_T_DBsAby';
 // usernames become addresses behind the scenes, so nobody has to give an email
 const MAIL_DOMAIN = 'users.chalkbored.win';
 
-const CONFIGURED = !SUPABASE_URL.startsWith('PASTE') && !SUPABASE_ANON_KEY.startsWith('PASTE');
-const db = CONFIGURED ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
 const state = {
@@ -1431,52 +1278,18 @@ const state = {
   pickMode: 'ban',
 };
 
-/* What the database has. The extras live in SCRIPTS/public-setup.sql; until
-   that has been run the page hides those bits instead of breaking. */
-const caps = {
-  avatar: false, bio: false, banner: false, reply: false, category: false,
-  dms: false, roomBans: false, friends: false,
-};
-
-async function probeCaps() {
-  const checks = [
-    ['avatar', db.from('profiles').select('avatar').limit(1)],
-    ['bio', db.from('profiles').select('bio').limit(1)],
-    ['banner', db.from('profiles').select('banner').limit(1)],
-    ['reply', db.from('messages').select('reply_to').limit(1)],
-    ['category', db.from('channels').select('category').limit(1)],
-    ['dms', db.from('dm_messages').select('id').limit(1)],
-    ['roomBans', db.from('room_bans').select('user_id').limit(1)],
-    ['friends', db.rpc('friend_map')],
-  ];
-  await Promise.all(checks.map(async ([key, run]) => {
-    try { const { error } = await run; caps[key] = !error; } catch (e) { caps[key] = false; }
-  }));
-}
-
 // the profile columns that actually exist
 function profileCols(extra) {
-  return 'username, is_mod'
-    + (caps.avatar ? ', avatar' : '') + (caps.bio ? ', bio' : '') + (caps.banner ? ', banner' : '')
-    + (extra ? ', ' + extra : '');
+  return 'username, is_mod, avatar, bio, banner' + (extra ? ', ' + extra : '');
 }
 
 /* Preset pictures: drawn shapes, not characters. Fourteen of them, each with
    any of ten colours, so nobody has to upload a file or see someone else's. */
 const AVATAR_ICONS = 14;
-const AVATAR_COLORS = ['#5865f2', '#3ba55d', '#d9822b', '#c0392b', '#8e44ad', '#2c7fb8', '#16a085', '#b3306b', '#5b6ee1', '#2e8b57'];
+const AVATAR_COLORS = ['#4a5568', '#44614f', '#6b5a3c', '#6a4644', '#57496b', '#3f5a6b', '#3f625f', '#654558', '#505a70', '#4d5f47'];
 
 /* Banner presets are gradients, so a profile card carries no image files. */
-const BANNERS = [
-  'linear-gradient(135deg, #173c2c, #6ee7a8)',
-  'linear-gradient(135deg, #1b2a4a, #8fb3d9)',
-  'linear-gradient(135deg, #4a1f2b, #e8776d)',
-  'linear-gradient(135deg, #2a1f4a, #a78bfa)',
-  'linear-gradient(135deg, #4a3a1f, #e7c46e)',
-  'linear-gradient(135deg, #123b40, #5ecfd6)',
-  'linear-gradient(135deg, #3a1f3f, #d67ee7)',
-  'linear-gradient(135deg, #26282c, #c9ccd2)',
-];
+const BANNERS = ['#2f4a3c', '#2f3f58', '#583332', '#3e3558', '#57482c', '#28494d', '#4c3250', '#3a3d42'];
 const BANNER_NAMES = ['Chalk', 'Blue hour', 'Chalk rub', 'Twilight', 'Amber', 'Pool', 'Mauve', 'Slate'];
 
 function hashKey(value) {
@@ -1920,7 +1733,7 @@ $('room-mods').onclick = async () => {
 async function loadChannels() {
   const room = state.room;
   const { data } = await db.from('channels')
-    .select('id, name, room_id, allow_links' + (caps.category ? ', category' : ''))
+    .select('id, name, room_id, allow_links, category')
     .eq('room_id', room.id).order('created_at');
   if (state.room !== room) return;   // switched rooms while this was loading
   const keep = state.channel && (data || []).find((c) => c.id === state.channel.id);
@@ -1946,7 +1759,7 @@ function paintChannels() {
   // channels sit under headings; without the database piece they're one list
   const groups = new Map();
   state.channels.forEach((ch) => {
-    const cat = caps.category ? (ch.category || 'General') : 'Text channels';
+    const cat = ch.category || 'General';
     if (!groups.has(cat)) groups.set(cat, []);
     groups.get(cat).push(ch);
   });
@@ -1954,30 +1767,28 @@ function paintChannels() {
   let firstGroup = true;
   groups.forEach((channels, cat) => {
     const open = !state.closedCats.has(cat);
-    if (caps.category) {
-      const head = document.createElement('button');
-      head.type = 'button';
-      head.className = 'chan-cat' + (open ? '' : ' closed') + (firstGroup ? ' first' : '');
-      head.setAttribute('aria-expanded', String(open));
-      const caret = document.createElement('span');
-      caret.className = 'caret';
-      caret.textContent = '▾';
-      caret.setAttribute('aria-hidden', 'true');
-      const label = document.createElement('span');
-      label.textContent = cat;
-      const count = document.createElement('span');
-      count.className = 'n';
-      count.textContent = channels.length;
-      head.append(caret, label, count);
-      head.onclick = () => {
-        if (state.closedCats.has(cat)) state.closedCats.delete(cat);
-        else state.closedCats.add(cat);
-        paintChannels();
-      };
-      wrap.appendChild(head);
-      firstGroup = false;
-      if (!open) return;
-    }
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'chan-cat' + (open ? '' : ' closed') + (firstGroup ? ' first' : '');
+    head.setAttribute('aria-expanded', String(open));
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    caret.textContent = '▾';
+    caret.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    label.textContent = cat;
+    const count = document.createElement('span');
+    count.className = 'n';
+    count.textContent = channels.length;
+    head.append(caret, label, count);
+    head.onclick = () => {
+      if (state.closedCats.has(cat)) state.closedCats.delete(cat);
+      else state.closedCats.add(cat);
+      paintChannels();
+    };
+    wrap.appendChild(head);
+    firstGroup = false;
+    if (!open) return;
 
     channels.forEach((ch) => {
       const btn = document.createElement('button');
@@ -2018,10 +1829,8 @@ function paintChannels() {
 $('new-channel').onclick = async () => {
   const cats = [...new Set(state.channels.map((c) => c.category || 'General'))];
   const fields = [{ key: 'name', label: 'Channel name', placeholder: 'homework', required: true, max: 30 }];
-  if (caps.category) {
-    fields.push({ key: 'category', label: 'Category', value: 'General', list: cats.length ? cats : ['General'], max: 24,
-      placeholder: 'General' });
-  }
+  fields.push({ key: 'category', label: 'Category', value: 'General', list: cats.length ? cats : ['General'], max: 24,
+    placeholder: 'General' });
   const answer = await openForm({
     title: 'New channel',
     text: 'In ' + state.room.name + '. Pick an existing category or type a new one.',
@@ -2031,11 +1840,9 @@ $('new-channel').onclick = async () => {
   if (!answer) return;
 
   const row = { room_id: state.room.id, name: answer.name, created_by: state.me.id };
-  if (caps.category) {
-    const cat = (answer.category || '').trim() || 'General';
-    if (cat.length > 24) return alert('Categories max out at 24 characters.');
-    row.category = cat;
-  }
+  const cat = (answer.category || '').trim() || 'General';
+  if (cat.length > 24) return alert('Categories max out at 24 characters.');
+  row.category = cat;
   const { error } = await db.from('channels').insert(row);
   if (error) return alert(error.message);
   loadChannels();
@@ -2091,7 +1898,6 @@ function fetchMessages(ch) {
   const base = 'id, body, created_at, user_id, profiles(' + profileCols() + ')';
   const query = (cols) => db.from('messages').select(cols)
     .eq('channel_id', ch.id).order('id', { ascending: false }).limit(80);
-  if (!caps.reply) return query(base);
   return query(base + ', reply_to, reply:messages!messages_reply_to_fkey(id, body, user_id, profiles(username))')
     .then(({ data, error }) => (error ? query(base) : { data }));
 }
@@ -2189,7 +1995,7 @@ function addMessage(m) {
     return b;
   };
 
-  if (caps.reply) tool('ic-reply', 'Reply', () => setReply({ id: m.id, name, body: m.body }));
+  tool('ic-reply', 'Reply', () => setReply({ id: m.id, name, body: m.body }));
   if (!mine) tool('ic-flag', 'Report this message', () => reportMessage(m.id));
   if (mine || canManage(state.room)) {
     tool('ic-trash', 'Delete this message', async () => {
@@ -2277,7 +2083,7 @@ $('composer').addEventListener('submit', async (e) => {
   $('text').value = '';
   // the database checks it (auto mod) and answers with a reason if it said no
   const args = { p_channel: state.channel.id, p_body: body };
-  if (caps.reply && state.reply) args.p_reply_to = state.reply.id;
+  if (state.reply) args.p_reply_to = state.reply.id;
   const { data: why, error } = await db.rpc('send_message', args);
   if (error || why) {
     composeNote(error ? error.message : why);
@@ -2326,10 +2132,6 @@ async function watchPresence() {
   const { data } = await db.rpc('online_in_room', { p_room: state.room.id });
   const count = data || 0;
   $('online').textContent = count + ' online';
-  // the vault's Home app shows this too
-  if (window.parent !== window) {
-    window.parent.postMessage({ type: 'presence', count }, location.origin);
-  }
 }
 
 // ------------------------------------------------------------------ moderator
@@ -2410,9 +2212,7 @@ async function paintReports() {
   if (error) {
     const p = document.createElement('p');
     p.className = 'err';
-    p.textContent = /reports|relationship|schema/.test(error.message)
-      ? 'The reports table is missing. Run SCRIPTS/public-setup.sql in Supabase.'
-      : error.message;
+    p.textContent = error.message;
     list.appendChild(p);
     return;
   }
@@ -2621,8 +2421,7 @@ function paintPeople() {
   const scope = state.peopleScope;
   $('scope-room').textContent = 'This class (' + state.members.length + ')';
   $('scope-all').textContent = 'Everyone (' + (state.everyone.length || '…') + ')';
-  $('scope-friends').textContent = 'Friends (' + (caps.friends ? state.friends.size : '—') + ')';
-  $('scope-friends').hidden = !caps.friends;
+  $('scope-friends').textContent = 'Friends (' + state.friends.size + ')';
   $('scope-friends').dataset.req = state.friendIn.size ? '1' : '0';
 
   const byId = everyoneById();
@@ -2637,7 +2436,7 @@ function paintPeople() {
   list.innerHTML = '';
 
   // people who asked to be your friend, so a request never gets lost
-  if (scope === 'friends' && caps.friends) {
+  if (scope === 'friends') {
     const incoming = [...state.friendIn].map((id) => byId.get(id)).filter(Boolean)
       .filter((p) => !q || p.username.toLowerCase().includes(q));
     if (incoming.length) {
@@ -2972,9 +2771,7 @@ function openProfile() {
   $('prof-sub').textContent = state.me.is_mod ? 'moderator' : 'student';
   $('prof-bio').value = state.me.bio || '';
   $('prof-count').textContent = String(($('prof-bio').value || '').length);
-  $('prof-err').textContent = caps.avatar ? ''
-    : 'Pictures, banners and about lines need SCRIPTS/public-setup.sql run in Supabase first.';
-  $('prof-save').disabled = !caps.avatar;
+  $('prof-err').textContent = '';
 
   paintProfileChoices();
   $('profile-veil').classList.remove('hide');
@@ -3042,19 +2839,18 @@ $('prof-bio').addEventListener('input', () => {
   $('prof-count').textContent = String($('prof-bio').value.length);
 });
 $('prof-save').onclick = async () => {
-  if (!caps.avatar) return;
   const bio = $('prof-bio').value.trim();
   const args = {
     p_avatar: state.profSym + '.' + state.profColor,
     p_bio: bio || null,
   };
-  if (caps.banner) args.p_banner = String(state.profBanner);
+  args.p_banner = String(state.profBanner);
   const { data, error } = await db.rpc('save_profile', args);
   const why = error ? error.message : data;
   if (why) { $('prof-err').textContent = why; return; }
   state.me.avatar = state.profSym + '.' + state.profColor;
   state.me.bio = bio || null;
-  if (caps.banner) state.me.banner = String(state.profBanner);
+  state.me.banner = String(state.profBanner);
   paintMe();
   paintPeople();
   $('profile-veil').classList.add('hide');
@@ -3064,7 +2860,7 @@ $('prof-save').onclick = async () => {
 
 async function loadRoomBans() {
   state.bans = new Set();
-  if (!caps.roomBans || !state.room) return;
+  if (!state.room) return;
   const room = state.room;
   const { data } = await db.from('room_bans').select('user_id').eq('room_id', room.id);
   if (state.room !== room) return;
@@ -3204,7 +3000,7 @@ function paintPickActions(p) {
     add(p.banned ? 'Unban from Chalk Chat' : 'Ban from Chalk Chat',
       () => setSiteBan(p, !p.banned), !p.banned);
   }
-  if (caps.roomBans && state.room && canManage(state.room)) {
+  if (state.room && canManage(state.room)) {
     const here = state.bans.has(p.id);
     add((here ? 'Unban from ' : 'Ban from ') + state.room.name
       + (!here && deletesAccount() ? ' (deletes account)' : ''),
@@ -3247,7 +3043,6 @@ async function deleteAccount(p, note) {
 
 async function setClassBan(p, banned, noteEl) {
   const note = noteEl || $('pick-note');
-  if (!caps.roomBans) { note.textContent = 'Run SCRIPTS/public-setup.sql in Supabase first.'; return; }
   if (banned && deletesAccount()) return deleteAccount(p, note);
   const { data, error } = await db.rpc('set_room_banned', {
     p_room: state.room.id, p_user: p.id, p_banned: banned,
@@ -3294,14 +3089,12 @@ function openPersonMenu(p, x, y) {
   } else {
     add('View profile', () => openPersonCard(p));
     add('Mention', () => insertMention(p.username));
-    if (caps.reply) add('Reply to their last message', () => replyToPerson(p));
-    if (caps.dms && (state.friends.has(p.id) || state.me.is_mod)) add('Send a message', () => openHome(p));
-    if (caps.friends) {
-      if (state.friends.has(p.id)) add('Remove friend', () => dropFriend(p), true);
-      else if (state.friendIn.has(p.id)) add('Accept friend request', () => answerFriendRequest(p, true));
-      else if (state.friendOut.has(p.id)) add('Friend request sent');
-      else add('Add friend', () => askFriend(p));
-    }
+    add('Reply to their last message', () => replyToPerson(p));
+    if (state.friends.has(p.id) || state.me.is_mod) add('Send a message', () => openHome(p));
+    if (state.friends.has(p.id)) add('Remove friend', () => dropFriend(p), true);
+    else if (state.friendIn.has(p.id)) add('Accept friend request', () => answerFriendRequest(p, true));
+    else if (state.friendOut.has(p.id)) add('Friend request sent');
+    else add('Add friend', () => askFriend(p));
 
     if (!p.is_mod) {
       if (state.me.is_mod) {
@@ -3309,7 +3102,7 @@ function openPersonMenu(p, x, y) {
         add(p.banned ? 'Unban from Chalk Chat' : 'Ban from Chalk Chat',
           () => setSiteBan(p, !p.banned), !p.banned);
       }
-      if (caps.roomBans && state.room && canManage(state.room)) {
+      if (state.room && canManage(state.room)) {
         const here = state.bans.has(p.id);
         if (!state.me.is_mod) rule();
         add((here ? 'Unban from ' : 'Ban from ') + state.room.name
@@ -3349,7 +3142,7 @@ function openMessageMenu(m, x, y, person) {
   };
   const rule = () => menu.appendChild(document.createElement('hr'));
 
-  if (caps.reply) add('Reply', () => setReply({ id: m.id, name: m.name, body: m.body }));
+  add('Reply', () => setReply({ id: m.id, name: m.name, body: m.body }));
   add('Copy text', () => copyText(m.body));
   if (!m.mine) add('Report this message', () => reportMessage(m.id));
   if (m.mine || canManage(state.room)) add('Delete', () => deleteMessage(m.id), true);
@@ -3399,16 +3192,12 @@ function replyToPerson(p) {
 
 // The chat logo opens your messages: the whole pane becomes the DM list.
 function openHome(person) {
-  if (!caps.dms) {
-    showToast('Direct messages need SCRIPTS/public-setup.sql run in Supabase first.');
-    return;
-  }
   state.homeOn = true;
   $('home').hidden = false;
   $('main').classList.add('home-on');
   $('dm-side').hidden = false;
   $('channels').closest('.channels').classList.add('home-on');
-  $('add-friends').hidden = !caps.friends;
+  $('add-friends').hidden = false;
   $('home-btn').classList.add('on');
   $('app').classList.add('home-on');
   document.querySelectorAll('.channel.on').forEach((el) => el.classList.remove('on'));
@@ -3584,7 +3373,6 @@ function openBotThread() {
     link,
     ': once they say yes you can message them here and invite them to a class you make.'
   );
-  if (!caps.friends) link.replaceWith('Ask a friend to make an account too,');
   bubble.append(meta, text);
   wrap.append(makeAvatar(BOT.id, BOT.username, 'sm', BOT.avatar), bubble);
   box.appendChild(wrap);
@@ -3595,7 +3383,7 @@ function openBotThread() {
 
 // the first time someone signs in, Chalk Bot says hello
 function botHello() {
-  if (!caps.dms || botSeen()) return;
+  if (botSeen()) return;
   showToast('Chalk Bot sent you a message.', () => openHome(BOT));
 }
 
@@ -3834,7 +3622,7 @@ function watchVoice() {
 }
 
 function watchDms() {
-  if (state.dmFeed || !caps.dms) return;
+  if (state.dmFeed) return;
   state.dmFeed = db.channel('dm:' + state.me.id)
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'dm_messages', filter: 'recipient_id=eq.' + state.me.id },
@@ -3880,13 +3668,11 @@ function paintPersonActions(p) {
     box.appendChild(b);
   };
 
-  if (caps.friends) {
-    if (state.friends.has(p.id)) add('Remove friend', () => dropFriend(p), 'ghost');
-    else if (state.friendIn.has(p.id)) add('Accept friend request', () => answerFriendRequest(p, true), 'primary');
-    else if (state.friendOut.has(p.id)) add('Request sent', () => {}, 'ghost', true);
-    else add('Add friend', () => askFriend(p), 'primary');
-  }
-  if (caps.dms && (state.friends.has(p.id) || state.me.is_mod)) add('Message', () => { $('person-veil').classList.add('hide'); openHome(p); }, 'ghost');
+  if (state.friends.has(p.id)) add('Remove friend', () => dropFriend(p), 'ghost');
+  else if (state.friendIn.has(p.id)) add('Accept friend request', () => answerFriendRequest(p, true), 'primary');
+  else if (state.friendOut.has(p.id)) add('Request sent', () => {}, 'ghost', true);
+  else add('Add friend', () => askFriend(p), 'primary');
+  if (state.friends.has(p.id) || state.me.is_mod) add('Message', () => { $('person-veil').classList.add('hide'); openHome(p); }, 'ghost');
   add('Mention', () => { $('person-veil').classList.add('hide'); insertMention(p.username); }, 'ghost');
   if (state.me.is_mod && p.id !== state.me.id && !p.is_mod) {
     add(p.banned ? 'Unban' : 'Ban', () => setSiteBan(p, !p.banned, $('pf-note')), 'ghost');
@@ -3910,8 +3696,7 @@ async function openPersonCard(p) {
   $('person-veil').classList.remove('hide');
   loadMutuals(p);
 
-  const cols = 'username, is_mod, banned' + (caps.avatar ? ', avatar' : '')
-    + (caps.bio ? ', bio' : '') + (caps.banner ? ', banner' : '');
+  const cols = 'username, is_mod, banned, avatar, bio, banner';
   const { data } = await db.from('profiles').select(cols).eq('id', p.id).maybeSingle();
   if (state.pfWho !== p || !data) return;
   Object.assign(p, data);
@@ -3928,24 +3713,18 @@ async function loadMutuals(p) {
   mutual.textContent = '…';
   rooms.textContent = '…';
 
-  if (!caps.friends) {
-    mutual.textContent = 'Friends come with SCRIPTS/public-setup.sql.';
-    rooms.textContent = 'Classes in common come with SCRIPTS/public-setup.sql.';
-    return;
-  } else {
-    const { data, error } = await db.rpc('mutual_friends', { p_user: p.id });
-    if (state.pfWho !== p) return;
-    mutual.innerHTML = '';
-    if (error) mutual.textContent = 'Couldn’t load friends.';
+  const { data, error } = await db.rpc('mutual_friends', { p_user: p.id });
+  if (state.pfWho !== p) return;
+  mutual.innerHTML = '';
+  if (error) mutual.textContent = 'Couldn’t load friends.';
+  else {
+    const list = data || [];
+    if (!list.length) mutual.textContent = 'No friends in common.';
     else {
-      const list = data || [];
-      if (!list.length) mutual.textContent = 'No friends in common.';
-      else {
-        list.slice(0, 5).forEach((r) => mutual.appendChild(makeAvatar(r.user_id, r.username, 'sm', r.avatar)));
-        const count = document.createElement('span');
-        count.textContent = list.length === 1 ? '1 friend in common' : list.length + ' friends in common';
-        mutual.appendChild(count);
-      }
+      list.slice(0, 5).forEach((r) => mutual.appendChild(makeAvatar(r.user_id, r.username, 'sm', r.avatar)));
+      const count = document.createElement('span');
+      count.textContent = list.length === 1 ? '1 friend in common' : list.length + ' friends in common';
+      mutual.appendChild(count);
     }
   }
 
@@ -3972,7 +3751,7 @@ document.addEventListener('keydown', (e) => {
 // ------------------------------------------------------------------ friends
 
 async function loadFriends() {
-  if (!caps.friends || !state.me) return;
+  if (!state.me) return;
   const { data, error } = await db.rpc('friend_map');
   if (error) return;
   const accepted = new Set();
@@ -4017,73 +3796,7 @@ function answerFriendRequest(p, accept) {
 
 // ------------------------------------------------------------------ settings
 
-// Basic is one theme in a few colors; its colors sit in a row under the cards
-const THEME_CHOICES = [
-  { id: 'basic', name: 'Basic' },
-  { id: 'space', name: 'Space' },
-];
-const BASIC_SWATCHES = {
-  night: 'linear-gradient(135deg, #16181d 55%, #8fb3d9 55%)',
-  mono: 'linear-gradient(135deg, #0b0b0b 55%, #f2f2f2 55%)',
-};
-
-function paintSettings() {
-  const grid = $('theme-grid');
-  if (!grid) return;
-  const theme = document.body.dataset.theme === 'basic' ? 'basic' : document.body.dataset.theme;
-  const basic = BASIC_SWATCHES[document.body.dataset.basic] ? document.body.dataset.basic : 'mono';
-  grid.innerHTML = '';
-  THEME_CHOICES.forEach((t) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'theme-card' + (t.id === theme ? ' on' : '');
-    b.dataset.themePick = t.id;
-    b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', String(t.id === theme));
-    const swatch = document.createElement('span');
-    swatch.className = 'theme-swatch';
-    swatch.setAttribute('aria-hidden', 'true');
-    if (t.id === 'basic') swatch.style.background = BASIC_SWATCHES[basic];
-    b.append(swatch, document.createTextNode(t.name));
-    if (t.note) { const s = document.createElement('small'); s.className = 'theme-note'; s.textContent = t.note; b.append(s); }
-    b.onclick = () => applyTheme(t);
-    grid.appendChild(b);
-  });
-  const row = $('basic-row');
-  if (row) {
-    row.hidden = theme !== 'basic';
-    row.querySelectorAll('[data-basic-pick]').forEach((c) => {
-      const on = c.dataset.basicPick === basic;
-      c.classList.toggle('on', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
-  }
-}
-
-// The Notebook reads the same stored settings, so the choice follows you there.
-function saveLook(theme, basic) {
-  try {
-    const saved = JSON.parse(localStorage.getItem('vault-settings') || '{}') || {};
-    saved.theme = theme;
-    if (theme === 'basic') saved.basic = BASIC_SWATCHES[basic] ? basic : (BASIC_SWATCHES[saved.basic] ? saved.basic : 'mono');
-    delete saved.plain;
-    localStorage.setItem('vault-settings', JSON.stringify(saved));
-  } catch (e) {}
-  window.matchNotebookLook();
-  paintSettings();
-}
-
-function applyTheme(t) {
-  saveLook(t.id, document.body.dataset.basic);
-}
-
-function pickBasic(color) {
-  saveLook('basic', color);
-}
-
-document.querySelectorAll('[data-basic-pick]').forEach((b) => b.addEventListener('click', () => pickBasic(b.dataset.basicPick)));
-
-$('settings-btn').onclick = () => { paintSettings(); $('settings-veil').classList.remove('hide'); };
+$('settings-btn').onclick = () => $('settings-veil').classList.remove('hide');
 $('settings-close').onclick = () => $('settings-veil').classList.add('hide');
 $('settings-veil').addEventListener('click', (e) => {
   if (e.target.id === 'settings-veil') $('settings-close').click();
@@ -4095,30 +3808,26 @@ async function start() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) { $('gate').classList.remove('hide'); return; }
 
-  // which of the newer pieces this database has
-  await probeCaps();
-
   // signed in, but is the database actually set up?
-  const meCols = 'id, username, is_mod, banned' + (caps.avatar ? ', avatar' : '') + (caps.bio ? ', bio' : '');
+  const meCols = 'id, username, is_mod, banned, avatar, bio';
   const { data: me, error } = await db
     .from('profiles').select(meCols).eq('id', user.id).maybeSingle();
 
   if (error) {
     $('gate').classList.remove('hide');
-    $('gate-err').textContent = error.message.includes('schema cache')
-      ? 'Signed in, but the database tables are missing. Run SCRIPTS/public-setup.sql.'
-      : error.message;
+    $('gate-err').textContent = error.message;
     return;
   }
 
   if (!me) {
     $('gate').classList.remove('hide');
-    $('gate-err').textContent = 'Signed in, but this account has no profile row yet. Run SCRIPTS/public-setup.sql again.';
+    $('gate-err').textContent = 'This account isn’t set up yet. Try again in a moment.';
     return;
   }
 
   state.me = me;
   $('gate').classList.add('hide');
+  $('app').style.visibility = '';
   paintMe();
 
   if (me.banned) {
@@ -4132,11 +3841,10 @@ async function start() {
   watchMentions();
   refreshMentionBadge();
   restorePeople();
-  if (caps.dms) watchDms();
+  watchDms();
   watchVoice();
   loadFriends();
   botHello();
-  paintSettings();
 
   // opened from a mention alert: class-chat.html?room=…&channel=…&msg=…
   const link = new URLSearchParams(location.search);
@@ -4155,14 +3863,7 @@ async function start() {
     .subscribe();
 }
 
-if (!CONFIGURED) {
-  $('gate').classList.remove('hide');
-  $('gate-err').textContent = 'Not connected yet — paste the project URL and anon key near the top of this file.';
-  $('login').disabled = true;
-  $('register').disabled = true;
-} else {
-  start();
-}
+start();
 </script>
 </body>
 </html>
