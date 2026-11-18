@@ -624,15 +624,15 @@ begin
   if me.is_mod then return null; end if;
 
   -- waits, not strikes: one message every 2 seconds (5 on your first day)
-  if exists (select 1 from messages where user_id = me.id and created_at > now() - gap)
-     or exists (select 1 from dm_messages where sender_id = me.id and created_at > now() - gap) then
+  if p_kind <> 'edit' and (exists (select 1 from messages where user_id = me.id and created_at > now() - gap)
+     or exists (select 1 from dm_messages where sender_id = me.id and created_at > now() - gap)) then
     return 'Slow down a little.';
   end if;
   if not p_links and has_link(v_body) then
     return case when p_kind = 'dm' then 'Links can''t be sent in direct messages.' else 'Links aren''t allowed in this channel.' end;
   end if;
 
-  if (select count(*) from messages where user_id = me.id and created_at > now() - interval '15 seconds')
+  if p_kind <> 'edit' and (select count(*) from messages where user_id = me.id and created_at > now() - interval '15 seconds')
    + (select count(*) from dm_messages where sender_id = me.id and created_at > now() - interval '15 seconds') >= 5 then
     why := 'Too many messages at once.';
   elsif v_body ~ '(.)\1{9,}' or (char_length(regexp_replace(v_body, '\s', '', 'g')) > 40
@@ -1452,3 +1452,126 @@ end; $$;
 
 revoke execute on function public.drop_from_class_voice(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.save_room(uuid, text, text, text), public.kick_member(uuid, uuid) to authenticated;
+
+-- ================================================================ Message extras
+-- Editing your own messages (auto mod reads the new text too), a short fixed
+-- set of reactions, pins, and remembering what you've read in each channel.
+
+alter table public.messages add column if not exists edited_at timestamptz;
+alter table public.messages add column if not exists pinned_at timestamptz;
+alter table public.messages add column if not exists pinned_by uuid references public.profiles on delete set null;
+alter table public.messages add column if not exists reacted_at timestamptz;   -- tells open pages to reload the reactions
+create index if not exists messages_pins_idx on public.messages (channel_id, pinned_at) where pinned_at is not null;
+
+create table if not exists public.message_reactions (
+  message_id bigint not null references public.messages on delete cascade,
+  user_id    uuid not null references public.profiles on delete cascade,
+  emoji      text not null check (emoji in ('👍', '❤️', '😂', '😮', '😢', '🎉')),
+  created_at timestamptz not null default now(),
+  primary key (message_id, user_id, emoji)
+);
+create table if not exists public.channel_reads (
+  user_id    uuid not null references public.profiles on delete cascade,
+  channel_id uuid not null references public.channels on delete cascade,
+  last_id    bigint not null default 0,
+  primary key (user_id, channel_id)
+);
+alter table public.message_reactions enable row level security;
+alter table public.channel_reads enable row level security;   -- no policies: functions only
+drop policy if exists reactions_read on public.message_reactions;
+create policy reactions_read on public.message_reactions for select to authenticated
+  using (exists (select 1 from messages m where m.id = message_id and can_read_room(channel_room(m.channel_id))));
+revoke all on public.message_reactions, public.channel_reads from anon, authenticated;
+grant select on public.message_reactions to authenticated;
+
+-- What auto mod says about a message, or null if it can go out. Strikes and
+-- timeouts happen here too. Site mods skip it (except the timeout itself).
+-- p_kind 'edit' is an edit: no waiting between edits, but the same word and link rules.
+
+-- Change your own message. Returns null or a reason.
+create or replace function public.edit_message(p_message bigint, p_body text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare me profiles; m messages; ch channels; v_body text := btrim(coalesce(p_body, '')); why text;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  select * into me from profiles where id = auth.uid();
+  if me.id is null or me.banned then return 'Your account is banned.'; end if;
+  select * into m from messages where id = p_message;
+  if m.id is null then return 'That message is gone.'; end if;
+  if m.user_id <> me.id then return 'You can only edit your own messages.'; end if;
+  select * into ch from channels where id = m.channel_id;
+  if not can_read_room(ch.room_id) then return 'You aren''t in this class.'; end if;
+  if char_length(v_body) = 0 then return 'Write something first.'; end if;
+  if char_length(v_body) > 500 then return 'Messages max out at 500 characters.'; end if;
+  if v_body = m.body then return null; end if;
+  why := check_post(me, v_body, ch.room_id, ch.allow_links or can_manage_room(ch.room_id), 'edit');
+  if why is not null then return why; end if;
+  update messages set body = v_body, edited_at = now() where id = m.id;
+  return null;
+end; $$;
+
+-- Add or take back a reaction. Returns null or a reason.
+create or replace function public.toggle_reaction(p_message bigint, p_emoji text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare me profiles; m messages; v_room uuid;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  select * into me from profiles where id = auth.uid();
+  if me.id is null or me.banned then return 'Your account is banned.'; end if;
+  if me.muted_until > now() then return 'You''re timed out for now.'; end if;
+  if p_emoji is null or p_emoji not in ('👍', '❤️', '😂', '😮', '😢', '🎉') then return 'Pick one of the reactions.'; end if;
+  select * into m from messages where id = p_message;
+  if m.id is null then return 'That message is gone.'; end if;
+  v_room := channel_room(m.channel_id);
+  if not can_read_room(v_room) then return 'You aren''t in this class.'; end if;
+  if not me.is_mod and (select is_global from rooms where id = v_room) then return 'Only mods post in Global.'; end if;
+  if (select count(*) from secret_attempts where user_id = me.id and kind = 'react' and created_at > now() - interval '1 minute') >= 30 then
+    return 'Slow down a little.';
+  end if;
+  perform record_wrong_guess('react');   -- counts reactions for the limit
+  delete from message_reactions where message_id = m.id and user_id = me.id and emoji = p_emoji;
+  if not found then insert into message_reactions (message_id, user_id, emoji) values (m.id, me.id, p_emoji); end if;
+  update messages set reacted_at = now() where id = m.id;
+  return null;
+end; $$;
+
+-- Pin or unpin a message (the people who run the class, 25 pins a channel).
+create or replace function public.set_pin(p_message bigint, p_pinned boolean)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare m messages;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if is_banned() then return 'Your account is banned.'; end if;
+  select * into m from messages where id = p_message;
+  if m.id is null then return 'That message is gone.'; end if;
+  if not can_manage_room(channel_room(m.channel_id)) then return 'Only the people who run this class can pin messages.'; end if;
+  if p_pinned and m.pinned_at is null and (select count(*) from messages where channel_id = m.channel_id and pinned_at is not null) >= 25 then
+    return 'A channel can have 25 pins.';
+  end if;
+  update messages set pinned_at = case when p_pinned then now() end, pinned_by = case when p_pinned then auth.uid() end where id = m.id;
+  return null;
+end; $$;
+
+-- Remember how far you've read in a channel.
+create or replace function public.mark_read(p_channel uuid, p_last bigint)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null or not can_read_room(channel_room(p_channel)) then return; end if;
+  insert into channel_reads (user_id, channel_id, last_id) values (auth.uid(), p_channel, coalesce(p_last, 0))
+  on conflict (user_id, channel_id) do update set last_id = greatest(channel_reads.last_id, excluded.last_id);
+end; $$;
+
+-- Channels with messages from other people that you haven't read.
+create or replace function public.unread_channels()
+returns table (channel_id uuid, room_id uuid)
+language sql stable security definer set search_path = public, extensions as $$
+  select c.id, c.room_id
+    from channels c
+    join room_members rm on rm.room_id = c.room_id and rm.user_id = auth.uid()
+    left join channel_reads r on r.channel_id = c.id and r.user_id = auth.uid()
+   where c.kind = 'text'
+     and exists (select 1 from messages m where m.channel_id = c.id and m.id > coalesce(r.last_id, 0) and m.user_id <> auth.uid());
+$$;
+
+grant execute on function public.edit_message(bigint, text), public.toggle_reaction(bigint, text),
+  public.set_pin(bigint, boolean), public.mark_read(uuid, bigint), public.unread_channels() to authenticated;
