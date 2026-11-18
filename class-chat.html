@@ -1764,9 +1764,9 @@ function classTabs() {
 
 const USER_TABS = [['profile', 'Profile'], ['friends', 'Friends'], ['blocked', 'Blocked'], ['account', 'Account']];
 
-function openUserPage() {
+function openUserPage(tab) {
   cp.user = true;
-  cp.tab = 'profile';
+  cp.tab = tab || 'profile';
   $('class-page').hidden = false;
   paintClassPage();
 }
@@ -2973,6 +2973,7 @@ function loadEveryone() {
 let beatTimer = null;
 async function heartbeat() {
   await db.rpc('chat_here');
+  loadFriends();   // friend requests and answers arrive with the check-in
   const { data } = await db.rpc('online_ids');
   state.online = new Set(data || []);
   paintPeople();
@@ -4391,6 +4392,11 @@ async function loadFriends() {
     else if (r.state === 'in') incoming.add(r.user_id);
     else if (r.state === 'out') outgoing.add(r.user_id);
   });
+  // someone new asked while you were here (not the ones waiting when you signed in)
+  if (state.friendsLoaded && [...incoming].some((id) => !state.friendIn.has(id))) {
+    showToast('You have a new friend request.', () => openUserPage('friends'));
+  }
+  state.friendsLoaded = true;
   state.friends = accepted;
   state.friendIn = incoming;
   state.friendOut = outgoing;
