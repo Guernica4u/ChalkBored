@@ -570,16 +570,19 @@ end; $$;
 -- Banning someone from a class also takes them out of it.
 create or replace function public.set_room_banned(p_room uuid, p_user uuid, p_banned boolean)
 returns text language plpgsql security definer set search_path = public, extensions as $$
+declare target text := room_role(p_room, p_user);
 begin
   if auth.uid() is null then return 'Sign in first.'; end if;
   if p_room is null or p_user is null then return 'Pick a person first.'; end if;
   if not can_manage_room(p_room) then return 'Only the people who run this class can do that.'; end if;
   if is_site_mod(p_user) then return 'You can''t ban a site mod.'; end if;
-  if room_role(p_room, p_user) in ('owner', 'mod') and not is_site_mod() then return 'You can''t ban the people who run this class.'; end if;
+  if target = 'owner' then return 'The owner can''t be banned.'; end if;
+  if target = 'mod' and not (is_site_mod() or room_role(p_room) = 'owner') then return 'Only the owner can ban a class mod.'; end if;
   if p_banned then
     insert into room_bans (room_id, user_id, banned_by) values (p_room, p_user, auth.uid()) on conflict do nothing;
-    delete from room_members where room_id = p_room and user_id = p_user and role <> 'owner';
+    delete from room_members where room_id = p_room and user_id = p_user;
     delete from room_invites where room_id = p_room and user_id = p_user;
+    perform drop_from_class_voice(p_room, p_user);
   else
     delete from room_bans where room_id = p_room and user_id = p_user;
   end if;
@@ -1376,3 +1379,76 @@ revoke execute on function public.end_channel_voice() from public, anon, authent
 revoke execute on function public.voice_allowed(text, uuid) from public, anon, authenticated;
 grant execute on function public.save_channel(uuid, uuid, text, text, text, text, text, int, boolean, int),
   public.voice_room_people(uuid) to authenticated;
+
+-- ================================================================ Class settings
+-- A class's name, picture and description, and taking people out of it.
+
+alter table public.rooms add column if not exists icon text;
+alter table public.rooms add column if not exists about text;
+alter table public.rooms drop constraint if exists rooms_icon_check;
+alter table public.rooms add constraint rooms_icon_check check (icon is null or icon ~ '^([0-9]|1[0-3])\.[0-9]$');
+alter table public.rooms drop constraint if exists rooms_about_check;
+alter table public.rooms add constraint rooms_about_check check (about is null or char_length(about) <= 160);
+
+-- you can leave a class yourself; taking someone else out goes through kick_member
+drop policy if exists members_leave on public.room_members;
+create policy members_leave on public.room_members for delete to authenticated
+  using (user_id = auth.uid() and role <> 'owner'
+         and not coalesce((select is_global from rooms r where r.id = room_id), false));
+
+-- Change a class's name, picture and description. Returns null or a reason.
+create or replace function public.save_room(p_room uuid, p_name text, p_icon text, p_about text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare v_name text := btrim(coalesce(p_name, '')); v_about text := nullif(btrim(coalesce(p_about, '')), '');
+        v_icon text := nullif(btrim(coalesce(p_icon, '')), '');
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if is_banned() then return 'Your account is banned.'; end if;
+  if not exists (select 1 from rooms where id = p_room) then return 'That class is gone.'; end if;
+  if not can_manage_room(p_room) then return 'Only the people who run this class can do that.'; end if;
+  if char_length(v_name) not between 1 and 40 then return 'Class names are 1-40 characters.'; end if;
+  if char_length(v_about) > 160 then return 'Descriptions max out at 160 characters.'; end if;
+  if v_icon is not null and v_icon !~ '^([0-9]|1[0-3])\.[0-9]$' then return 'Pick one of the pictures.'; end if;
+  if not is_site_mod() and v_about is not null and (has_blocked_word(v_about) or has_link(v_about)) then
+    return 'That description isn''t allowed.';
+  end if;
+  update rooms set name = v_name, icon = v_icon, about = v_about where id = p_room;
+  return null;
+exception when raise_exception then
+  return sqlerrm;   -- the blocked-words check on names
+end; $$;
+
+-- Someone taken out of a class also drops out of its voice channels.
+create or replace function public.drop_from_class_voice(p_room uuid, p_user uuid)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare k text;
+begin
+  for k in delete from voice_members v using channels c
+            where c.room_id = p_room and v.room_key = 'v:' || c.id and v.user_id = p_user returning v.room_key
+  loop
+    insert into voice_signals (room_key, from_id, to_id, kind) values (k, p_user, p_user, 'end');
+    insert into voice_signals (room_key, from_id, to_id, kind)
+    select k, p_user, user_id, 'bye' from voice_members where room_key = k;
+  end loop;
+end; $$;
+
+-- Take someone out of a class. They can come back if they're invited again.
+-- The owner can't be removed; class mods can only remove plain members.
+create or replace function public.kick_member(p_room uuid, p_user uuid)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare target text := room_role(p_room, p_user);
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if (select is_global from rooms where id = p_room) is not false then return 'Nobody can be removed from there.'; end if;
+  if not can_manage_room(p_room) then return 'Only the people who run this class can do that.'; end if;
+  if target is null then return 'They aren''t in this class.'; end if;
+  if p_user = auth.uid() then return 'Use Leave class instead.'; end if;
+  if target = 'owner' then return 'The owner can''t be removed.'; end if;
+  if target = 'mod' and not (is_site_mod() or room_role(p_room) = 'owner') then return 'Only the owner can remove a class mod.'; end if;
+  delete from room_members where room_id = p_room and user_id = p_user;
+  perform drop_from_class_voice(p_room, p_user);
+  return null;
+end; $$;
+
+revoke execute on function public.drop_from_class_voice(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.save_room(uuid, text, text, text), public.kick_member(uuid, uuid) to authenticated;
