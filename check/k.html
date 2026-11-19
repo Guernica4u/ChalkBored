@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ChalkBored study notebook.
+  Brain exercises for study breaks and homework help
+  links and notes, all in one page. Settings stay in this browser.
+-->
+<head>
+<base href="../">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChalkBored</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------------- themes ----------------
+     Basic (default): soft dark colors, in Night (blue-grey) or Mono
+     (plain black and white). Space: soft panels over a dim starry sky.
+     (The paper look
+     below in :root is only the base the themes build on.)                 */
+  :root {
+    --paper: #fbfbf7;
+    --paper-2: #f3f3ec;
+    --card: #ffffff;
+    --ink: #1f2d44;
+    --pencil: #66708a;
+    --rule-line: #dde6f2;
+    --margin-line: #ecb3ad;
+    --edge: #d9dde4;
+    --accent: #2c5fb8;         /* pen blue */
+    --highlight: #ffe680;      /* highlighter */
+    --highlight-ink: #1f2d44;
+    --danger: #c0473a;
+    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
+    --rail: #f1f2ec;
+    --rule: 28px;
+    --margin: 64px;
+    --hand: var(--body);
+    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --r: 3px;                  /* the one corner size: almost square, like the homepage */
+    color-scheme: light;
+  }
+
+  /* Basic: soft and dark, warm text, gentle accent. Easy on the eyes.
+     Night (blue-grey) is the base; Mono only swaps the colors. */
+  body[data-theme="basic"] {
+    --paper: #16181d;
+    --paper-2: #1f232a;
+    --card: #1c1f26;
+    --ink: #d9d5cc;
+    --pencil: #8b909a;
+    --rule-line: transparent;
+    --margin-line: transparent;
+    --edge: #2b3039;
+    --accent: #8fb3d9;
+    --highlight: #2f4157;
+    --highlight-ink: #e8e4db;
+    --danger: #d98b7f;
+    --shadow: none;
+    --rail: #14161a;
+    --hand: var(--body);
+    color-scheme: dark;
+  }
+  body[data-theme="basic"] .main { background-image: none; }
+  body[data-theme="basic"] .thumb { background-image: none; background: #20242c; }
+  body[data-theme="basic"] .mono { transform: none; font-size: 2rem; color: var(--accent); }
+  body[data-theme="basic"] .card:hover,
+  body[data-theme="basic"] .card-wrap.is-open .card { border-color: var(--accent); }
+  body[data-theme="basic"] h1 .scribble { background: none; padding: 0; color: var(--ink); }
+  body[data-theme="basic"] .btn.primary { color: var(--paper); }
+  body[data-theme="basic"] .tip::before { color: var(--accent); }
+  /* Mono: the same Basic layout in plain black and white */
+  body[data-basic="mono"] {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --highlight: #3a3a3a; --highlight-ink: #f2f2f2;
+    --danger: #e6e6e6; --rail: #080808;
+  }
+  body[data-basic="mono"] .thumb { background: #1a1a1a; }
+
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  button { font: inherit; color: inherit; }
+  button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------------- curtain ---------------- */
+  .curtain {
+    position: fixed; inset: 0; z-index: 50;
+    background: #0d1117;
+    pointer-events: none;
+    animation: lift 0.9s ease 0.1s forwards;
+  }
+  @keyframes lift { to { opacity: 0; } }
+
+  /* ---------------- shell ---------------- */
+  .shell { display: flex; height: 100%; }
+
+  .rail {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 20;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    background: var(--rail);
+    border-right: 1px solid var(--edge);
+  }
+
+  .rail-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0.9rem 1.1rem 1.2rem;
+  }
+
+
+  .brand { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 1.35rem; line-height: 1; }
+  .brand span { color: var(--accent); }
+
+  .icon-btn {
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    color: var(--pencil);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--ink); background: var(--paper-2); }
+  .icon-btn.active { color: var(--ink); border-color: var(--edge); background: var(--card); }
+  .icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* notebook tab dividers */
+  .nav { display: flex; flex-direction: column; gap: 3px; padding: 0.4rem 0.7rem; }
+
+  .nav-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.55rem 0.7rem 0.55rem 0.9rem;
+    background: none;
+    border: 0;
+    border-radius: var(--r);
+    color: var(--pencil);
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .nav-btn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--tab, var(--edge));
+    opacity: 0.55;
+    transition: opacity 0.15s ease, top 0.2s ease, bottom 0.2s ease;
+  }
+  .nav-btn:hover { color: var(--ink); background: var(--paper-2); }
+  .nav-btn.active { color: var(--ink); background: var(--card); box-shadow: var(--shadow); font-weight: 700; }
+  .nav-btn.active::before { opacity: 1; top: 5px; bottom: 5px; }
+  .nav-btn svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn .out { margin-left: auto; width: 13px; height: 13px; opacity: 0.6; }
+  .ping {
+    margin-left: auto;
+    min-width: 1.4em;
+    padding: 0 0.35rem;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+    border-radius: var(--r);
+  }
+  .ping + .out { margin-left: 0.4rem; }
+
+  .nb-toasts { position: fixed; right: 1.2rem; bottom: 4.2rem; z-index: 35; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+  .nb-toast {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    max-width: 340px;
+    padding: 0.75rem 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    font-size: 0.9rem;
+    animation: rise 0.3s ease;
+  }
+  .nb-toast .x { background: none; border: 0; color: var(--pencil); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+  .tally { margin-left: auto; font-size: 0.75rem; color: var(--pencil); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+  .rail-foot { margin-top: auto; padding: 1rem 1.2rem; font-size: 0.8rem; }
+  .rail-foot a { color: var(--pencil); text-decoration: none; }
+  .rail-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  /* the little chalk guy who lives at the foot of the rail */
+  .rail-guy {
+    position: fixed; left: 0; bottom: 0; z-index: 70; width: 38px; height: 50px;
+    touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+    will-change: transform; filter: drop-shadow(0 2px 3px rgba(31, 45, 68, 0.18));
+  }
+  .rail-guy svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .rail-guy .guy-body { transform-box: view-box; transform-origin: 22px 55px; animation: guy-breathe 3.8s ease-in-out infinite; }
+  .rail-guy .ink { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .rail-guy .face .ink { stroke-width: 1.8; }
+  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; }
+  .rail-guy .torso { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; }
+  .rail-guy .hood { stroke-width: 2.1; }
+  .rail-guy .hand { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
+  .rail-guy .shoe { fill: var(--ink); stroke: var(--ink); stroke-width: 1.4; opacity: 0.8; }
+  .rail-guy .blush { fill: var(--accent); opacity: 0.42; }
+  .rail-guy .glint { fill: var(--paper); }
+  .rail-guy .string, .rail-guy .pocket { stroke-width: 1.6; opacity: 0.6; }
+  .rail-guy .cap { fill: var(--accent); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; opacity: 0.92; }
+  .rail-guy .collar { stroke-width: 2; opacity: 0.4; }
+  .rail-guy .eye-dot { fill: var(--ink); }
+  .rail-guy .face { display: none; }
+  .rail-guy.f-calm .face-calm,
+  .rail-guy.f-happy .face-happy,
+  .rail-guy.f-scared .face-scared,
+  .rail-guy.f-hurt .face-hurt,
+  .rail-guy.f-dizzy .face-dizzy { display: block; }
+  .rail-guy.f-calm .eye-dot { animation: guy-blink 5.2s steps(1, end) infinite; transform-box: fill-box; transform-origin: center; }
+  .rail-guy .limb { transform-box: view-box; }
+  .rail-guy .arm-a-g { transform-origin: 18.4px 23.6px; }
+  .rail-guy .arm-b-g { transform-origin: 25.6px 23.6px; }
+  .rail-guy .leg-a-g { transform-origin: 19.5px 37.6px; }
+  .rail-guy .leg-b-g { transform-origin: 24.6px 37.6px; }
+  .rail-guy .head-g { transform-box: view-box; transform-origin: 22px 21.8px; transition: transform 0.25s ease; }
+  .rail-guy .stars { opacity: 0; transform-box: view-box; transform-origin: 22px 13px; }
+  .rail-guy.f-hurt .stars, .rail-guy.f-dizzy .stars { opacity: 1; animation: guy-stars 2.4s linear infinite; }
+  .rail-guy .star { stroke-width: 1.5; }
+
+  .rail-guy.f-happy .head-g { transform: rotate(-6deg); }
+  .rail-guy.f-scared .head-g { transform: rotate(5deg) scale(1.05); }
+  .rail-guy.f-hurt .head-g { transform: rotate(-11deg); }
+  .rail-guy.f-dizzy .head-g { transform: rotate(7deg); }
+  .rail-guy.hurt .ink, .rail-guy.hurt .head, .rail-guy.hurt .torso { stroke: var(--danger); }
+
+  .rail-guy.walk .leg-a-g { animation: guy-step 0.62s ease-in-out infinite alternate; }
+  .rail-guy.walk .leg-b-g { animation: guy-step 0.62s ease-in-out infinite alternate-reverse; }
+  .rail-guy.walk .arm-a-g { animation: guy-swing 0.62s ease-in-out infinite alternate-reverse; }
+  .rail-guy.walk .arm-b-g { animation: guy-swing 0.62s ease-in-out infinite alternate; }
+  .rail-guy.climb .arm-a-g { animation: guy-reach 0.5s ease-in-out infinite alternate; }
+  .rail-guy.climb .arm-b-g { animation: guy-reach 0.5s ease-in-out infinite alternate-reverse; }
+  .rail-guy.climb .leg-a-g { animation: guy-step 0.5s ease-in-out infinite alternate; }
+  .rail-guy.climb .leg-b-g { animation: guy-step 0.5s ease-in-out infinite alternate-reverse; }
+  .rail-guy.wave .arm-b-g { animation: guy-wave 0.3s ease-in-out infinite alternate; }
+  .rail-guy.held .arm-a-g { transform: rotate(152deg); }
+  .rail-guy.held .arm-b-g { transform: rotate(-152deg); }
+  .rail-guy.held .leg-a-g { animation: guy-dangle 0.7s ease-in-out infinite alternate; }
+  .rail-guy.held .leg-b-g { animation: guy-dangle 0.7s ease-in-out infinite alternate-reverse; }
+  .rail-guy.flail .arm-a-g { animation: guy-flail 0.16s linear infinite alternate; }
+  .rail-guy.flail .arm-b-g { animation: guy-flail 0.13s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-a-g { animation: guy-flail 0.15s linear infinite alternate-reverse; }
+  .rail-guy.flail .leg-b-g { animation: guy-flail 0.18s linear infinite alternate; }
+  .rail-guy.hit .guy-body { animation: guy-hit 0.3s ease-out; }
+  .rail-guy.land svg { animation: guy-squash 0.34s cubic-bezier(0.25, 0.9, 0.3, 1); }
+  .rail-guy.dragging, .rail-guy.held { cursor: grabbing; }
+
+  .rail-guy .guy-bubble {
+    position: absolute; left: 50%; bottom: 108%; transform: translateX(-50%) rotate(-4deg);
+    padding: 2px 7px; border-radius: 8px; background: var(--ink); color: var(--paper);
+    font: 700 11px/1.4 var(--body); white-space: nowrap; opacity: 0; transition: opacity 0.12s;
+    pointer-events: none;
+  }
+  .rail-guy .guy-bubble.on { opacity: 1; }
+
+  .rail-guy .guy-puff {
+    position: absolute; left: 50%; bottom: 2px; width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(31, 45, 68, 0.18); pointer-events: none;
+    animation: guy-puff 0.62s ease-out forwards;
+  }
+  .rail-guy .guy-puff.p1 { --dx: -15px; }
+  .rail-guy .guy-puff.p2 { --dx: 13px; }
+  .rail-guy .guy-puff.p3 { --dx: -6px; }
+  .rail-guy .guy-puff.p4 { --dx: 7px; }
+
+  /* how he is feeling, right above the footer note */
+  .guy-mood {
+    display: flex; align-items: center; gap: 7px; margin: 0 0 0.55rem;
+    font-size: 0.68rem; letter-spacing: 0.03em; color: var(--pencil);
+  }
+  .guy-mood-label { min-width: 3.4em; text-transform: lowercase; }
+  .guy-mood-track {
+    position: relative; flex: 1; height: 5px; border-radius: 99px;
+    background: rgba(31, 45, 68, 0.12); overflow: hidden;
+  }
+  .guy-mood-fill {
+    position: absolute; inset: 0 auto 0 0; width: 55%; border-radius: 99px;
+    background: #6b8fbf; transition: width 0.4s ease, background 0.4s ease;
+  }
+  .guy-mood[data-mood="calm"] .guy-mood-fill { width: 55%; background: #6b8fbf; }
+  .guy-mood[data-mood="happy"] .guy-mood-fill { width: 88%; background: #3f9d5a; }
+  .guy-mood[data-mood="scared"] .guy-mood-fill { width: 97%; background: #d08a2e; }
+  .guy-mood[data-mood="hurt"] .guy-mood-fill { width: 22%; background: var(--danger); }
+  .guy-mood[data-mood="dizzy"] .guy-mood-fill { width: 34%; background: #8f6bbf; }
+
+  body.no-guy .rail-guy { display: none; }
+  @keyframes guy-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.03); } }
+  @keyframes guy-blink { 0%, 93%, 100% { transform: scaleY(1); } 95%, 97% { transform: scaleY(0.08); } }
+  @keyframes guy-step { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+  @keyframes guy-swing { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+  @keyframes guy-reach { from { transform: rotate(-16deg); } to { transform: rotate(38deg); } }
+  @keyframes guy-wave { from { transform: rotate(-38deg); } to { transform: rotate(-6deg); } }
+  @keyframes guy-flail { from { transform: rotate(-64deg); } to { transform: rotate(68deg); } }
+  @keyframes guy-dangle { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+  @keyframes guy-hit { 0% { scale: 1.26 0.76; } 55% { scale: 0.92 1.08; } 100% { scale: 1 1; } }
+  @keyframes guy-squash { 0% { transform: scale(1.3, 0.72); } 55% { transform: scale(0.94, 1.06); } 100% { transform: scale(1, 1); } }
+  @keyframes guy-stars { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes guy-puff { from { opacity: 0.75; transform: translate(-50%, 0) scale(0.5); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), -16px) scale(1.6); } }
+  .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
+
+  /* ---------------- main sheet ---------------- */
+  .main {
+    flex: 1;
+    min-width: 0;
+    margin-left: 220px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(to right, transparent calc(var(--margin) - 2px), var(--margin-line) calc(var(--margin) - 2px), var(--margin-line) var(--margin), transparent var(--margin)),
+      repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), var(--rule-line) calc(var(--rule) - 1px) var(--rule));
+    background-attachment: local;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.4rem 2rem 0.8rem calc(var(--margin) + 1.5rem);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: 2.1rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  h1 .scribble {
+    background: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 90%, transparent 90%);
+    padding: 0 0.15em;
+  }
+
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* search */
+  .search-wrap { position: relative; }
+  .search {
+    width: 230px;
+    padding: 0.5rem 0.8rem 0.5rem 2.1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: width 0.25s ease, border-color 0.15s ease;
+  }
+  .search::placeholder { color: var(--pencil); }
+  .search:focus { width: 290px; border-color: var(--accent); }
+  .search-wrap svg { position: absolute; left: 0.75rem; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); fill: none; stroke: var(--pencil); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
+
+  .results {
+    position: absolute;
+    right: 0; top: calc(100% + 6px);
+    z-index: 30;
+    width: 320px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.4rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .res-group { margin: 0.5rem 0.6rem 0.2rem; font-family: var(--hand); font-size: 0.85rem; color: var(--pencil); }
+  .res-item {
+    display: flex; justify-content: space-between; gap: 0.8rem;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    background: none; border: 0; border-radius: var(--r);
+    text-align: left; cursor: pointer;
+  }
+  .res-item:hover, .res-item:focus-visible { background: var(--paper-2); }
+  .res-where { color: var(--pencil); font-size: 0.8rem; }
+  .res-empty { margin: 0.6rem; color: var(--pencil); font-size: 0.9rem; }
+
+  .content { flex: 1; overflow-y: auto; padding: 0.4rem 2rem 2.5rem calc(var(--margin) + 1.5rem); }
+
+  .panel { display: none; max-width: 1100px; }
+  .panel.active { display: block; animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  .panel.flush { max-width: none; height: 100%; }
+  .panel.flush.active { display: flex; }
+  @keyframes rise { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  .lead {
+    margin: 0.6rem 0 1.2rem;
+    font-family: var(--hand);
+    font-size: 1.35rem;
+    line-height: var(--rule);
+    color: var(--pencil);
+  }
+  .lead b { color: var(--ink); font-weight: 700; }
+
+  /* ---------------- index cards (brain exercises) ---------------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.2rem; }
+  .games-tools { display: flex; justify-content: flex-end; margin-bottom: 0.8rem; }
+  .sort-by { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; color: var(--pencil); }
+  .sort-by select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--edge); border-radius: var(--r, 3px); padding: 0.3rem 0.5rem; cursor: pointer; }
+  .sort-by select:hover, .sort-by select:focus-visible { border-color: var(--accent); outline: none; }
+
+  .card-wrap { position: relative; }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    animation: deal 0.28s ease-out both;
+    animation-delay: calc(min(var(--i, 0), 16) * 16ms);
+    transition: border-color 0.15s ease;
+  }
+  .card:hover, .card-wrap.is-open .card { border-color: var(--accent); }
+  .cards.settled .card { animation: none; }
+  .card-wrap:nth-child(n+17) .card { animation: none; }   /* off screen at first; animating them only costs memory */
+  @keyframes deal { from { opacity: 0; transform: translateY(-14px); } }
+
+  .thumb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 10;
+    background-color: var(--card);
+    background-image:
+      linear-gradient(to bottom, transparent 22px, var(--margin-line) 22px, var(--margin-line) 24px, transparent 24px),
+      repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule-line) 23px 24px);
+    border-bottom: 1px solid var(--edge);
+    overflow: hidden;
+  }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .mono { font-family: var(--hand); font-weight: 700; font-size: 2.4rem; color: var(--accent); }
+
+  .card-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.85rem; }
+  .card-name { font-weight: 700; min-width: 0; }
+  .card-arrow { color: var(--pencil); transition: transform 0.2s ease; }
+  .card:hover .card-arrow { transform: translateX(3px); color: var(--accent); }
+  .card-wrap.is-open .card-arrow { transform: rotate(90deg); color: var(--accent); }
+
+  .card.soon { cursor: default; box-shadow: none; border-style: dashed; background: transparent; }
+  .card.soon .thumb { background: transparent; border-bottom-style: dashed; }
+  .card.soon .mono { color: var(--pencil); font-size: 1.1rem; }
+  .card.soon:hover { border-color: var(--edge); }
+
+  /* favorite star, sits on the card's corner */
+  .fav {
+    position: absolute; top: 0.3rem; right: 0.45rem; z-index: 2;
+    padding: 0.1rem; background: none; border: 0; color: var(--pencil);
+    font-size: 1.35rem; line-height: 1; cursor: pointer;
+    text-shadow: 0 0 3px var(--card), 0 0 6px var(--card);
+    opacity: 0.8; transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  }
+  .card-wrap:hover .fav, .fav:focus-visible { opacity: 1; }
+  .fav:hover { transform: scale(1.15); color: var(--accent); }
+  .fav.on { opacity: 1; color: var(--accent); }
+
+  /* how-to-open menu */
+  .open-menu {
+    position: absolute;
+    left: 0.6rem; right: 0.6rem; top: calc(100% + 6px);
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    padding: 0.35rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .open-menu.open { display: flex; animation: rise 0.2s ease; }
+  .open-menu p { margin: 0.2rem 0.5rem 0.3rem; font-family: var(--hand); font-size: 0.85rem; color: var(--pencil); }
+  .open-menu button {
+    padding: 0.45rem 0.6rem;
+    background: none; border: 0; border-radius: var(--r);
+    text-align: left; cursor: pointer;
+  }
+  .open-menu button:hover, .open-menu button:focus-visible { background: var(--highlight); color: var(--highlight-ink); }
+
+
+  /* ---------------- tools ---------------- */
+  .tools { display: flex; flex-direction: column; gap: 0.9rem; }
+  .tool {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    animation: deal 0.28s ease-out both;
+    animation-delay: calc(min(var(--i, 0), 16) * 16ms);
+  }
+  .tool-icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--r); background: var(--highlight); color: var(--highlight-ink); font-family: var(--hand); font-weight: 700; font-size: 1.1rem; }
+  .tool-name { font-weight: 700; }
+  .tool-desc { color: var(--pencil); font-size: 0.9rem; }
+  .tool .card-wrap { margin-left: auto; }
+  .tool .open-menu { left: auto; right: 0; width: 190px; }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 700; }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  .empty-note { font-family: var(--hand); font-size: 1.15rem; color: var(--pencil); line-height: var(--rule); max-width: 52ch; }
+
+  /* ---------------- home ---------------- */
+  /* Home: the title is the one thing that moves, sliding in once when Notebook opens */
+  #panel-home { max-width: 980px; margin: 0 auto; }
+  #panel-home.active {
+    animation: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+  }
+  body.on-home .content { overflow: hidden; }
+  .home-hero { display: flex; flex-direction: column; align-items: center; gap: 1.3rem; padding: 2rem 0; text-align: center; }
+  .home-title { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .home-hero .search-wrap { width: min(560px, 82vw); }
+  .home-hero .search, .home-hero .search:focus { width: 100%; padding: 0.85rem 1rem 0.85rem 2.6rem; font-size: 1rem; }
+  .home-hero .results { left: 0; right: 0; width: auto; text-align: left; }
+  /* everything on Home rises into place and fades in, a little slower than before */
+  #panel-home.active .home-title { animation: home-rise 1.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  #panel-home.active .home-hero .search-wrap { animation: search-home 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  #panel-home.active .hello-meta > * { animation: home-rise 1.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  #panel-home.active .hello-meta > *:first-child { animation-delay: 0.18s; }
+  #panel-home.active .hello-meta > *:last-child { animation-delay: 0.32s; }
+  @keyframes home-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  body.on-home .topbar h1 { display: none; }
+  .hello-meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.3rem 1.2rem; margin: 0; font-size: 0.85rem; color: var(--pencil); }
+  .meta-link { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
+  .meta-link:hover { color: var(--ink); }
+  .meta-link.static { cursor: default; }
+  .meta-link.static:hover { color: inherit; }
+  .meta-link b { color: var(--ink); }
+  .stat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); }
+  .meta-link.good .stat-dot { background: #4cc38a; }
+  /* Home also carries a few cards, so it never looks blank */
+  body.on-home .content { overflow-y: auto; }
+  .home-start { width: 100%; margin: 1.5rem 0 0; text-align: left; }
+  .home-start .section-label { margin-bottom: 0.6rem; }
+  .home-start .cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
+
+  .section-label { margin: 0 0 0.7rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pencil); }
+  .quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.8rem; }
+  .tile {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.8rem 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease;
+  }
+  .tile:hover { border-color: var(--accent); }
+  .tile svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .fav-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.8rem; }
+  .chip {
+    padding: 0.4rem 0.85rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r);
+    cursor: pointer; font-size: 0.9rem;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .recents { display: flex; gap: 0.8rem; overflow-x: auto; padding-bottom: 0.4rem; margin-bottom: 1.8rem; scrollbar-width: thin; }
+  .rec {
+    display: flex; flex-direction: column; justify-content: center; gap: 0.2rem;
+    flex: 0 0 180px; padding: 0.7rem 0.9rem;
+    background: var(--card); border: 1px solid var(--edge); border-radius: var(--r);
+    cursor: pointer; text-align: left;
+    transition: border-color 0.15s ease;
+  }
+  .rec:hover { border-color: var(--accent); }
+  .rec > span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .rec-app { color: var(--pencil); font-size: 0.8rem; }
+
+  /* ---------------- settings ---------------- */
+  .settings { display: flex; flex-direction: column; gap: 1.6rem; max-width: 720px; }
+  .group {
+    padding: 1.1rem 1.3rem 0.4rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .group h2 { margin: 0; font-family: var(--hand); font-size: 1.35rem; line-height: 1.2; }
+  .group > p { margin: 0.1rem 0 0.4rem; color: var(--pencil); font-size: 0.9rem; }
+  .setting { display: flex; align-items: center; gap: 1.2rem; padding: 0.9rem 0; border-top: 1px solid var(--rule-line); }
+  .setting:first-of-type { border-top: 0; }
+  .setting h3 { margin: 0; font-size: 0.98rem; }
+  .setting p { margin: 0.1rem 0 0; color: var(--pencil); font-size: 0.86rem; max-width: 52ch; }
+  .setting > :last-child { margin-left: auto; flex: none; }
+  .setting-foot { display: flex; justify-content: space-between; gap: 1rem; padding: 0 0 0.8rem; font-size: 0.82rem; color: var(--pencil); }
+
+
+  .choice { display: inline-flex; flex-wrap: wrap; gap: 0.35rem; justify-content: flex-end; }
+  .choice button {
+    padding: 0.35rem 0.75rem;
+    background: var(--paper-2);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .choice button.on { background: var(--highlight); border-color: var(--highlight); color: var(--highlight-ink); font-weight: 700; }
+  /* Basic's colors sit just under Basic, and only while Basic is picked */
+  .theme-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+  .theme-stack .basic-colors[hidden] { display: none; }
+  .basic-colors button { padding: 0.2rem 0.6rem; font-size: 0.76rem; }
+
+  .switch {
+    position: relative;
+    width: 42px; height: 24px;
+    background: var(--edge);
+    border: 0;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 18px; height: 18px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform 0.2s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--accent); }
+  .switch[aria-checked="true"]::after { transform: translateX(18px); }
+
+  /* ---------------- footer ---------------- */
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1.5rem;
+    padding: 0.8rem 2rem 0.9rem calc(var(--margin) + 1.5rem);
+    border-top: 1px solid var(--edge);
+    background: var(--paper);
+    font-size: 0.82rem;
+    color: var(--pencil);
+  }
+  body.apps-here .nav-out .out { display: none; }
+  /* Music, TV and Browser get the whole height, so no footer there */
+  body.full-panel footer { display: none; }
+  .ver { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; }
+  .ver:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* the version stays in the bottom-left corner on every page */
+  .ver-corner { position: fixed; left: 1.2rem; bottom: 0.7rem; z-index: 21; padding: 0; background: none; border: 0; font-size: 0.72rem; color: var(--pencil); cursor: pointer; }
+  .ver-corner b { font-weight: 700; color: var(--ink); }
+  .ver-corner:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .rail-foot { padding-bottom: 2.1rem; }
+  @media (min-width: 761px) {
+    body.os.rail-mini .ver-corner { left: 0; width: 64px; text-align: center; }
+    body.os.rail-mini .ver-tag { display: none; }
+  }
+  @media (max-width: 760px) { body:not(.on-home) .ver-corner { display: none; } }
+  .tip {
+    margin: 0 0 0 auto;
+    max-width: 50ch;
+    text-align: right;
+    font-family: var(--hand);
+    font-size: 0.98rem;
+    color: var(--ink);
+    transition: opacity 0.4s ease;
+  }
+  .tip::before { content: '\2605  '; color: var(--danger); }
+  .tip.fade { opacity: 0; }
+
+  /* ---------------- dialogs ---------------- */
+  .modal {
+    position: fixed; inset: 0; z-index: 40;
+    display: grid; place-items: center;
+    padding: 1.5rem;
+    background: rgba(15, 20, 30, 0.45);
+  }
+  .modal[hidden] { display: none; }
+  .modal-box {
+    width: min(460px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem 1.6rem 1.3rem;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--r);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    animation: rise 0.3s ease;
+  }
+  .modal-step { margin: 0; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pencil); }
+  .modal-box h2 { margin: 0.2rem 0 0.4rem; font-family: var(--hand); font-size: 1.6rem; line-height: 1.2; }
+  .modal-box > p { margin: 0 0 1rem; color: var(--pencil); }
+  .modal-box ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+  .modal-box li { margin-bottom: 0.45rem; }
+  .modal-body { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
+  .modal-body .choice { justify-content: flex-start; }
+  .modal-body .setup-note { margin: 0; color: var(--pencil); }
+  .modal-body > .btn { align-self: flex-start; }
+  /* setup's cloak step: what the tab will look like, then the choices */
+  .setup-cloak { display: flex; flex-direction: column; gap: 0.7rem; }
+  .tab-preview { display: flex; align-items: center; gap: 0.55rem; min-width: 0; padding: 0.55rem 0.7rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); font-size: 0.85rem; }
+  .tab-preview img { flex: none; }
+  .tab-preview span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .setup-cloak .choice { display: grid; grid-template-columns: 1fr 1fr; }
+  .setup-cloak .choice button:last-child { grid-column: 1 / -1; }
+  /* the Games page's one-time question */
+  .way { display: flex; flex-direction: column; gap: 0.1rem; width: 100%; padding: 0.6rem 0.75rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); text-align: left; cursor: pointer; }
+  .way span { font-size: 0.82rem; color: var(--pencil); }
+  .way:hover { border-color: var(--pencil); }
+  .way[aria-pressed="true"] { border-color: var(--accent); background: var(--highlight); }
+  .way[aria-pressed="true"] span { color: inherit; }
+  /* first-load cloak ask */
+  .cloak-ask-choice { justify-content: flex-start; margin-bottom: 0.6rem; }
+  .cloak-ask-hint { margin-bottom: 0.8rem; font-size: 0.82rem; }
+  .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-actions { display: flex; gap: 0.5rem; align-items: center; }
+  body.os .modal-box { background: #14161b; }
+  .modal-actions .spacer { flex: 1; }
+
+  /* things opened in this tab instead of a new one */
+  .viewer { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--paper); }
+  .viewer-bar {
+    display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0.8rem;
+    background: var(--rail); border-bottom: 1px solid var(--edge); font-size: 0.9rem;
+  }
+  .viewer-bar b { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .viewer iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+
+  /* the advanced tools frame */
+  .frame { flex: 1; width: 100%; min-height: 70vh; border: 1px solid var(--edge); border-radius: var(--r); background: #0c0d10; }
+  .frame.blend { border: 0; background: transparent; min-height: 80vh; }
+  /* Music, TV and Browser fill the page: no title, search or buttons above them */
+  body.app-open .topbar { display: none; }
+  body.app-open .main { height: 100vh; }
+  body.app-open .content { height: 100vh; overflow: hidden; padding: 0; }
+  body.app-open .frame.blend { min-height: 0; height: 100%; border-radius: 0; }
+
+
+  /* ---------------- OS look: a sidebar desktop over your own picture ----------------
+     A layout choice on top of the color theme: square, see-through dark panels,
+     a slim sidebar with search, and Home as a big title with a big search. */
+  .os-only { display: none; }
+  body.os {
+    --r: 0px; --shadow: none;
+    --card: rgba(14, 16, 21, 0.74); --paper-2: rgba(255, 255, 255, 0.06); --rail: rgba(10, 12, 16, 0.82);
+    --edge: rgba(255, 255, 255, 0.1); --rule-line: rgba(255, 255, 255, 0.06); --highlight: rgba(255, 255, 255, 0.12);
+    background: #0e1014;
+  }
+  body.os.has-bg { background: #0e1014 var(--os-bg) center / cover no-repeat; }
+  body.os .main, body.os footer { background: transparent; }
+  body.os footer, body.os .topbar h1, body:not(.os) .os-setting { display: none; }
+  body.os .topbar { position: fixed; top: 0.8rem; right: 1rem; z-index: 25; padding: 0; }
+  body.os .content { padding-top: 3.4rem; }
+  body.os.app-open .content { padding-top: 0; }
+  body.os .nav-btn.os-only { display: flex; }
+  body.os .icon-btn.os-only { display: grid; }
+  body.os .nav-btn::before { display: none; }
+  body.os .nav-btn { padding-left: 0.75rem; }
+  body.os .nav-btn.active { background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+  .rail-search { padding: 0 0.9rem 0.7rem; }
+  body.os .rail-search .search, body.os .rail-search .search:focus { width: 100%; }
+  body.os .rail-search .results { left: 0; right: auto; width: 300px; }
+  .walls { display: grid; grid-template-columns: repeat(3, 96px); gap: 0.45rem; }
+  .wall { aspect-ratio: 16 / 9; padding: 0; background: var(--paper-2) center / cover; border: 2px solid var(--edge); border-radius: var(--r); cursor: pointer; }
+  .wall.on { border-color: var(--accent); }
+  .wall-text { display: grid; place-items: center; font-size: 0.78rem; color: var(--ink); }
+  .modal-body .walls { grid-template-columns: repeat(3, 1fr); }
+  body.os .rail-top { justify-content: flex-start; gap: 0.6rem; padding-left: 0.9rem; }
+  /* the sidebar folds down to its icons: the width eases, the words fade, the icons stay put */
+  body.os .rail { transition: width 0.22s ease; }
+  body.os .main { transition: margin-left 0.22s ease; }
+  body.os .brand, body.os .nav-btn span, body.os .rail-search, body.os .rail-foot { transition: opacity 0.15s ease; white-space: nowrap; }
+  body.os.rail-mini .rail { width: 64px; overflow: hidden; }
+  body.os.rail-mini .main { margin-left: 64px; }
+  body.os.rail-mini .brand, body.os.rail-mini .nav-btn span, body.os.rail-mini .nav-btn .out,
+  body.os.rail-mini .rail-foot, body.os.rail-mini .rail-search { opacity: 0; pointer-events: none; }
+  /* leaving Home, the search box drops into the sidebar */
+  .search-wrap.arrive { animation: search-in 0.25s ease; }
+  @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }
+  .nav.tabs-drop { animation: tabs-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-drop { from { opacity: 0.35; transform: translateY(-42px); } }
+  /* returning Home: the tabs and search rise together */
+  .nav.tabs-rise { animation: tabs-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes tabs-rise { from { opacity: 0.35; transform: translateY(42px); } }
+  @keyframes search-home { from { opacity: 0; transform: translateY(42px); } }
+
+  /* ---------------- small screens ---------------- */
+  @media (max-width: 760px) {
+    .home-hero { padding: 2rem 0; }
+    body.os.rail-mini .main { margin-left: 0; }
+    body.os.rail-mini .rail { width: auto; }
+    body { overflow: auto; }
+    .shell { display: block; height: auto; }
+    .rail { position: static; width: auto; border-right: 0; border-bottom: 1px solid var(--edge); }
+    .rail-top { display: none; }
+    .nav { padding-top: 0.7rem; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+    .mono { font-size: 1.8rem; }
+    .nav { flex-direction: row; overflow-x: auto; padding-bottom: 0.7rem; }
+    .nav-btn { width: auto; flex: none; }
+    .rail-foot { display: none; }
+    .main { margin-left: 0; height: auto; }
+    :root { --margin: 20px; }
+    .topbar { flex-wrap: wrap; padding: 1rem 1rem 0.5rem calc(var(--margin) + 1rem); }
+    .topbar-right { margin-left: 0; width: 100%; }
+    .search, .search:focus { width: 100%; }
+    .search-wrap { flex: 1; }
+    .results { width: 100%; }
+    .content { padding: 0.4rem 1rem 2rem calc(var(--margin) + 1rem); overflow: visible; }
+    footer { padding: 0.8rem 1rem 0.9rem calc(var(--margin) + 1rem); }
+    .tip { margin: 0; text-align: left; }
+    .setting { flex-wrap: wrap; }
+    .setting > :last-child { margin-left: 0; }
+    .choice { justify-content: flex-start; }
+    .theme-stack { align-items: flex-start; }
+  }
+
+  /* version milestone: a quiet reveal. A line draws, the number rises from
+     behind it, then a short note. Only transform and opacity move. */
+  .milestone { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 1.5rem; background: rgba(5, 7, 12, 0.94); cursor: pointer; animation: ms-fade 0.5s ease both; }
+  .milestone[hidden] { display: none; }
+  .milestone-inner { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; text-align: center; color: #f2f4f8; }
+  .ms-name { margin: 0; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.42em; text-transform: uppercase; color: rgba(242, 244, 248, 0.6); animation: ms-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both; }
+  .ms-mask { overflow: hidden; padding: 0 0.1em; }
+  .ms-num { margin: 0; font-size: clamp(4.5rem, 16vw, 8.5rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.04em; animation: ms-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s both; }
+  .ms-line { display: block; width: min(320px, 70vw); height: 1px; background: rgba(242, 244, 248, 0.5); animation: ms-draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both; }
+  @keyframes ms-fade { from { opacity: 0; } }
+  @keyframes ms-up { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes ms-rise { from { transform: translateY(105%); } }
+  @keyframes ms-draw { from { opacity: 0; transform: scaleX(0); } }
+  .milestone-msg { margin: 0.4rem 0 0; font-size: 1.05rem; font-weight: 700; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .milestone-msg.on { opacity: 1; transform: none; }
+  .milestone-hint { margin: 0; font-size: 0.8rem; color: rgba(242, 244, 248, 0.55); opacity: 0; transition: opacity 0.5s ease 0.3s; }
+  .milestone-msg.on + .milestone-hint { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .milestone-msg, .milestone-hint { opacity: 1; transform: none; }
+    .curtain { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="curtain" aria-hidden="true"></div>
+
+  <div class="shell">
+    <nav class="rail" aria-label="Sections">
+      <div class="rail-top">
+        <button class="icon-btn os-only" id="rail-collapse" type="button" aria-label="Fold the sidebar" title="Fold the sidebar">
+          <svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M6 2.5v11"/></svg>
+        </button>
+        <p class="brand">Chalk<span>Bored</span></p>
+      </div>
+      <div class="rail-search" id="rail-search-slot"></div>
+
+      <div class="nav">
+        <button class="nav-btn active" type="button" data-panel="home" id="nav-home" style="--tab:#8ec07c">
+          <svg viewBox="0 0 16 16"><path d="M2.5 7.2 8 2.5l5.5 4.7V13a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.8V9.2h3.2v4.6"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="games" id="nav-games" style="--tab:#e0736a">
+          <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
+          <span>Games</span><span class="tally" id="tally-games"></span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="chat" id="nav-chat" style="--tab:#5fb3a1">
+          <svg viewBox="0 0 16 16"><path d="M2 3.5h12v8H6.5L3 14.2V11.5H2z"/></svg>
+          <span>Chalk Chat</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
+          <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
+          <span>Chalk Music</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="tv" id="nav-tv" style="--tab:#c9a45f">
+          <svg viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="9" rx="1.5"/><path d="M5.5 1.5 8 4l2.5-2.5"/></svg>
+          <span>Chalk TV</span>
+        </button>
+        <button class="nav-btn" type="button" data-panel="browser" id="nav-browser" style="--tab:#b18cd9">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2c1.8 1.7 2.7 3.8 2.7 6S9.8 12.3 8 14M8 2C6.2 3.7 5.3 5.8 5.3 8s.9 4.3 2.7 6"/></svg>
+          <span>Chalk Browser</span>
+        </button>
+      </div>
+
+      <div class="rail-foot">
+        <p class="rail-note">ChalkBored &middot; made for fun</p>
+      </div>
+
+    </nav>
+
+    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2</b> <span class="ver-tag">Early Access</span></button>
+
+    <div class="main">
+      <header class="topbar">
+        <h1><span class="scribble">ChalkBored</span></h1>
+        <div class="topbar-right">
+          <div class="search-wrap">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
+            <input class="search" id="search" type="search" placeholder="Search activities" autocomplete="off" aria-label="Search activities">
+            <div class="results" id="results" hidden></div>
+          </div>
+          <button class="icon-btn" id="gear" type="button" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M10.3 2.6h3.4l.5 2.6c.7.3 1.3.6 1.9 1.1l2.5-.9 1.7 2.9-2 1.8c.1.7.1 1.4 0 2.1l2 1.8-1.7 2.9-2.5-.9c-.6.5-1.2.8-1.9 1.1l-.5 2.6h-3.4l-.5-2.6c-.7-.3-1.3-.6-1.9-1.1l-2.5.9-1.7-2.9 2-1.8a6.6 6.6 0 0 1 0-2.1l-2-1.8 1.7-2.9 2.5.9c.6-.5 1.2-.8 1.9-1.1z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- home: a place to start -->
+        <section class="panel active" id="panel-home">
+          <div class="home-hero">
+            <h2 class="home-title" id="home-title">ChalkBored</h2>
+            <div id="hero-search-slot"></div>
+            <p class="hello-meta">
+              <span class="meta-link static" id="stat-online" title="People online now"><span class="stat-dot"></span><b id="online-count" aria-live="polite">&hellip;</b> <span id="online-note">online now</span></span>
+            </p>
+          </div>
+        </section>
+
+        <!-- brain exercises: short practice activities for study breaks -->
+        <section class="panel" id="panel-games">
+          <div class="games-tools">
+            <label class="sort-by">Sort by
+              <select id="games-sort">
+                <option value="handpicked">Handpicked</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+                <option value="favs">Favorites first</option>
+              </select>
+            </label>
+          </div>
+          <div class="cards" id="games"></div>
+        </section>
+
+        <section class="panel flush" id="panel-music"></section>
+        <section class="panel flush" id="panel-tv"></section>
+        <section class="panel flush" id="panel-browser"></section>
+        <section class="panel flush" id="panel-chat"></section>
+
+
+
+        <!-- settings: how the notebook looks and opens -->
+        <section class="panel" id="panel-settings">
+          <p class="lead"><b>Settings.</b> Saved in this browser only.</p>
+          <div class="settings">
+
+            
+            <div class="group">
+              <h2>Look</h2>
+              <p>How ChalkBored looks.</p>
+              <div class="setting os-setting">
+                <div><h3>Wallpaper</h3><p>Your own picture stays on this device.</p></div>
+                <div id="wall-pick"></div>
+                <input type="file" id="bg-file" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Tab cloak</h2>
+              <p>What this tab and opened pages pretend to be.</p>
+              <div class="setting">
+                <div><h3>Subject</h3><p>Changes the tab name and icon.</p></div>
+                <div class="choice" id="disguise-choice"></div>
+              </div>
+              <div class="setting">
+                <div><h3>Ask to cloak</h3><p>Pick a cloak each time you open an activity card.</p></div>
+                <button class="switch" id="ask-cloak" type="button" role="switch" aria-checked="true" aria-label="Ask to cloak"></button>
+              </div>
+              <div class="setting">
+                <div><h3>Cloak this page</h3><p>Open ChalkBored in a blank tab wearing the cloak right now.</p></div>
+                <button class="btn" id="cloak-now" type="button">Cloak this page</button>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Advanced &amp; experimental</h2>
+              <p>How things opened from here behave.</p>
+              <div class="setting">
+                <div><h3>No New Tabs</h3><p>Pages open on top of this page instead of a new tab.</p></div>
+                <button class="switch" id="exp-no-tabs" type="button" role="switch" aria-checked="false" aria-label="No New Tabs"></button>
+              </div>
+            </div>
+
+            <div class="group">
+              <h2>Setup</h2>
+              <div class="setting">
+                <div><h3>First-time setup</h3><p>Walk through setup again.</p></div>
+                <button class="btn" id="rerun-setup" type="button">Run setup again</button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.2 Early Access</button></span>
+        <p class="tip" id="tip"></p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- first-time setup -->
+  <div class="modal" id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
+    <div class="modal-box">
+      <p class="modal-step" id="setup-step"></p>
+      <h2 id="setup-title"></h2>
+      <p id="setup-text"></p>
+      <div class="modal-body" id="setup-body"></div>
+      <div class="modal-actions">
+        <button class="btn" id="setup-back" type="button">Back</button>
+        <span class="spacer"></span>
+        <button class="btn primary" id="setup-next" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- first load: how pages should open -->
+  <div class="modal" id="cloak-ask" hidden role="dialog" aria-modal="true" aria-labelledby="cloak-ask-title">
+    <div class="modal-box">
+      <p class="modal-step">Opening pages</p>
+      <h2 id="cloak-ask-title">Open pages cloaked?</h2>
+      <p>Pick a cloak and pages open in a tab that looks like it. If your browser asks to allow pop-ups, allow them for ChalkBored &mdash; otherwise the cloaked tab can&rsquo;t open.</p>
+      <div class="choice cloak-ask-choice" id="cloak-ask-choice"></div>
+      <p class="cloak-ask-hint">You can change this any time in Settings.</p>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="cloak-ask-later" type="button">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- first visit to Games: how activities open -->
+  <div class="modal" id="games-setup" hidden role="dialog" aria-modal="true" aria-labelledby="games-setup-title">
+    <div class="modal-box">
+      <p class="modal-step">Quick setup</p>
+      <h2 id="games-setup-title">How should activities open?</h2>
+      <p>You can change this later in Settings.</p>
+      <div class="modal-body" id="games-setup-pick"></div>
+      <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="games-setup-done" type="button">Done</button></div>
+    </div>
+  </div>
+
+  <!-- version milestone screen, shown once before what's new -->
+  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.2">
+    <div class="milestone-inner">
+      <p class="ms-name">ChalkBored</p>
+      <div class="ms-mask"><p class="ms-num">1.2</p></div>
+      <span class="ms-line" aria-hidden="true"></span>
+      <p class="milestone-msg" id="milestone-msg">A little guy with a lot of feelings.</p>
+      <p class="milestone-hint">Click anywhere to see what’s new</p>
+    </div>
+  </div>
+
+  <!-- patch notes -->
+  <div class="modal" id="notes" hidden role="dialog" aria-modal="true" aria-labelledby="notes-title">
+    <div class="modal-box">
+      <p class="modal-step">What's new</p>
+      <h2 id="notes-title">ChalkBored 1.2</h2>
+      <ul>
+        <li><b>The little guy has feelings now:</b> five faces, a mood meter above the footer, and a landing that settles instead of snapping.</li>
+        <li><b>He tags along through setup,</b> pulling a face at every step.</li>
+        <li><b>Home stays quiet:</b> the activity list stays in its own tab, not on the landing page.</li>
+        <li><b>Picture-first cards:</b> covers lead, and each name is part of the picture.</li>
+      </ul>
+      <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
+    </div>
+  </div>
+
+  <!-- things opened here instead of in a new tab -->
+  <div class="viewer" id="viewer" hidden>
+    <div class="viewer-bar">
+      <button class="btn" id="viewer-back" type="button" hidden>&lsaquo; Back</button>
+      <b id="viewer-title"></b>
+      <button class="btn" id="viewer-full" type="button">Fullscreen</button>
+      <button class="btn" id="viewer-close" type="button">Close</button>
+    </div>
+  </div>
+
+  
+  
+</body>
+</html>
