@@ -515,6 +515,22 @@
     .chooser-card { padding: 1.2rem; }
     .chooser-grid { grid-template-columns: 1fr 1fr; }
   }
+  /* first visit: a note that stays up for a few seconds */
+  .chooser.welcome { z-index: 130; }
+  .welcome .chooser-card { width: min(480px, 100%); }
+  .welcome-ok {
+    display: block;
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.7rem 1rem;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+  .welcome-ok:disabled { background: #fff; color: var(--muted); border-color: var(--line); cursor: default; }
 </style>
 </head>
 <body>
@@ -608,6 +624,17 @@
   <div class="auto-bar" id="auto-bar" role="status" hidden>
     <span id="auto-bar-text">Opening your page…</span>
     <button type="button" id="auto-bar-stop">Choose another page</button>
+  </div>
+
+  <div class="chooser welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" tabindex="-1" hidden>
+    <div class="chooser-card">
+      <p class="chooser-kicker">ChalkBored</p>
+      <h2 id="welcome-title">Welcome!</h2>
+      <p>The page you pick doesn’t matter, they’re all the same. If something gets blocked, I’ll fix it the next day.</p>
+      <p>Opening things cloaked keeps them from getting blocked.</p>
+      <p>Hope you like my site!</p>
+      <button type="button" class="welcome-ok" id="welcome-ok" disabled>Got it (5)</button>
+    </div>
   </div>
 
   <script>
@@ -760,6 +787,7 @@
     // ---- which Study Hall did you pick last? keep it at the top ----
     (() => {
       const chooser = document.getElementById('chooser');
+      const welcome = document.getElementById('welcome');
       const grid = document.getElementById('chooser-grid');
       const KEY = 'chalk-studyhall-choice';
       const AUTO = 'chalk-studyhall-auto';
@@ -779,7 +807,8 @@
       }
       const CLOAK = 'chalk-studyhall-cloak';
       const cloak = document.getElementById('open-cloaked');
-      try { cloak.checked = localStorage.getItem(CLOAK) === '1'; } catch (e) {}
+      cloak.checked = true;   // on unless you turned it off
+      try { cloak.checked = localStorage.getItem(CLOAK) !== '0'; } catch (e) {}
       cloak.addEventListener('change', () => {
         try { localStorage.setItem(CLOAK, cloak.checked ? '1' : '0'); } catch (e) {}
       });
@@ -819,7 +848,7 @@
       }));
       const close = () => { chooser.hidden = true; document.body.classList.remove('choosing'); };
       chooser.addEventListener('click', (e) => { if (e.target === chooser) close(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !chooser.hidden) close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !chooser.hidden && welcome.hidden) close(); });
       window.showChooser = () => {
         bar.hidden = true;
         chooser.hidden = false;
@@ -849,6 +878,29 @@
       document.getElementById('auto-bar-stop').addEventListener('click', () => { clearTimeout(autoTimer); showChooser(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bar.hidden) { clearTimeout(autoTimer); showChooser(); } });
       startAuto();
+      // first visit: the welcome note, which can't be closed for 5 seconds
+      const SEEN = 'chalk-welcome-seen';
+      let seen = false;
+      try { seen = localStorage.getItem(SEEN) === '1'; } catch (e) {}
+      if (!seen && !chooser.hidden) {
+        const ok = document.getElementById('welcome-ok');
+        welcome.hidden = false;
+        welcome.focus();
+        let left = 5;
+        const tick = setInterval(() => {
+          left--;
+          if (left > 0) { ok.textContent = 'Got it (' + left + ')'; return; }
+          clearInterval(tick);
+          ok.textContent = 'Got it';
+          ok.disabled = false;
+          ok.focus();
+        }, 1000);
+        ok.addEventListener('click', () => {
+          welcome.hidden = true;
+          try { localStorage.setItem(SEEN, '1'); } catch (e) {}
+          chooser.focus();
+        });
+      }
       // coming back through the back/forward cache still asks again
       window.addEventListener('pageshow', (e) => { if (e.persisted) showChooser(); });
     })();
