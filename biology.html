@@ -430,6 +430,10 @@
 
   /* ---------------- index cards (brain exercises) ---------------- */
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.2rem; }
+  .games-tools { display: flex; justify-content: flex-end; margin-bottom: 0.8rem; }
+  .sort-by { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; color: var(--pencil); }
+  .sort-by select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--edge); border-radius: var(--r, 3px); padding: 0.3rem 0.5rem; cursor: pointer; }
+  .sort-by select:hover, .sort-by select:focus-visible { border-color: var(--accent); outline: none; }
 
   .card-wrap { position: relative; }
 
@@ -966,6 +970,16 @@
 
         <!-- brain exercises: short practice activities for study breaks -->
         <section class="panel" id="panel-games">
+          <div class="games-tools">
+            <label class="sort-by">Sort by
+              <select id="games-sort">
+                <option value="handpicked">Handpicked</option>
+                <option value="az">A to Z</option>
+                <option value="za">Z to A</option>
+                <option value="favs">Favorites first</option>
+              </select>
+            </label>
+          </div>
           <div class="cards" id="games"></div>
         </section>
 
@@ -1135,7 +1149,6 @@
         { name: '.Subw5y;Surf3rs?'                , path: 'LESSONS/Rail-Runner/index.html' },
         { name: '.Esc5p3;Ro5d?'                   , path: 'LESSONS/Learn-Car-Maintenance/index.html' },
         { name: '.Supr3m3;Du3list?',              path: 'LESSONS/Duel-Physics/index.html' },
-        { name: '.Du3l;M5st3rs?'                  , path: 'LESSONS/Duel-Arena/index.html' },
         { name: '.E5gl3rcr5ft?',                  path: 'LESSONS/forgecraft-launcher/index.html' },
         { name: '.R3tro;Bowl?'                    , path: 'LESSONS/rb-main/index.html' },
         { name: '.Footb5ll;Bros?'                 , path: 'LESSONS/football/index.html' },
@@ -1176,9 +1189,9 @@
         { name: '.Riddl3;School;~5?',             path: 'LESSONS/Logic-Lab-5/index.html' },
         { name: '.Riddl3;School;Tr5nsf3r?',       path: 'LESSONS/Logic-Lab-Transfer-1/index.html' },
         { name: '.Riddl3;School;Tr5nsf3r;2?',     path: 'LESSONS/Logic-Lab-Transfer-2/index.html' },
-        { name: '.St35ling;th3;Di5mond?',         path: 'LESSONS/Escape-Plan-1/index.html' },
-        { name: '.Br35king;th3;B5nk?',            path: 'LESSONS/Escape-Plan-2/index.html' },
-        { name: '.Fl33ing;th3;Compl3x?',          path: 'LESSONS/Escape-Plan-3/index.html' },
+        { name: '.H3nry;Stickm5n:;St35ling;th3;Di5mond?',path: 'LESSONS/Escape-Plan-1/index.html' },
+        { name: '.H3nry;Stickm5n:;Br35king;th3;B5nk?',path: 'LESSONS/Escape-Plan-2/index.html' },
+        { name: '.H3nry;Stickm5n:;Fl33ing;th3;Compl3x?',path: 'LESSONS/Escape-Plan-3/index.html' },
         { name: '.Among;Us?'                      , path: 'LESSONS/Crew-Mission/index.html' },
         { name: '.Bitlif3?'                       , path: 'LESSONS/Life-Skills/index.html' },
         { name: '.Bloxors?'                       , path: 'LESSONS/Block-Logic/index.html' },
@@ -1198,7 +1211,7 @@
         { name: '.Binding;of;Is55c?'              , path: 'LESSONS/Basement-Diary/index.html' },
         { name: '.Sp33d;St5rs?'                   , path: 'LESSONS/Track-Sprints/index.html' },
         { name: '.R5ft?'                          , path: 'LESSONS/Ocean-Survival/index.html' },
-        { name: '.Sl3nd3r?'                       , path: 'LESSONS/Forest-Logs/index.html' },
+        { name: '.Sl3nd3r;M5n;Th3;Eight;P5g3s?',  path: 'LESSONS/Forest-Logs/index.html' },
         { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
         { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
         { name: '.Pig3on;Asc3nt?'                 , path: 'LESSONS/Pigeon/index.html' },
@@ -1209,6 +1222,18 @@
         { name: '.S5ndbox3ls?'                    , path: 'LESSONS/Particle-Chemistry/index.html' },
         { name: '.Th3r3;Is;No;G5m3?'              , path: 'LESSONS/Empty-Lesson/index.html' },
         { name: '.Stick;W5r?'                     , path: 'LESSONS/Ancient-Warfare-History/index.html' },
+        { name: '.Fr3ddy;in;Sp5c3;2?',            path: 'LESSONS/Space-Shift-2/index.html' },
+        { name: '.Int3r5ctiv3;Buddy?',            path: 'LESSONS/Physics-Buddy/index.html' },
+        { name: '.Drift;Boss?',                   path: 'LESSONS/Drift-Physics/index.html' },
+        { name: '.Boxing;R5ndom?',                path: 'LESSONS/Boxing-Physics/index.html' },
+        { name: '.Du3l;M5st3rs?'                  , path: 'LESSONS/Duel-Arena/index.html' },
+        { name: '.G3t5w5y;Shootout?',             path: 'LESSONS/Getaway-Physics/index.html' },
+        { name: '.Pl5nt;D5ddy?',                  path: 'LESSONS/Plant-Care/index.html' },
+        { name: '.P3opl3;Pl5yground?',            path: 'LESSONS/Ragdoll-Sandbox/index.html' },
+        { name: '.Kind3rg5rt3n?',                 path: 'LESSONS/Class-Day-1/index.html' },
+        { name: '.Kind3rg5rt3n;2?',               path: 'LESSONS/Class-Day-2/index.html' },
+        { name: '.G3tting;Ov3r;It?',              path: 'LESSONS/Climb-Physics/index.html' },
+        { name: '.Und3rt5l3;Y3llow?',             path: 'LESSONS/Story-Yellow/index.html' },
         { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
         { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
         { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
@@ -1231,17 +1256,6 @@
         { name: ".P5p5's;Wing3ri5?"               , path: 'LESSONS/Kitchen-Math-Wings/index.html' },
         { name: ".World's;H5rd3st;G5m3?"          , path: 'LESSONS/Hardest-Path-1/index.html' },
         { name: ".World's;H5rd3st;G5m3;2?"        , path: 'LESSONS/Hardest-Path-2/index.html' },
-        { name: '.Fr3ddy;in;Sp5c3;2?',            path: 'LESSONS/Space-Shift-2/index.html' },
-        { name: '.Int3r5ctiv3;Buddy?',            path: 'LESSONS/Physics-Buddy/index.html' },
-        { name: '.Drift;Boss?',                   path: 'LESSONS/Drift-Physics/index.html' },
-        { name: '.Boxing;R5ndom?',                path: 'LESSONS/Boxing-Physics/index.html' },
-        { name: '.G3t5w5y;Shootout?',             path: 'LESSONS/Getaway-Physics/index.html' },
-        { name: '.Pl5nt;D5ddy?',                  path: 'LESSONS/Plant-Care/index.html' },
-        { name: '.P3opl3;Pl5yground?',            path: 'LESSONS/Ragdoll-Sandbox/index.html' },
-        { name: '.Kind3rg5rt3n?',                 path: 'LESSONS/Class-Day-1/index.html' },
-        { name: '.Kind3rg5rt3n;2?',               path: 'LESSONS/Class-Day-2/index.html' },
-        { name: '.G3tting;Ov3r;It?',              path: 'LESSONS/Climb-Physics/index.html' },
-        { name: '.Und3rt5l3;Y3llow?',             path: 'LESSONS/Story-Yellow/index.html' },
         { name: '.Lin3;Rid3r?'                    , path: 'LESSONS/Line-Drawing-Physics/index.html' },
       ],
     };
@@ -1250,6 +1264,12 @@
     // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
     // A lesson missing from here keeps its initials.
     const ART = {
+      'LESSONS/Space-Shift-2/index.html': { src: 'LESSONS/art/space-shift-2.webp', fit: 'cover' },
+      'LESSONS/Ragdoll-Sandbox/index.html': { src: 'LESSONS/art/ragdoll-sandbox.webp', fit: 'cover' },
+      'LESSONS/Class-Day-1/index.html': { src: 'LESSONS/art/class-day-1.webp', fit: 'cover' },
+      'LESSONS/Class-Day-2/index.html': { src: 'LESSONS/art/class-day-2.webp', fit: 'cover' },
+      'LESSONS/Climb-Physics/index.html': { src: 'LESSONS/art/climb-physics.webp', fit: 'cover' },
+      'LESSONS/Story-Yellow/index.html': { src: 'LESSONS/art/story-yellow.webp', fit: 'cover' },
       'LESSONS/Duel-Physics/index.html': { src: 'LESSONS/art/duel-physics.webp', fit: 'cover' },
       'LESSONS/Escape-Plan-1/index.html': { src: 'LESSONS/art/escape-plan-1.webp', fit: 'cover' },
       'LESSONS/Escape-Plan-2/index.html': { src: 'LESSONS/art/escape-plan-2.webp', fit: 'cover' },
@@ -2286,9 +2306,29 @@
       }
     }
 
+    // ---- Sort by: Handpicked is the order of the list itself ----
+    const SORT_STORE = 'vault-games-sort';
+    const sortPick = $('games-sort');
+    try { sortPick.value = localStorage.getItem(SORT_STORE) || 'handpicked'; } catch (e) {}
+    if (sortPick.selectedIndex < 0) sortPick.value = 'handpicked';
+    function sortedLessons() {
+      const byName = (a, b) => shown(a).localeCompare(shown(b), undefined, { numeric: true, sensitivity: 'base' });
+      const list = [...LIST.lessons];
+      if (sortPick.value === 'az') return list.sort(byName);
+      if (sortPick.value === 'za') return list.sort((a, b) => byName(b, a));
+      if (sortPick.value === 'favs') return list.sort((a, b) => isFav(b) - isFav(a));
+      return list;
+    }
+    sortPick.addEventListener('change', () => {
+      try { localStorage.setItem(SORT_STORE, sortPick.value); } catch (e) {}
+      $('games').classList.add('settled');   // the cards already came in once; don't play that again
+      lessonsBuilt = true;
+      buildLessons();
+    });
+
     function buildLessons() {
-      // The activity list only appears in Activities, and stays in list order.
-      buildCards('games', LIST.lessons, 'Games', false, true);
+      // The activity list only appears in Activities.
+      buildCards('games', sortedLessons(), 'Games', false, true);
       $('tally-games').textContent = String(LIST.lessons.length);
     }
 
