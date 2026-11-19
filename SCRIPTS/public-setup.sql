@@ -1124,10 +1124,24 @@ create table if not exists public.voice_signals (
   room_key   text not null,
   from_id    uuid not null references public.profiles on delete cascade,
   to_id      uuid not null references public.profiles on delete cascade,
-  kind       text not null check (kind in ('ring', 'offer', 'answer', 'ice', 'bye', 'end')),
+  kind       text not null check (kind in ('ring', 'offer', 'answer', 'ice', 'bye', 'end', 'sync')),
   body       jsonb check (body is null or octet_length(body::text) <= 8000),
   created_at timestamptz not null default now()
 );
+alter table public.voice_signals drop constraint if exists voice_signals_kind_check;
+alter table public.voice_signals add constraint voice_signals_kind_check
+  check (kind in ('ring', 'offer', 'answer', 'ice', 'bye', 'end', 'sync'));
+-- What a mod did to someone in one call. It outlives their place in the call,
+-- so leaving and coming back doesn't undo it.
+create table if not exists public.voice_holds (
+  room_key      text not null,
+  user_id       uuid not null references public.profiles on delete cascade,
+  muted_until   timestamptz,
+  blocked_until timestamptz,
+  primary key (room_key, user_id)
+);
+alter table public.voice_holds enable row level security;   -- no policies: functions only
+revoke all on public.voice_holds from anon, authenticated;
 create index if not exists voice_signals_to_idx on public.voice_signals (to_id, created_at);
 create index if not exists voice_signals_from_idx on public.voice_signals (from_id, created_at);
 create index if not exists voice_signals_age_idx on public.voice_signals (created_at);
@@ -1143,8 +1157,7 @@ declare a uuid; b uuid; r uuid;
 begin
   if uid is null or is_banned(uid) then return false; end if;
   if p_key ~ '^v:[0-9a-f-]{36}$' then
-    select c.room_id into r from channels c join rooms g on g.id = c.room_id
-     where c.id = substr(p_key, 3)::uuid and c.kind = 'voice' and not g.is_global;
+    select c.room_id into r from channels c where c.id = substr(p_key, 3)::uuid and c.kind = 'voice';
     return r is not null
        and exists (select 1 from room_members where room_id = r and user_id = uid)
        and not exists (select 1 from room_bans where room_id = r and user_id = uid);
@@ -1166,6 +1179,9 @@ begin
   select * into me from profiles where id = auth.uid();
   if me.id is null or me.banned then return 'Your account is banned.'; end if;
   if me.muted_until > now() then return 'You''re timed out, so you can''t join voice for now.'; end if;
+  if exists (select 1 from voice_holds where room_key = p_key and user_id = me.id and blocked_until > now()) then
+    return 'A mod removed you from this call. Try again in a few minutes.';
+  end if;
   if not voice_allowed(p_key) then return 'You can''t join this call.'; end if;
   if p_key like 'v:%' then select user_limit into cap from channels where id = substr(p_key, 3)::uuid; end if;
   perform pg_advisory_xact_lock(hashtext(p_key));   -- two people taking the last place at once
@@ -1186,6 +1202,58 @@ returns uuid[] language sql stable security definer set search_path = public, ex
   select coalesce(array_agg(user_id), '{}') from voice_members
    where room_key = p_key and seen_at > now() - interval '60 seconds' and voice_allowed(p_key);
 $$;
+
+-- Who's in a call, for the squares on screen. Everyone's page stops playing
+-- anyone a mod has muted, so a muted person can't get around it.
+create or replace function public.voice_people(p_key text)
+returns table (user_id uuid, username text, avatar text, muted boolean)
+language sql stable security definer set search_path = public, extensions as $$
+  select v.user_id, p.username::text, p.avatar,
+         exists (select 1 from voice_holds h where h.room_key = v.room_key and h.user_id = v.user_id and h.muted_until > now())
+    from voice_members v join profiles p on p.id = v.user_id
+   where v.room_key = p_key and v.seen_at > now() - interval '60 seconds' and not p.banned and voice_allowed(p_key)
+   order by p.username;
+$$;
+
+-- Mute someone for everyone (for an hour, or until a mod unmutes them), or
+-- remove them and keep them out of this call for 15 minutes. Site mods can do
+-- this in any call, class owners and class mods in their class's channels.
+create or replace function public.voice_moderate(p_key text, p_user uuid, p_action text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare r uuid;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if p_key ~ '^v:[0-9a-f-]{36}$' then r := channel_room(substr(p_key, 3)::uuid); end if;
+  if not (is_site_mod() or (r is not null and can_manage_room(r))) then return 'Only mods can do that.'; end if;
+  if p_action not in ('mute', 'unmute', 'remove') then return 'Unknown action.'; end if;
+  if p_user = auth.uid() then return 'You can''t do that to yourself.'; end if;
+  if is_site_mod(p_user) then return 'You can''t do that to a site mod.'; end if;
+  if r is not null and not is_site_mod() and room_role(r, p_user) in ('owner', 'mod') then
+    return 'You can''t do that to someone who runs this class.';
+  end if;
+  if not exists (select 1 from voice_members where room_key = p_key and user_id = p_user) then
+    return 'They already left the call.';
+  end if;
+  delete from voice_holds where coalesce(greatest(muted_until, blocked_until), '-infinity') < now();
+
+  if p_action = 'remove' then
+    insert into voice_holds (room_key, user_id, blocked_until) values (p_key, p_user, now() + interval '15 minutes')
+    on conflict (room_key, user_id) do update set blocked_until = excluded.blocked_until;
+    delete from voice_members where room_key = p_key and user_id = p_user;
+    insert into voice_signals (room_key, from_id, to_id, kind, body)
+    values (p_key, auth.uid(), p_user, 'end', '{"removed": true}');
+    insert into voice_signals (room_key, from_id, to_id, kind)
+    select p_key, p_user, user_id, 'bye' from voice_members where room_key = p_key;
+    return null;
+  end if;
+
+  insert into voice_holds (room_key, user_id, muted_until)
+  values (p_key, p_user, case when p_action = 'mute' then now() + interval '1 hour' end)
+  on conflict (room_key, user_id) do update set muted_until = excluded.muted_until;
+  insert into voice_signals (room_key, from_id, to_id, kind)
+  select p_key, auth.uid(), user_id, 'sync' from voice_members where room_key = p_key;
+  return null;
+end; $$;
 
 -- Leave: everyone still there is told.
 create or replace function public.voice_leave(p_key text)
@@ -1252,7 +1320,8 @@ revoke all on public.voice_members, public.voice_signals from anon, authenticate
 grant select on public.voice_signals to authenticated;
 revoke execute on function public.voice_allowed(text, uuid) from public, anon, authenticated;
 grant execute on function public.voice_join(text), public.voice_who(text), public.voice_leave(text),
-  public.voice_signal(text, uuid, text, jsonb), public.voice_end(text), public.voice_calls() to authenticated;
+  public.voice_signal(text, uuid, text, jsonb), public.voice_end(text), public.voice_calls(),
+  public.voice_people(text), public.voice_moderate(text, uuid, text) to authenticated;
 
 do $$
 begin
@@ -1280,13 +1349,19 @@ alter table public.channels add constraint channels_post_role_check check (post_
 alter table public.channels drop constraint if exists channels_slow_check;
 alter table public.channels add constraint channels_slow_check check (slow_seconds in (0, 5, 10, 30, 60, 300));
 alter table public.channels drop constraint if exists channels_limit_check;
-alter table public.channels add constraint channels_limit_check check (user_limit between 2 and 6);
+alter table public.channels add constraint channels_limit_check check (user_limit between 2 and 10);
 
 -- voice now lives in voice channels ('v:<channel id>') instead of one room per class
 delete from public.voice_members where room_key like 'c:%';
 alter table public.voice_members drop constraint if exists voice_members_room_key_check;
 alter table public.voice_members add constraint voice_members_room_key_check
   check (room_key ~ '^(v:[0-9a-f-]{36}|d:[0-9a-f-]{36}:[0-9a-f-]{36})$');
+
+-- Global has one voice channel that everyone can join
+insert into public.channels (room_id, name, kind, user_limit)
+select r.id, 'voice', 'voice', 10 from public.rooms r
+ where r.is_global and not exists (select 1 from public.channels c where c.room_id = r.id and c.kind = 'voice')
+on conflict do nothing;
 
 -- channels are only made through save_channel
 drop policy if exists channels_create on public.channels;
@@ -1324,13 +1399,15 @@ begin
   if glob is null then return 'That class is gone.'; end if;
   if not can_manage_room(p_room) then return 'Only the people who run this class can do that.'; end if;
   if coalesce(p_kind, '') not in ('text', 'voice') then return 'Pick text or voice.'; end if;
-  if glob and p_kind = 'voice' then return 'Global has no voice channels.'; end if;
+  if glob and p_kind = 'voice' and p_channel is null then return 'Global has one voice channel.'; end if;
   if char_length(v_name) not between 1 and 30 then return 'Channel names are 1-30 characters.'; end if;
   if char_length(v_cat) > 24 then return 'Categories max out at 24 characters.'; end if;
   if char_length(v_topic) > 160 then return 'Topics max out at 160 characters.'; end if;
   if v_role not in ('everyone', 'mods') then return 'Pick who can post.'; end if;
   if v_slow not in (0, 5, 10, 30, 60, 300) then return 'Pick a slow mode from the list.'; end if;
-  if v_limit not between 2 and 6 then return 'Voice channels hold 2 to 6 people.'; end if;
+  if v_limit not between 2 and (case when glob then 10 else 6 end) then
+    return 'Voice channels hold 2 to ' || (case when glob then 10 else 6 end) || ' people.';
+  end if;
   if not is_site_mod() and v_topic is not null and (has_blocked_word(v_topic) or has_link(v_topic)) then
     return 'That topic isn''t allowed.';
   end if;

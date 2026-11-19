@@ -1,5 +1,5 @@
 // Chalk Chat voice: connects your mic to everyone else in the same call, one
-// direct link per person (at most 6 people, so at most 5 links). It doesn't
+// direct link per person (at most 10 people, so at most 9 links). It doesn't
 // decide who may talk or carry the messages that set links up: the database
 // does that (SCRIPTS/public-setup.sql, voice_*), and the page passes them in
 // through send() and signal().
@@ -8,6 +8,8 @@
 // people join at once and both offer, the one with the smaller id keeps theirs.
 export function createVoice({ me, send, iceServers, onChange }) {
   const peers = new Map();   // id -> { pc, audio, waiting: [] }
+  const failed = new Set();  // people the network wouldn't let us reach
+  let silenced = new Set();  // people this page doesn't play
   let stream = null;
   let muted = false;
 
@@ -22,11 +24,14 @@ export function createVoice({ me, send, iceServers, onChange }) {
     const pc = new RTCPeerConnection({ iceServers });
     const p = { pc, audio: new Audio(), waiting: [] };
     p.audio.autoplay = true;
+    p.audio.muted = silenced.has(id);
+    failed.delete(id);
     peers.set(id, p);
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
     pc.onicecandidate = (e) => { if (e.candidate) send(id, 'ice', e.candidate.toJSON()); };
     pc.ontrack = (e) => { p.audio.srcObject = e.streams[0]; p.audio.play().catch(() => {}); };
     pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'failed') failed.add(id);
       if (pc.connectionState === 'failed' || pc.connectionState === 'closed') drop(id);
       else onChange();
     };
@@ -41,7 +46,7 @@ export function createVoice({ me, send, iceServers, onChange }) {
   }
 
   async function signal(from, kind, body) {
-    if (kind === 'bye') { drop(from); return; }
+    if (kind === 'bye') { failed.delete(from); drop(from); return; }
     if (!stream) return;
     if (kind === 'offer') {
       const { pc } = peer(from);
@@ -93,8 +98,13 @@ export function createVoice({ me, send, iceServers, onChange }) {
     onChange();
   }
 
+  function silence(ids) {
+    silenced = new Set(ids);
+    peers.forEach((p, id) => { p.audio.muted = silenced.has(id); });
+  }
+
   // people you're actually linked with right now
   const connected = () => [...peers.entries()].filter(([, p]) => p.pc.connectionState === 'connected').map(([id]) => id);
 
-  return { start, call, signal, drop, stop, setMuted, connected, get muted() { return muted; }, get size() { return peers.size; } };
+  return { start, call, signal, drop, stop, setMuted, silence, connected, failed: () => [...failed], get muted() { return muted; }, get size() { return peers.size; } };
 }
