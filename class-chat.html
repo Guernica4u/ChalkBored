@@ -202,7 +202,8 @@
   .user-panel { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
   .voice-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
   .voice-bar[hidden] { display: none; }
-  .voice-bar .voice-label { flex: 1 1 100%; font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .voice-bar .voice-label { flex: 1 1 100%; padding: 0; background: none; border: 0; font: inherit; font-size: 12px; text-align: left; color: var(--ink); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .voice-bar .voice-label:hover, .voice-bar .voice-label:focus-visible { color: var(--accent); outline: none; }
   .channel .chan-ic { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .channel.on .chan-ic { stroke: var(--accent); }
   .channel .chan-tool { padding: 0 2px; color: var(--muted); opacity: 0; display: inline-flex; }
@@ -283,7 +284,9 @@
   }
   .icon-btn:hover, .icon-btn:focus-visible { background: var(--hover); color: var(--ink); outline: none; }
   .icon-btn svg { width: 15px; height: 15px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .user-panel #user-menu-btn { margin-left: 0; }
+  .user-panel #notif-btn { position: relative; margin-left: 0; }
+  .notif-count { position: absolute; top: -3px; right: -3px; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 7px; background: var(--accent); color: var(--on-accent, #000); font-size: 0.56rem; font-weight: 700; line-height: 14px; text-align: center; }
+  .notif-count[hidden] { display: none; }
   .chat-head .presence + .members-btn { margin-left: 2px; }
   .user-menu {
     position: absolute; left: 8px; right: 8px; bottom: calc(100% + 6px);
@@ -296,6 +299,11 @@
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
   }
   .user-menu.hide { display: none; }
+  .notif-panel { max-height: 320px; overflow-y: auto; }
+  .notif-panel h2 { margin: 3px 9px 5px; font-size: 0.76rem; font-weight: 600; }
+  .notif-row { display: flex; align-items: center; gap: 6px; padding: 5px 9px; font-size: 0.72rem; color: var(--ink); }
+  .notif-row > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .notif-empty { margin: 0; padding: 7px 9px; font-size: 0.72rem; color: var(--muted); }
   .user-menu .link {
     padding: 7px 9px; border-radius: var(--radius-sm);
     font-size: 0.72rem; text-decoration: none; color: var(--ink);
@@ -900,6 +908,20 @@
   .dm-form button { padding: 0 18px; }
   .main.home-on .chat-head, .main.home-on #messages, .main.home-on #composer, .main.home-on .compose-note { display: none; }
 
+  /* in a call, the chat side turns into a square for each person */
+  .main.stage-on .chat-head, .main.stage-on #messages, .main.stage-on #composer, .main.stage-on .compose-note, .main.stage-on .home { display: none; }
+  .vc-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .vc-stage[hidden] { display: none; }
+  .vc-status { min-width: 0; font-size: 0.72rem; color: var(--muted); }
+  .vc-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; align-content: start; padding: 16px; }
+  .vc-tile { aspect-ratio: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font: inherit; cursor: pointer; }
+  .vc-tile:hover, .vc-tile:focus-visible { border-color: var(--accent-dim); outline: none; }
+  .vc-tile.me { cursor: default; }
+  .vc-tile .avatar { width: 64px; height: 64px; font-size: 1.6rem; flex: none; }
+  .vc-name { max-width: 100%; font-size: 0.78rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vc-state { min-height: 1em; font-size: 0.64rem; color: var(--muted); }
+  .vc-actions { flex: none; display: flex; justify-content: center; gap: 8px; padding: 10px 16px 14px; border-top: 1px solid var(--line); }
+
   /* in your messages, the class sidebar turns into the list of people you've talked to */
   .dm-side { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 10px 8px 8px; gap: 8px; }
   .dm-side[hidden] { display: none; }
@@ -1052,6 +1074,7 @@
   <symbol id="pfp-12" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6.4 L20 4.4 V14.6 a3.2 3.2 0 1 1 -2 -2.96 V8.1 L12 9.7 V16.6 a3.2 3.2 0 1 1 -2 -2.96 Z"/></symbol>
   <symbol id="pfp-13" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.2 L14.1 6.1 l3.8 3.8 L6.8 21 H3 Z M15.6 4.6 l1.8 -1.8 3.8 3.8 -1.8 1.8 Z"/></symbol>
 
+  <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
   <symbol id="ic-voice" viewBox="0 0 24 24"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></symbol>
   <symbol id="ic-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></symbol>
   <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol>
@@ -1108,7 +1131,7 @@
 
     <div class="user-wrap">
       <div class="voice-bar" id="voice-bar" role="status" hidden>
-        <span class="voice-label" id="voice-label"></span>
+        <button class="voice-label" id="voice-label" type="button" title="Open the call"></button>
         <button class="mini" id="voice-mute" type="button">Mute</button>
         <button class="mini" id="voice-leave" type="button">Leave</button>
         <button class="mini danger" id="voice-end" type="button" hidden>End for everyone</button>
@@ -1123,13 +1146,18 @@
         <button class="icon-btn" id="settings-btn" type="button" title="Settings" aria-label="Settings" aria-haspopup="dialog">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-gear"></use></svg>
         </button>
-        <button class="icon-btn" id="user-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="user-menu" title="Account menu">⋯</button>
+        <button class="icon-btn" id="notif-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="notif-panel" title="Notifications" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-bell"></use></svg>
+          <span class="notif-count" id="notif-count" hidden></span>
+        </button>
       </div>
-      <div class="user-menu hide" id="user-menu" role="menu">
-        <button class="link" id="open-reports" type="button" role="menuitem" hidden>Reports</button>
-        <button class="link" id="voice-calls" type="button" role="menuitem" hidden>Voice calls</button>
-        <button class="link" id="mod-tools" type="button" role="menuitem" hidden>Ban or unban someone</button>
-        <button class="link" id="sign-out" type="button" role="menuitem">Sign out</button>
+      <div class="user-menu notif-panel hide" id="notif-panel" role="region" aria-label="Notifications"></div>
+      <!-- Settings > Account shows these -->
+      <div hidden>
+        <button id="open-reports" type="button" hidden>Reports</button>
+        <button id="voice-calls" type="button" hidden>Voice calls</button>
+        <button id="mod-tools" type="button" hidden>Ban or unban someone</button>
+        <button id="sign-out" type="button">Sign out</button>
       </div>
     </div>
   </aside>
@@ -1163,6 +1191,19 @@
             <button class="primary" type="submit" disabled>Send</button>
           </form>
         </div>
+      </div>
+    </section>
+
+    <section class="vc-stage" id="vc-stage" hidden aria-label="Voice call">
+      <header class="home-head">
+        <h1 id="vc-title"></h1>
+        <span class="vc-status" id="vc-status" role="status"></span>
+      </header>
+      <div class="vc-grid" id="vc-grid"></div>
+      <div class="vc-actions">
+        <button class="mini" id="vc-mute" type="button">Mute</button>
+        <button class="mini" id="vc-back" type="button">Back to chat</button>
+        <button class="mini danger" id="vc-leave" type="button">Leave</button>
       </div>
     </section>
 
@@ -1878,10 +1919,16 @@ async function upBlocked(box) {
 
 function upAccount(box) {
   box.appendChild(make('p', '', 'Signed in as ' + state.me.username + '.'));
+  const actions = make('div', 'cp-actions');
+  ['open-reports', 'voice-calls', 'mod-tools'].filter((id) => !$(id).hidden).forEach((id) => {
+    const b = make('button', 'ghost', $(id).textContent);
+    b.type = 'button';
+    b.onclick = () => { closeClassPage(); $(id).click(); };
+    actions.appendChild(b);
+  });
   const out = make('button', 'ghost', 'Sign out');
   out.type = 'button';
   out.onclick = () => $('sign-out').click();
-  const actions = make('div', 'cp-actions');
   actions.appendChild(out);
   box.appendChild(actions);
 }
@@ -2173,7 +2220,7 @@ function paintChannels() {
       const btn = document.createElement('button');
       btn.className = 'channel' + ((isVoice ? voice.key === key : state.channel && state.channel.id === ch.id) ? ' on' : '');
       btn.type = 'button';
-      btn.title = isVoice ? (voice.key === key ? 'Leave ' : 'Join ') + ch.name : '# ' + ch.name;
+      btn.title = isVoice ? (voice.key === key ? 'Open ' : 'Join ') + ch.name : '# ' + ch.name;
 
       const name = document.createElement('span');
       name.className = 'chan-name';
@@ -2194,8 +2241,8 @@ function paintChannels() {
       }
       btn.onclick = () => {
         if (!isVoice) openChannel(ch);
-        else if (voice.key === key) leaveVoice();
-        else joinVoice(key, ch.name + ' · ' + state.room.name);
+        else if (voice.key === key) openStage();
+        else askJoinVoice(key, ch.name + ' · ' + state.room.name);
       };
 
       const inside = isVoice ? (state.voicePeople.get(ch.id) || []) : [];
@@ -2264,7 +2311,7 @@ async function channelForm(ch) {
     forText({ key: 'links', label: 'Links', type: 'select', value: ch && ch.allow_links ? 'on' : 'off',
       options: [{ value: 'off', label: 'Not allowed' }, { value: 'on', label: 'Allowed' }] }),
     forVoice({ key: 'limit', label: 'User limit', type: 'select', value: String(ch ? ch.user_limit : 6),
-      options: ['2', '3', '4', '5', '6'].map((n) => ({ value: n, label: n + ' people' })) }),
+      options: (state.room.is_global ? ['2', '4', '6', '8', '10'] : ['2', '3', '4', '5', '6']).map((n) => ({ value: n, label: n + ' people' })) }),
   ].filter(Boolean);
   const answer = await openForm({
     title: ch ? 'Edit ' + ch.name : 'New channel',
@@ -2286,6 +2333,7 @@ $('new-channel').onclick = () => channelForm();
 // ------------------------------------------------------------------ messages
 async function openChannel(ch) {
   closeHome();
+  closeStage();
   state.channel = ch;
   clearReply();
   state.messageById.clear();
@@ -2800,6 +2848,8 @@ async function refreshReportCount() {
   if (!runsSomething()) return;
   const { count } = await db.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open');
   $('open-reports').innerHTML = count ? 'Reports <span class="count-badge">(' + count + ')</span>' : 'Reports';
+  state.openReports = count || 0;
+  paintBell();
 }
 
 async function paintReports() {
@@ -3184,20 +3234,66 @@ document.querySelectorAll('.people-tabs button').forEach((b) => {
   };
 });
 
-const userMenu = $('user-menu');
-function closeUserMenu() {
-  userMenu.classList.add('hide');
-  $('user-menu-btn').setAttribute('aria-expanded', 'false');
+// ------------------------------------------------------------------ notifications
+const bellOpen = () => !$('notif-panel').classList.contains('hide');
+function closeBell() {
+  $('notif-panel').classList.add('hide');
+  $('notif-btn').setAttribute('aria-expanded', 'false');
 }
-$('user-menu-btn').onclick = (e) => {
+
+function paintBell() {
+  const n = (state.unseen || 0) + state.friendIn.size + (state.openReports || 0);
+  $('notif-count').textContent = n > 99 ? '99+' : String(n);
+  $('notif-count').hidden = !n;
+  $('notif-btn').setAttribute('aria-label', n ? 'Notifications, ' + n + ' new' : 'Notifications');
+  if (bellOpen()) paintBellList();
+}
+
+async function paintBellList() {
+  const [{ data: mentions }] = await Promise.all([
+    db.from('mentions').select('id, room_id, channel_id, message_id, by:profiles!mentions_by_user_fkey(username), ch:channels(name)')
+      .eq('user_id', state.me.id).eq('seen', false).order('id', { ascending: false }).limit(20),
+    state.friendIn.size ? loadEveryone() : null,
+  ]);
+  const box = $('notif-panel');
+  box.innerHTML = '';
+  box.appendChild(make('h2', '', 'Notifications'));
+  const row = (text, ...buttons) => {
+    const r = make('div', 'notif-row');
+    r.append(make('span', '', text), ...buttons);
+    box.appendChild(r);
+  };
+  const act = (label, fn) => {
+    const b = make('button', 'mini', label);
+    b.type = 'button';
+    b.onclick = fn;
+    return b;
+  };
+  if (state.openReports) {
+    row(state.openReports + ' open report' + (state.openReports === 1 ? '' : 's'),
+      act('Open', () => { closeBell(); $('open-reports').click(); }));
+  }
+  const byId = everyoneById();
+  [...state.friendIn].map((id) => byId.get(id)).filter(Boolean).forEach((p) => {
+    row(p.username + ' wants to be friends',
+      act('Accept', () => answerFriendRequest(p, true)), act('Ignore', () => answerFriendRequest(p, false)));
+  });
+  (mentions || []).forEach((m) => {
+    row('@' + ((m.by && m.by.username) || 'someone') + ' mentioned you in #' + ((m.ch && m.ch.name) || 'a channel'),
+      act('Open', async () => { closeBell(); await jumpTo(m.room_id, m.channel_id, m.message_id); markSeen([m.id]); }));
+  });
+  if (box.children.length === 1) box.appendChild(make('p', 'notif-empty', 'You’re all caught up.'));
+}
+
+$('notif-btn').onclick = (e) => {
   e.stopPropagation();
-  const opening = userMenu.classList.contains('hide');
-  userMenu.classList.toggle('hide', !opening);
-  $('user-menu-btn').setAttribute('aria-expanded', String(opening));
+  const opening = !bellOpen();
+  $('notif-panel').classList.toggle('hide', !opening);
+  $('notif-btn').setAttribute('aria-expanded', String(opening));
+  if (opening) paintBellList();
 };
-$('user-menu').addEventListener('click', (e) => { if (e.target.closest('button')) closeUserMenu(); });
-document.addEventListener('click', (e) => { if (!e.target.closest('.user-wrap')) closeUserMenu(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUserMenu(); });
+document.addEventListener('click', (e) => { if (!e.target.closest('.user-wrap')) closeBell(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBell(); });
 
 // ------------------------------------------------------------------ @ autocomplete
 const suggestEl = $('suggest');
@@ -3289,6 +3385,7 @@ async function refreshMentionBadge() {
   state.mentionsReady = !error;
   state.unseen = error ? 0 : (count || 0);
   document.title = (state.unseen ? '(' + state.unseen + ') ' : '') + 'Chalk Chat';
+  paintBell();
 }
 
 async function markSeen(ids) {
@@ -3798,6 +3895,7 @@ function replyToPerson(p) {
 
 // The chat logo opens your messages: the whole pane becomes the DM list.
 function openHome(person) {
+  closeStage();
   state.homeOn = true;
   $('home').hidden = false;
   $('main').classList.add('home-on');
@@ -4109,9 +4207,9 @@ $('dm-form').addEventListener('submit', async (e) => {
 });
 
 // ------------------------------------------------------------------ voice
-// Friend calls and class voice rooms (never Global). The database says who may
-// join and passes the link-up messages; voice.js links the mics.
-const voice = { key: null, v: null, label: '', beat: null, alone: null };
+// Friend calls and voice channels. The database says who may join and passes
+// the link-up messages; voice.js links the mics.
+const voice = { key: null, v: null, label: '', beat: null, alone: null, poll: null, people: null, relay: false, held: false, hush: new Set() };
 const dmKey = (id) => 'd:' + [state.me.id, id].sort().join(':');
 
 async function iceServers() {
@@ -4122,23 +4220,101 @@ async function iceServers() {
   return [{ urls: 'stun:stun.cloudflare.com:3478' }];
 }
 
+// two short notes: rising when someone joins, falling when someone leaves
+let chimeAudio = null;
+function chime(up) {
+  try {
+    chimeAudio = chimeAudio || new AudioContext();
+    chimeAudio.resume();
+    const start = chimeAudio.currentTime;
+    (up ? [440, 660] : [660, 440]).forEach((hz, i) => {
+      const at = start + i * 0.12;
+      const note = chimeAudio.createOscillator();
+      const gain = chimeAudio.createGain();
+      note.frequency.value = hz;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.12, at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.16);
+      note.connect(gain).connect(chimeAudio.destination);
+      note.start(at);
+      note.stop(at + 0.18);
+    });
+  } catch (e) {}
+}
+
+// asks first, and says who's already there
+async function askJoinVoice(key, label) {
+  const { data } = await db.rpc('voice_people', { p_key: key });
+  const names = (data || []).map((p) => p.username);
+  const here = names.length ? names.join(', ') + (names.length === 1 ? ' is' : ' are') + ' here.' : 'Nobody is here yet.';
+  const ok = await openForm({
+    title: 'Join ' + label + '?',
+    text: here + (voice.key ? ' You’ll leave the call you’re in now.' : ''),
+    fields: [],
+    submit: 'Join',
+  });
+  if (ok) joinVoice(key, label);
+}
+
+function openStage() {
+  if (!voice.key) return;
+  closeHome();
+  closeClassPage();
+  $('vc-stage').hidden = false;
+  $('main').classList.add('stage-on');
+  paintVoice();
+}
+function closeStage() {
+  $('vc-stage').hidden = true;
+  $('main').classList.remove('stage-on');
+}
+
+// who's in the call now: updates the squares, plays the sounds, applies mod mutes
+async function loadCallPeople() {
+  const { key, v } = voice;
+  if (!key) return;
+  const { data, error } = await db.rpc('voice_people', { p_key: key });
+  if (error || voice.key !== key) return;
+  const now = data || [];
+  if (voice.people) {
+    const had = new Set(voice.people.map((p) => p.user_id));
+    const has = new Set(now.map((p) => p.user_id));
+    if (now.some((p) => !had.has(p.user_id))) chime(true);
+    else if (voice.people.some((p) => !has.has(p.user_id))) chime(false);
+  }
+  voice.people = now;
+  v.silence(now.filter((p) => p.muted).map((p) => p.user_id).concat([...voice.hush]));
+  const mine = now.find((p) => p.user_id === state.me.id);
+  const held = !!(mine && mine.muted);
+  if (held !== voice.held) showToast(held ? 'A mod muted you in this call.' : 'A mod unmuted you.');
+  voice.held = held;
+  if (held) v.setMuted(true);
+  paintVoice();
+}
+
 async function joinVoice(key, label, ringTo) {
-  if (voice.key === key) return;
+  if (voice.key === key) { openStage(); return; }
   if (voice.key) await leaveVoice();
+  const servers = await iceServers();
   const v = createVoice({
-    me: state.me.id, iceServers: await iceServers(), onChange: paintVoice,
+    me: state.me.id, iceServers: servers, onChange: paintVoice,
     send: (to, kind, body) => db.rpc('voice_signal', { p_key: key, p_to: to, p_kind: kind, p_body: body }).then(() => {}),
   });
   try { await v.start(); } catch (e) { showToast('Allow the microphone to use voice.'); return; }
   const { data: why, error } = await db.rpc('voice_join', { p_key: key });
   if (error || why) { v.stop(); showToast(error ? error.message : why); return; }
-  Object.assign(voice, { key, v, label });
+  Object.assign(voice, { key, v, label, people: null, held: false, hush: new Set(),
+    relay: servers.some((s) => [].concat(s.urls).some((u) => /^turns?:/.test(u))) });
+  chime(true);
+  openStage();
   const { data: who } = await db.rpc('voice_who', { p_key: key });
   (who || []).filter((id) => id !== state.me.id).forEach((id) => v.call(id).catch(() => {}));
   voice.beat = setInterval(async () => {
     const { data: stop } = await db.rpc('voice_join', { p_key: key });
     if (stop && voice.key === key) { leaveVoice(); showToast(stop); }
   }, 20000);
+  voice.poll = setInterval(loadCallPeople, 4000);
+  loadCallPeople();
   if (ringTo) {
     const { data: rang } = await db.rpc('voice_signal', { p_key: key, p_to: ringTo, p_kind: 'ring', p_body: null });
     if (rang) showToast(rang);
@@ -4155,9 +4331,12 @@ async function leaveVoice(quiet) {
   const { key, v } = voice;
   if (!key) return;
   clearInterval(voice.beat);
+  clearInterval(voice.poll);
   clearTimeout(voice.alone);
-  Object.assign(voice, { key: null, v: null, label: '' });
+  Object.assign(voice, { key: null, v: null, label: '', people: null, held: false });
   v.stop();
+  chime(false);
+  closeStage();
   paintVoice();
   paintChannels();
   if (!quiet) await db.rpc('voice_leave', { p_key: key });
@@ -4172,7 +4351,7 @@ function canEndVoice(key) {
 // shortcut: checks every 8 seconds who's in the class's voice channels; a live feed would show the names of private calls
 async function loadVoicePeople() {
   const room = state.room;
-  if (!room || room.is_global) return;
+  if (!room) return;
   const { data } = await db.rpc('voice_room_people', { p_room: room.id });
   if (state.room !== room) return;
   const next = new Map();
@@ -4196,14 +4375,91 @@ function paintVoice() {
   $('voice-bar').hidden = !on;
   if (on) {
     const n = voice.v.connected().length;
-    $('voice-label').textContent = voice.label + ' · ' + (n ? (n + 1) + ' in the call' : 'waiting for others…');
-    $('voice-mute').textContent = voice.v.muted ? 'Unmute' : 'Mute';
+    const stuck = voice.v.failed().length;
+    const status = stuck ? (voice.relay ? 'Can’t reach ' + stuck + ' of the people here.' : 'This network is blocking the call. The voice relay isn’t set up yet.')
+      : n ? (n + 1) + ' in the call' : 'waiting for others…';
+    $('voice-label').textContent = voice.label + ' · ' + status;
+    $('voice-mute').textContent = voice.held ? 'Muted by a mod' : voice.v.muted ? 'Unmute' : 'Mute';
+    $('voice-mute').disabled = voice.held;
     $('voice-end').hidden = !canEndVoice(voice.key);
+    $('vc-title').textContent = voice.label;
+    $('vc-status').textContent = status;
+    $('vc-mute').textContent = $('voice-mute').textContent;
+    $('vc-mute').disabled = voice.held;
+    paintCallGrid();
   }
 }
 
-$('voice-mute').onclick = () => { if (voice.v) voice.v.setMuted(!voice.v.muted); };
+function paintCallGrid() {
+  const grid = $('vc-grid');
+  if ($('vc-stage').hidden) return;
+  const linked = voice.v.connected();
+  const stuck = voice.v.failed();
+  grid.innerHTML = '';
+  (voice.people || []).forEach((p) => {
+    const mine = p.user_id === state.me.id;
+    const tile = make('button', 'vc-tile' + (mine ? ' me' : ''));
+    tile.type = 'button';
+    const note = p.muted ? 'Muted by a mod' : voice.hush.has(p.user_id) ? 'Muted for you'
+      : mine ? (voice.v.muted ? 'Muted' : 'You') : linked.includes(p.user_id) ? '' : stuck.includes(p.user_id) ? 'Can’t connect' : 'Connecting…';
+    tile.append(makeAvatar(p.user_id, p.username, '', p.avatar), make('span', 'vc-name', p.username), make('span', 'vc-state', note));
+    tile.setAttribute('aria-label', p.username + (note ? ', ' + note : ''));
+    if (mine) tile.disabled = true;
+    else tile.onclick = (e) => {
+      e.stopPropagation();   // this click would close the menu it opens
+      const box = tile.getBoundingClientRect();
+      openCallMenu(p, box.left + 20, box.top + 20);
+    };
+    grid.appendChild(tile);
+  });
+}
+
+function openCallMenu(p, x, y) {
+  const key = voice.key;
+  const moderate = async (action, done) => {
+    const { data: why, error } = await db.rpc('voice_moderate', { p_key: key, p_user: p.user_id, p_action: action });
+    showToast(error ? error.message : why || done);
+    loadCallPeople();
+  };
+  const menu = $('ctx');
+  menu.innerHTML = '';
+  const head = make('div', 'ctx-head', p.username);
+  menu.appendChild(head);
+  const add = (label, fn, danger) => {
+    const b = make('button', danger ? 'danger' : '', label);
+    b.type = 'button';
+    b.setAttribute('role', 'menuitem');
+    b.onclick = () => { closeMenu(); fn(); };
+    menu.appendChild(b);
+  };
+  const hushed = voice.hush.has(p.user_id);
+  add(hushed ? 'Unmute for me' : 'Mute for me', () => {
+    if (hushed) voice.hush.delete(p.user_id); else voice.hush.add(p.user_id);
+    loadCallPeople();
+  });
+  if (canEndVoice(key)) {
+    menu.appendChild(document.createElement('hr'));
+    add(p.muted ? 'Unmute for everyone' : 'Mute for everyone',
+      () => moderate(p.muted ? 'unmute' : 'mute', p.username + (p.muted ? ' can talk again.' : ' is muted for everyone.')), !p.muted);
+    add('Remove from call', () => {
+      if (confirm('Remove ' + p.username + ' from this call? They can’t come back for 15 minutes.')) moderate('remove', p.username + ' was removed from the call.');
+    }, true);
+  }
+  menu.style.left = '0px';
+  menu.style.top = '0px';
+  menu.classList.remove('hide');
+  const box = menu.getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(x, window.innerWidth - box.width - 8)) + 'px';
+  menu.style.top = Math.max(8, Math.min(y, window.innerHeight - box.height - 8)) + 'px';
+  menu.querySelector('button').focus();
+}
+
+$('voice-mute').onclick = () => { if (voice.v && !voice.held) voice.v.setMuted(!voice.v.muted); };
 $('voice-leave').onclick = () => leaveVoice();
+$('voice-label').onclick = openStage;
+$('vc-mute').onclick = () => $('voice-mute').click();
+$('vc-leave').onclick = () => leaveVoice();
+$('vc-back').onclick = closeStage;
 $('voice-end').onclick = () => endVoice(voice.key);
 $('dm-call').onclick = () => {
   const p = state.dmTo;
@@ -4237,8 +4493,13 @@ function watchVoice() {
           return;
         }
         if (!voice.v || s.room_key !== voice.key) return;
-        if (s.kind === 'end') { leaveVoice(true); showToast('A mod ended the call.'); return; }
-        voice.v.signal(s.from_id, s.kind, s.body).catch(() => {});
+        if (s.kind === 'end') {
+          leaveVoice(true);
+          showToast(s.body && s.body.removed ? 'A mod removed you from the call.' : 'A mod ended the call.');
+          return;
+        }
+        if (s.kind === 'offer' || s.kind === 'bye' || s.kind === 'sync') loadCallPeople();
+        if (s.kind !== 'sync') voice.v.signal(s.from_id, s.kind, s.body).catch(() => {});
       })
     .subscribe();
 }
@@ -4400,6 +4661,7 @@ async function loadFriends() {
   state.friends = accepted;
   state.friendIn = incoming;
   state.friendOut = outgoing;
+  paintBell();
   const btn = $('scope-friends');
   if (btn) {
     btn.textContent = 'Friends (' + accepted.size + ')';
