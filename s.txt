@@ -915,6 +915,10 @@
           <svg viewBox="0 0 16 16"><rect x="1.5" y="4.5" width="13" height="8" rx="2.5"/><path d="M5 7v3M3.5 8.5h3M10.5 8.5h.01M12.5 7.5h.01"/></svg>
           <span>Games</span><span class="tally" id="tally-games"></span>
         </button>
+        <button class="nav-btn" type="button" data-panel="chat" id="nav-chat" style="--tab:#5fb3a1">
+          <svg viewBox="0 0 16 16"><path d="M2 3.5h12v8H6.5L3 14.2V11.5H2z"/></svg>
+          <span>Chalk Chat</span>
+        </button>
         <button class="nav-btn" type="button" data-panel="music" id="nav-music" style="--tab:#7fb8d9">
           <svg viewBox="0 0 16 16"><path d="M6 12.2V3.4l7-1.6v8.8"/><circle cx="4.3" cy="12.2" r="1.7"/><circle cx="11.3" cy="10.6" r="1.7"/></svg>
           <span>Chalk Music</span>
@@ -982,6 +986,7 @@
         <section class="panel flush" id="panel-music"></section>
         <section class="panel flush" id="panel-tv"></section>
         <section class="panel flush" id="panel-browser"></section>
+        <section class="panel flush" id="panel-chat"></section>
 
 
 
@@ -2434,6 +2439,7 @@
     let musicFrame = null;
     let tvFrame = null;
     let browserFrame = null;
+    let chatFrame = null;
 
     let panelStarted = false;
     function showPanel(name) {
@@ -2446,8 +2452,8 @@
       $('gear').classList.toggle('active', name === 'settings');
       document.body.classList.toggle('on-home', name === 'home');
       window.dispatchEvent(new CustomEvent('chalk-home', { detail: name === 'home' }));
-      document.body.classList.toggle('app-open', name === 'music' || name === 'tv' || name === 'browser');
-      document.body.classList.toggle('full-panel', name === 'music' || name === 'tv' || name === 'browser');
+      document.body.classList.toggle('app-open', ['music', 'tv', 'browser', 'chat'].includes(name));
+      document.body.classList.toggle('full-panel', ['music', 'tv', 'browser', 'chat'].includes(name));
       placeSearch();
       if (name === 'games') { $('games').classList.remove('settled'); ensureLessons(); if (panelStarted) maybeGamesSetup(); }
       else if (lessonsBuilt) { $('games').innerHTML = ''; lessonsBuilt = false; }
@@ -2477,6 +2483,15 @@
         browserFrame.src = 'chalk-browser.html';
         browserFrame.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write');
         $('panel-browser').appendChild(browserFrame);
+      }
+      // Chalk Chat stays signed in and live while you're on other tabs
+      if (name === 'chat' && !chatFrame) {
+        chatFrame = document.createElement('iframe');
+        chatFrame.className = 'frame blend';
+        chatFrame.title = 'Chalk Chat';
+        chatFrame.src = 'class-chat.html';
+        chatFrame.setAttribute('allow', 'clipboard-write; microphone');   // voice calls
+        $('panel-chat').appendChild(chatFrame);
       }
     }
 
