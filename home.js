@@ -27,9 +27,9 @@
   }
 
   // ---- settings: new people get the new Home; anyone can switch in Settings or setup ----
-  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', online: 'Online now', chat: 'Chat preview', notes: 'Notes and to do' };
+  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', chat: 'Chat preview', notes: 'Notes and to do' };
   if (settings.homeLook !== 'new' && settings.homeLook !== 'classic') settings.homeLook = 'new';
-  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'online', 'chat'];
+  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'chat'];
   // people who set up Home before these existed get them once (they can remove them)
   if (!settings.homeOnlineAdded) { settings.homeOnlineAdded = true; ['online', 'chat'].forEach((k) => { if (!settings.homeOrder.includes(k)) settings.homeOrder.push(k); }); }
   settings.homeOrder = settings.homeOrder.filter((k, i, a) => SECTIONS[k] && a.indexOf(k) === i);
@@ -52,12 +52,18 @@
   body.home-new .hello-meta { order: 2; justify-content: flex-start; font-size: .95rem; }
   body.home-new .home-hero .search-wrap { width: 100%; }
   body.home-new .home-hero .search, body.home-new .home-hero .search:focus { padding: 1rem 1.1rem 1rem 2.8rem; font-size: 1.08rem; }
+  /* name | what's happening (wraps in its own column) | search, all on one row */
+  @media (min-width: 901px) {
+    body.home-new .home-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(250px, 400px); }
+    body.home-new #hero-search-slot { max-width: none; margin-left: 0; }
+  }
   .hn { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-flow: dense; gap: .9rem; font-size: 1.04rem; }
   .hn-sec { display: flex; flex-direction: column; min-width: 0; }
   .hn-sec > .hn-panel { flex: 1; }
   .hn-sec[data-key="featured"] { grid-column: span 4; }
   .hn-sec[data-key="recent"] { grid-column: span 2; }
-  .hn-sec[data-key="music"], .hn-sec[data-key="vote"], .hn-sec[data-key="online"], .hn-sec[data-key="chat"] { grid-column: span 3; }
+  .hn-sec[data-key="music"], .hn-sec[data-key="vote"] { grid-column: span 3; }
+  .hn-sec[data-key="chat"] { grid-column: span 6; }
   .hn-sec[data-key="notes"] { grid-column: 1 / -1; }
   .hn-panel { min-width: 0; padding: 1.05rem 1.15rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r); }
   .hn-label { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: 0 0 .7rem; font-size: .86rem; font-weight: 700; color: var(--pencil); }
@@ -92,22 +98,26 @@
   .hn-bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .4s linear; }
   .hn-vote { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; margin-bottom: .4rem; padding: .55rem .7rem; background: var(--paper-2); border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
   .hn-vote:hover { border-color: var(--pencil); }
-  .hn-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .7rem; }
-  .hn-stat { display: flex; flex-direction: column; padding: .5rem .6rem; background: var(--paper-2); border-radius: var(--r); }
-  .hn-stat b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
-  .hn-stat span { font-size: .78rem; color: var(--pencil); }
-  .hn-label.hn-sub { margin-top: .2rem; }
-  .hn-row:has(.hn-row-n) { grid-template-columns: 50px minmax(0, 1fr) auto; }
-  .hn-row-n { margin-left: auto; color: var(--pencil); font-variant-numeric: tabular-nums; }
-  .hn-ask { margin-top: .7rem; }
-  .hn-ask .hn-muted { margin: 0 0 .4rem; }
-  .hn-ask-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .hn-online { display: none; }
+  body.home-new .hn-online { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; }
+  .hn-online-nums:empty, .hn-online-top:empty { display: none; }
+  .hn-online-top, .hn-ask { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
+  .hn-online > *, .hn-ask > * { white-space: nowrap; }
+  .hn-mini { display: block; width: 26px; height: 26px; padding: 0; overflow: hidden; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); cursor: pointer; }
+  .hn-mini:hover, .hn-mini:focus-visible { border-color: var(--ink); outline: none; }
+  .hn-mini-art, .hn-mini-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .hn-mini-art .hn-initials { display: grid; place-items: center; height: 100%; font-size: .6rem; }
+  .hn-tiny { padding: .12rem .5rem; background: var(--ink); border: 1px solid var(--ink); border-radius: var(--r); color: var(--paper); font: inherit; font-size: .8rem; cursor: pointer; }
+  .hn-tiny.ghost { background: none; color: var(--ink); border-color: var(--edge); }
   .hn-btn { padding: .4rem .8rem; background: var(--ink); border: 1px solid var(--ink); border-radius: var(--r); color: var(--paper); font: inherit; cursor: pointer; }
   .hn-btn.ghost { background: none; color: var(--ink); border-color: var(--edge); }
   .hn-btn:hover, .hn-btn:focus-visible { border-color: var(--pencil); outline: none; }
   .hn-link { padding: 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .8rem; text-decoration: underline; cursor: pointer; }
-  .hn-chat-pick { display: flex; gap: .4rem; margin-bottom: .5rem; }
-  .hn-chat-pick select { flex: 1; min-width: 0; padding: .35rem .5rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; }
+  .hn-chat-pick { position: relative; min-width: 0; font-size: .78rem; font-weight: 400; }
+  .hn-chat-pick summary { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .hn-chat-pick summary:hover { color: var(--ink); }
+  .hn-chat-pick-row { position: absolute; right: 0; top: calc(100% + .3rem); z-index: 5; display: flex; gap: .3rem; padding: .35rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r); }
+  .hn-chat-pick select { width: 9.5rem; min-width: 0; padding: .2rem .35rem; font-size: .8rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; }
   .hn-chat { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .6rem; }
   .hn-chat-row { margin: 0; font-size: .85rem; line-height: 1.4; overflow-wrap: anywhere; }
   .hn-chat-row b { font-weight: 600; }
@@ -420,32 +430,32 @@
   checkIn();
   setInterval(checkIn, 30000);
 
+  // the numbers sit next to the ChalkBored title, after "online now"
+  let startOnline = () => {};
   {
-    const panel = el('section', 'hn-panel');
-    const nums = el('div', 'hn-stats');
-    const top = el('div', 'hn-rows');
-    const ask = el('div', 'hn-ask');
-    panel.append(el('p', 'hn-label', 'Online now'), nums, el('p', 'hn-label hn-sub', 'Most played right now'), top, ask);
-    const stat = (n, label) => { const b = el('div', 'hn-stat'); b.append(el('b', '', n === null ? '—' : String(n)), el('span', '', label)); return b; };
+    const strip = el('span', 'hn-online');
+    const nums = el('span', 'hn-online-nums');
+    const top = el('span', 'hn-online-top');
+    const ask = el('span', 'hn-ask');
+    strip.append(nums, top, ask);
+    const meta = document.querySelector('#panel-home .hello-meta');
+    if (meta) meta.append(strip);
+    const tiny = (text, ghost) => { const b = el('button', 'hn-tiny' + (ghost ? ' ghost' : ''), text); b.type = 'button'; return b; };
     function paintAsk() {
       const choice = read(SHARE, '');
       ask.replaceChildren();
       if (choice === 'yes' || choice === 'no') {
-        const change = el('button', 'hn-link', choice === 'yes' ? 'Stop sharing what I play and listen to' : 'Share what I play and listen to');
+        const change = el('button', 'hn-link', choice === 'yes' ? 'Stop sharing' : 'Share what I play');
         change.type = 'button';
         change.addEventListener('click', () => { write(SHARE, choice === 'yes' ? 'no' : 'yes'); paintAsk(); checkIn(); });
         ask.append(change);
         return;
       }
-      const q = el('p', 'hn-muted', 'Count what you play and listen to here? No names, just numbers.');
-      const yes = el('button', 'hn-btn', 'Sure');
-      const no = el('button', 'hn-btn ghost', 'No I have W opsec');
-      [yes, no].forEach((b) => { b.type = 'button'; });
+      const yes = tiny('Sure');
+      const no = tiny('No I have W opsec', true);
       yes.addEventListener('click', () => { write(SHARE, 'yes'); paintAsk(); checkIn(); });
       no.addEventListener('click', () => { write(SHARE, 'no'); paintAsk(); });
-      const row = el('div', 'hn-ask-row');
-      row.append(yes, no);
-      ask.append(q, row);
+      ask.append(el('span', '', 'Share what you play? No names.'), yes, no);
     }
     async function load() {
       try {
@@ -453,54 +463,48 @@
         const { data, error } = await db.rpc('online_stats');
         if (error) throw error;
         const st = data && data[0];
-        nums.replaceChildren(stat(st.online, 'online'), stat(st.playing, 'playing'), stat(st.listening, 'listening'));
-        const items = (st.top || []).map((t) => [byPath(t.item), t.n]).filter(([item]) => item);
-        top.replaceChildren(...(items.length ? items.map(([item, n]) => {
-          const b = el('button', 'hn-row');
+        nums.textContent = st.playing + ' playing · ' + st.listening + ' listening';
+        const items = (st.top || []).map((t) => byPath(t.item)).filter(Boolean).slice(0, 3);
+        top.replaceChildren(...(items.length ? [el('span', '', 'Most played')].concat(items.map((item) => {
+          const b = el('button', 'hn-mini');
           b.type = 'button';
-          const name = el('span', 'hn-row-name');
-          name.append(nameOf(item, 1.1));
-          b.append(cover(item, 'hn-row-art'), name, el('span', 'hn-row-n', String(n)));
+          b.setAttribute('aria-label', 'Open ' + shown(item));
+          b.title = shown(item);
+          b.append(cover(item, 'hn-mini-art'));
           b.addEventListener('click', () => launch(item));
           return b;
-        }) : [el('p', 'hn-muted', 'Nobody is sharing what they play right now.')]));
+        })) : []));
       } catch (e) {
-        nums.replaceChildren(stat(null, 'online'), stat(null, 'playing'), stat(null, 'listening'));
-        top.replaceChildren(el('p', 'hn-muted', 'Online numbers aren’t available right now.'));
+        nums.textContent = '';
+        top.replaceChildren();
       }
     }
     paintAsk();
     let timer = null;
-    const start = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
-    window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') start(); });
-    section('online', panel);
-    secs.online.load = start;
+    startOnline = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
+    window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') startOnline(); });
   }
 
   // ---- chat preview: the newest messages from one Chalk Chat channel you pick ----
   {
     const PICK = 'cb-chat-preview';   // { room, channel }
     const panel = el('section', 'hn-panel');
-    const bar = el('div', 'hn-chat-pick');
+    const bar = el('details', 'hn-chat-pick');
+    const picked = el('summary', '', 'Pick a channel');
     const roomPick = el('select');
     const chanPick = el('select');
     roomPick.setAttribute('aria-label', 'Class');
     chanPick.setAttribute('aria-label', 'Channel');
-    bar.append(roomPick, chanPick);
+    const pickRow = el('div', 'hn-chat-pick-row');
+    pickRow.append(roomPick, chanPick);
+    bar.append(picked, pickRow);
+    const label = el('p', 'hn-label');
+    label.append(el('span', '', 'Chat preview'), bar);
     const list = el('div', 'hn-chat');
-    const open = el('button', 'hn-btn ghost', 'Open in Chalk Chat');
-    open.type = 'button';
-    panel.append(el('p', 'hn-label', 'Chat preview'), bar, list, open);
+    panel.append(label, list);
+    const paintPicked = () => { const r = rooms.find((x) => x.id === roomPick.value), c = channels.find((x) => x.id === chanPick.value); picked.textContent = r && c ? r.name + ' · # ' + c.name : 'Pick a channel'; };
     let db = null, rooms = [], channels = [], feed = null;
     const pick = () => read(PICK, null);
-    function openChat() {
-      if (typeof showPanel !== 'function') return;
-      showPanel('chat');
-      const p = pick();
-      const frame = document.querySelector('#panel-chat iframe');
-      if (frame && p && p.room && p.channel) frame.src = 'class-chat.html?room=' + p.room + '&channel=' + p.channel;
-    }
-    open.addEventListener('click', openChat);
     async function showChannel(channelId) {
       list.replaceChildren(el('p', 'hn-muted', 'Loading…'));
       const { data, error } = await db.from('messages').select('id, body, created_at, profiles!messages_user_id_fkey(username)')
@@ -524,11 +528,12 @@
       const chosen = channels.find((c) => c.id === wanted) || channels.find((c) => c.name === 'general') || channels[0];
       if (!chosen) { list.replaceChildren(el('p', 'hn-muted', 'No text channels here.')); return; }
       chanPick.value = chosen.id;
+      paintPicked();
       write(PICK, { room: roomId, channel: chosen.id });
       showChannel(chosen.id);
     }
     roomPick.addEventListener('change', () => fillChannels(roomPick.value, null));
-    chanPick.addEventListener('change', () => { write(PICK, { room: roomPick.value, channel: chanPick.value }); showChannel(chanPick.value); });
+    chanPick.addEventListener('change', () => { write(PICK, { room: roomPick.value, channel: chanPick.value }); paintPicked(); bar.open = false; showChannel(chanPick.value); });
     async function load() {
       try {
         db = await loadOnline();
@@ -620,7 +625,7 @@
       return b;
     }) : [el('p', 'hn-muted', 'Everything is already on Home.')]));
     if (order.includes('vote') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.vote.load();
-    ['online', 'chat'].forEach((k) => { if (order.includes(k) && homePanel.classList.contains('active') && settings.homeLook === 'new') secs[k].load(); });
+    if (order.includes('chat') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.chat.load();
   }
   function editing(on) { grid.classList.toggle('editing', on); editBar.hidden = !on; tray.hidden = !on; }
   editDone.addEventListener('click', () => editing(false));
@@ -638,7 +643,7 @@
     lookChoice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.look === settings.homeLook));
     editRow.hidden = !isNew;
     if (isNew && homePanel.classList.contains('active') && settings.homeOrder.includes('vote')) secs.vote.load();
-    if (isNew && homePanel.classList.contains('active')) ['online', 'chat'].forEach((k) => { if (settings.homeOrder.includes(k)) secs[k].load(); });
+    if (isNew && homePanel.classList.contains('active')) { startOnline(); if (settings.homeOrder.includes('chat')) secs.chat.load(); }
   }
   const group = el('div', 'group');
   group.append(el('h2', '', 'Home'), el('p', '', 'What you see first.'));
