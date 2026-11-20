@@ -438,8 +438,7 @@ function ask(title, text, value, ok) {
 /* ============================================================
    Reaching other sites. YouTube and Spotify don't let other pages
    read them, so finding songs and reading playlists goes through a
-   tide server with libcurl, as Tide does: the owner's server when a
-   tide key is saved here, otherwise the public ones.
+   public tide server with libcurl, as Tide does.
    ============================================================ */
 let curl = null, curlRelay = "", curlLoading = null;
 function loadCurl() {

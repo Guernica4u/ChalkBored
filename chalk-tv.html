@@ -238,7 +238,7 @@
     <button class="link" id="pick-server" type="button">Change server</button>
   </div>
 </div>
-<!-- Change server: the tide key pinned first, then every public server -->
+<!-- Change server: every public server, fastest first -->
 <div class="veil" id="servers" hidden>
   <div class="box wide">
     <h2>Pick a <span>server</span></h2>
@@ -459,7 +459,7 @@ $("bar").addEventListener("mouseenter", () => barOn(0));
 $("hot").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
 $("bar").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
 $("bar-tab").onclick = () => { if (app.classList.contains("bar-on")) app.classList.remove("bar-on"); else barOn(5000); };
-/* ---- Change server: the tide key pinned first, then every public server ---- */
+/* ---- Change server: every public server, fastest first ---- */
 /* how long a server takes to answer, in ms (null: no answer) */
 function ping(url) {
   return new Promise(resolve => {
@@ -558,7 +558,7 @@ $("full").onclick = () => {
 };
 
 
-/* a public server (none: Tide picks the fastest); switching to one forgets the tide key */
+/* a public server (none: Tide picks the fastest) */
 function usePublic(r) {
   setMode("public");
   setRelay(r);
