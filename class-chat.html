@@ -2435,9 +2435,11 @@ async function openChannel(ch) {
   paintChannels();
   paintChannelHead();
 
-  const { data } = await fetchMessages(ch);
+  const { data, error } = await fetchMessages(ch);
 
   if (state.channel !== ch) return;   // clicked somewhere else while this was loading
+  // a failed load must never look like an empty channel
+  if (error) { renderEmpty('Couldn’t load the messages here. Reload the page to try again.'); return; }
   const rows = (data || []).reverse();
   $('messages').innerHTML = '';
   if (!rows.length) renderEmpty('Nothing here yet. Say something.');
@@ -2474,10 +2476,10 @@ function paintChannelHead() {
 
 // replies need the extra column, and the quoted message comes along with it
 function fetchMessages(ch) {
-  const base = 'id, body, created_at, user_id, edited_at, pinned_at, profiles(' + profileCols() + ')';
+  const base = 'id, body, created_at, user_id, edited_at, pinned_at, profiles!messages_user_id_fkey(' + profileCols() + ')';   // messages also link to whoever pinned them
   const query = (cols) => db.from('messages').select(cols)
     .eq('channel_id', ch.id).order('id', { ascending: false }).limit(80);
-  return query(base + ', reply_to, reply:messages!messages_reply_to_fkey(id, body, user_id, profiles(username))')
+  return query(base + ', reply_to, reply:messages!messages_reply_to_fkey(id, body, user_id, profiles!messages_user_id_fkey(username))')
     .then(({ data, error }) => (error ? query(base) : { data }));
 }
 
@@ -2674,7 +2676,7 @@ $('pins-btn').onclick = async () => {
   const list = $('pins-list');
   list.innerHTML = '<p class="note">Loading…</p>';
   $('pins-veil').classList.remove('hide');
-  const { data } = await db.from('messages').select('id, body, profiles(username)')
+  const { data } = await db.from('messages').select('id, body, profiles!messages_user_id_fkey(username)')
     .eq('channel_id', ch.id).not('pinned_at', 'is', null).order('pinned_at', { ascending: false });
   list.innerHTML = '';
   if (!(data || []).length) list.appendChild(make('p', 'note', 'Nothing is pinned in this channel yet.'));
