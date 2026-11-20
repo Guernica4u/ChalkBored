@@ -303,54 +303,55 @@
     section('music', panel);
   }
 
-  // ---- the vote: the same options as the Requests page ----
+  // ---- the vote: the newest poll in Chalk Chat's Global polls channel ----
   {
     const panel = el('section', 'hn-panel');
     const head = el('p', 'hn-label');
     const total = el('span');
-    head.append(el('span', '', 'Vote for what comes next'), total);
+    const title = el('span', '', 'Vote');
+    head.append(title, total);
+    const question = el('p', 'hn-muted');
+    question.style.margin = '0 0 .4rem';
     const box = el('div');
     const note = el('p', 'hn-muted');
     note.style.margin = '.2rem 0 0';
-    panel.append(head, box, note);
-    let device = '';
-    try { device = localStorage.getItem('chalk-device') || ''; if (!device) { device = crypto.randomUUID(); localStorage.setItem('chalk-device', device); } } catch (e) {}
-    let mine = null, busy = false;
+    panel.append(head, question, box, note);
+    let busy = false;
     async function load() {
       try {
         const db = await loadOnline();
-        const [{ data, error }, picked] = await Promise.all([
-          db.from('requests').select('id,title,votes').in('status', ['open', 'planned']).order('votes', { ascending: false }).limit(3),
-          device ? db.rpc('my_votes', { p_device: device }) : Promise.resolve({ data: [] }),
-        ]);
+        const [{ data, error }, { data: who }] = await Promise.all([db.rpc('latest_poll'), db.auth.getUser()]);
         if (error) throw error;
-        mine = picked && picked.data && picked.data[0] ? picked.data[0].request_id : null;
-        draw(data || []);
+        draw(data && data[0], !!(who && who.user));
       } catch (e) {
         box.replaceChildren();
         total.textContent = '';
         note.textContent = 'Voting isn’t available right now.';
       }
     }
-    function draw(rows) {
-      const sum = rows.reduce((n, r) => n + r.votes, 0);
+    function draw(poll, signedIn) {
+      question.replaceChildren();
+      if (!poll) { box.replaceChildren(); total.textContent = ''; note.textContent = 'Nothing to vote on right now.'; return; }
+      question.append(words(poll.question, 1.05));
+      const sum = poll.counts.reduce((n, c) => n + c, 0);
       total.textContent = sum ? sum + (sum === 1 ? ' vote' : ' votes') : '';
-      note.textContent = rows.length ? (mine ? 'Tap your pick again to take your vote back.' : 'One vote per device.') : 'Nothing to vote on right now.';
-      box.replaceChildren(...rows.map((r) => {
-        const b = el('button', 'hn-vote' + (r.id === mine ? ' mine' : ''));
+      note.textContent = !signedIn ? 'Sign in to Chalk Chat to vote.' : poll.mine !== null ? 'Tap your pick again to take your vote back.' : 'One vote per account.';
+      box.replaceChildren(...poll.options.map((option, i) => {
+        const b = el('button', 'hn-vote' + (poll.mine === i ? ' mine' : ''));
         b.type = 'button';
-        b.setAttribute('aria-pressed', String(r.id === mine));
+        b.disabled = !signedIn;
+        b.setAttribute('aria-pressed', String(poll.mine === i));
         const fill = el('i');
-        fill.style.width = (sum ? Math.round(r.votes / sum * 100) : 0) + '%';
+        fill.style.width = (sum ? Math.round(poll.counts[i] / sum * 100) : 0) + '%';
         const label = el('span');
-        label.append(words(r.title, 1.05));
-        b.append(fill, label, el('b', '', String(r.votes)));
+        label.append(words(option, 1.05));
+        b.append(fill, label, el('b', '', String(poll.counts[i])));
         b.addEventListener('click', async () => {
-          if (busy || !device) return;
+          if (busy) return;
           busy = true;
           try {
             const db = await loadOnline();
-            const { data, error } = await db.rpc('vote_for', { p_request: r.id, p_device: device });
+            const { data, error } = await db.rpc('vote_poll', { p_message: poll.message_id, p_choice: i });
             if (error || data) note.textContent = data || 'That didn’t work. Try again.';
             else await load();
           } catch (e) { note.textContent = 'That didn’t work. Try again.'; }
