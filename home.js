@@ -27,9 +27,11 @@
   }
 
   // ---- settings: new people get the new Home; anyone can switch in Settings or setup ----
-  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', notes: 'Notes and to do' };
+  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', online: 'Online now', chat: 'Chat preview', notes: 'Notes and to do' };
   if (settings.homeLook !== 'new' && settings.homeLook !== 'classic') settings.homeLook = 'new';
-  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote'];
+  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'online', 'chat'];
+  // people who set up Home before these existed get them once (they can remove them)
+  if (!settings.homeOnlineAdded) { settings.homeOnlineAdded = true; ['online', 'chat'].forEach((k) => { if (!settings.homeOrder.includes(k)) settings.homeOrder.push(k); }); }
   settings.homeOrder = settings.homeOrder.filter((k, i, a) => SECTIONS[k] && a.indexOf(k) === i);
   saveSettings();
 
@@ -55,7 +57,7 @@
   .hn-sec > .hn-panel { flex: 1; }
   .hn-sec[data-key="featured"] { grid-column: span 4; }
   .hn-sec[data-key="recent"] { grid-column: span 2; }
-  .hn-sec[data-key="music"], .hn-sec[data-key="vote"] { grid-column: span 3; }
+  .hn-sec[data-key="music"], .hn-sec[data-key="vote"], .hn-sec[data-key="online"], .hn-sec[data-key="chat"] { grid-column: span 3; }
   .hn-sec[data-key="notes"] { grid-column: 1 / -1; }
   .hn-panel { min-width: 0; padding: 1.05rem 1.15rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r); }
   .hn-label { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: 0 0 .7rem; font-size: .86rem; font-weight: 700; color: var(--pencil); }
@@ -90,6 +92,25 @@
   .hn-bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .4s linear; }
   .hn-vote { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; margin-bottom: .4rem; padding: .55rem .7rem; background: var(--paper-2); border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
   .hn-vote:hover { border-color: var(--pencil); }
+  .hn-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .7rem; }
+  .hn-stat { display: flex; flex-direction: column; padding: .5rem .6rem; background: var(--paper-2); border-radius: var(--r); }
+  .hn-stat b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .hn-stat span { font-size: .78rem; color: var(--pencil); }
+  .hn-label.hn-sub { margin-top: .2rem; }
+  .hn-row:has(.hn-row-n) { grid-template-columns: 50px minmax(0, 1fr) auto; }
+  .hn-row-n { margin-left: auto; color: var(--pencil); font-variant-numeric: tabular-nums; }
+  .hn-ask { margin-top: .7rem; }
+  .hn-ask .hn-muted { margin: 0 0 .4rem; }
+  .hn-ask-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .hn-btn { padding: .4rem .8rem; background: var(--ink); border: 1px solid var(--ink); border-radius: var(--r); color: var(--paper); font: inherit; cursor: pointer; }
+  .hn-btn.ghost { background: none; color: var(--ink); border-color: var(--edge); }
+  .hn-btn:hover, .hn-btn:focus-visible { border-color: var(--pencil); outline: none; }
+  .hn-link { padding: 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .8rem; text-decoration: underline; cursor: pointer; }
+  .hn-chat-pick { display: flex; gap: .4rem; margin-bottom: .5rem; }
+  .hn-chat-pick select { flex: 1; min-width: 0; padding: .35rem .5rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; }
+  .hn-chat { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .6rem; }
+  .hn-chat-row { margin: 0; font-size: .85rem; line-height: 1.4; overflow-wrap: anywhere; }
+  .hn-chat-row b { font-weight: 600; }
   .hn-vote.mine { border-color: var(--ink); }
   .hn-vote i { position: absolute; inset: 0 auto 0 0; background: var(--highlight); opacity: .6; transition: width .35s ease; }
   .hn-vote span { position: relative; min-width: 0; overflow: hidden; white-space: nowrap; }
@@ -198,6 +219,8 @@
     section('featured', panel);
   }
 
+  let lastLaunch = null;   // what this page last opened, for the online stats
+
   // ---- recently opened: kept in this browser ----
   const RECENT = 'cb-recent';
   const recentPanel = el('section', 'hn-panel');
@@ -228,6 +251,7 @@
   const openActivity = launch;
   window.launch = function (item, mode) {
     if (item && item.path) write(RECENT, [item.path, ...read(RECENT, []).filter((p) => p !== item.path)].slice(0, 12));
+    if (item && item.path) lastLaunch = { path: item.path, at: Date.now() };
     paintRecent();
     return openActivity(item, mode);
   };
@@ -369,6 +393,170 @@
     secs.vote.load = () => { if (!loaded) { loaded = true; load(); } };
   }
 
+  // ---- online now: counts, the most played, and asking before sharing ----
+  // Nothing about what you play or hear leaves this browser until you press Sure.
+  const SHARE = 'cb-share-activity';   // 'yes' | 'no' | missing (not asked yet)
+  let device = '';
+  try { device = localStorage.getItem('chalk-device') || ''; if (!device) { device = crypto.randomUUID(); localStorage.setItem('chalk-device', device); } } catch (e) {}
+  function doingNow() {
+    if (read(SHARE, '') !== 'yes') return [null, null];
+    const viewer = document.getElementById('viewer');
+    // shortcut: a game opened in its own tab counts as played for 20 minutes, since this page can't see that tab
+    if (lastLaunch && ((viewer && !viewer.hidden) || Date.now() - lastLaunch.at < 20 * 60 * 1000)) return ['play', lastLaunch.path];
+    try {
+      const music = document.querySelector('#panel-music iframe');
+      if (music && music.contentDocument && music.contentDocument.body.classList.contains('playing')) return ['listen', null];
+    } catch (e) {}
+    return [null, null];
+  }
+  async function checkIn() {
+    if (!device) return;
+    try {
+      const db = await loadOnline();
+      const [doing, item] = doingNow();
+      await db.rpc('here_now', { p_device: device, p_doing: doing, p_item: item });
+    } catch (e) {}
+  }
+  checkIn();
+  setInterval(checkIn, 30000);
+
+  {
+    const panel = el('section', 'hn-panel');
+    const nums = el('div', 'hn-stats');
+    const top = el('div', 'hn-rows');
+    const ask = el('div', 'hn-ask');
+    panel.append(el('p', 'hn-label', 'Online now'), nums, el('p', 'hn-label hn-sub', 'Most played right now'), top, ask);
+    const stat = (n, label) => { const b = el('div', 'hn-stat'); b.append(el('b', '', n === null ? '—' : String(n)), el('span', '', label)); return b; };
+    function paintAsk() {
+      const choice = read(SHARE, '');
+      ask.replaceChildren();
+      if (choice === 'yes' || choice === 'no') {
+        const change = el('button', 'hn-link', choice === 'yes' ? 'Stop sharing what I play and listen to' : 'Share what I play and listen to');
+        change.type = 'button';
+        change.addEventListener('click', () => { write(SHARE, choice === 'yes' ? 'no' : 'yes'); paintAsk(); checkIn(); });
+        ask.append(change);
+        return;
+      }
+      const q = el('p', 'hn-muted', 'Count what you play and listen to here? No names, just numbers.');
+      const yes = el('button', 'hn-btn', 'Sure');
+      const no = el('button', 'hn-btn ghost', 'No I have W opsec');
+      [yes, no].forEach((b) => { b.type = 'button'; });
+      yes.addEventListener('click', () => { write(SHARE, 'yes'); paintAsk(); checkIn(); });
+      no.addEventListener('click', () => { write(SHARE, 'no'); paintAsk(); });
+      const row = el('div', 'hn-ask-row');
+      row.append(yes, no);
+      ask.append(q, row);
+    }
+    async function load() {
+      try {
+        const db = await loadOnline();
+        const { data, error } = await db.rpc('online_stats');
+        if (error) throw error;
+        const st = data && data[0];
+        nums.replaceChildren(stat(st.online, 'online'), stat(st.playing, 'playing'), stat(st.listening, 'listening'));
+        const items = (st.top || []).map((t) => [byPath(t.item), t.n]).filter(([item]) => item);
+        top.replaceChildren(...(items.length ? items.map(([item, n]) => {
+          const b = el('button', 'hn-row');
+          b.type = 'button';
+          const name = el('span', 'hn-row-name');
+          name.append(nameOf(item, 1.1));
+          b.append(cover(item, 'hn-row-art'), name, el('span', 'hn-row-n', String(n)));
+          b.addEventListener('click', () => launch(item));
+          return b;
+        }) : [el('p', 'hn-muted', 'Nobody is sharing what they play right now.')]));
+      } catch (e) {
+        nums.replaceChildren(stat(null, 'online'), stat(null, 'playing'), stat(null, 'listening'));
+        top.replaceChildren(el('p', 'hn-muted', 'Online numbers aren’t available right now.'));
+      }
+    }
+    paintAsk();
+    let timer = null;
+    const start = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
+    window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') start(); });
+    section('online', panel);
+    secs.online.load = start;
+  }
+
+  // ---- chat preview: the newest messages from one Chalk Chat channel you pick ----
+  {
+    const PICK = 'cb-chat-preview';   // { room, channel }
+    const panel = el('section', 'hn-panel');
+    const bar = el('div', 'hn-chat-pick');
+    const roomPick = el('select');
+    const chanPick = el('select');
+    roomPick.setAttribute('aria-label', 'Class');
+    chanPick.setAttribute('aria-label', 'Channel');
+    bar.append(roomPick, chanPick);
+    const list = el('div', 'hn-chat');
+    const open = el('button', 'hn-btn ghost', 'Open in Chalk Chat');
+    open.type = 'button';
+    panel.append(el('p', 'hn-label', 'Chat preview'), bar, list, open);
+    let db = null, rooms = [], channels = [], feed = null;
+    const pick = () => read(PICK, null);
+    function openChat() {
+      if (typeof showPanel !== 'function') return;
+      showPanel('chat');
+      const p = pick();
+      const frame = document.querySelector('#panel-chat iframe');
+      if (frame && p && p.room && p.channel) frame.src = 'class-chat.html?room=' + p.room + '&channel=' + p.channel;
+    }
+    open.addEventListener('click', openChat);
+    async function showChannel(channelId) {
+      list.replaceChildren(el('p', 'hn-muted', 'Loading…'));
+      const { data, error } = await db.from('messages').select('id, body, created_at, profiles!messages_user_id_fkey(username)')
+        .eq('channel_id', channelId).order('id', { ascending: false }).limit(6);
+      if (error) { list.replaceChildren(el('p', 'hn-muted', 'Couldn’t load this channel.')); return; }
+      const rows = (data || []).reverse();
+      list.replaceChildren(...(rows.length ? rows.map((m) => {
+        const r = el('p', 'hn-chat-row');
+        r.append(el('b', '', ((m.profiles && m.profiles.username) || 'someone') + ' '), document.createTextNode(m.body));
+        return r;
+      }) : [el('p', 'hn-muted', 'Nothing here yet.')]));
+      if (feed) db.removeChannel(feed);
+      feed = db.channel('home-chat:' + channelId)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'channel_id=eq.' + channelId }, () => showChannel(channelId))
+        .subscribe();
+    }
+    async function fillChannels(roomId, wanted) {
+      const { data } = await db.from('channels').select('id, name, kind').eq('room_id', roomId).eq('kind', 'text').order('position').order('created_at');
+      channels = data || [];
+      chanPick.replaceChildren(...channels.map((c) => { const o = el('option', '', '# ' + c.name); o.value = c.id; return o; }));
+      const chosen = channels.find((c) => c.id === wanted) || channels.find((c) => c.name === 'general') || channels[0];
+      if (!chosen) { list.replaceChildren(el('p', 'hn-muted', 'No text channels here.')); return; }
+      chanPick.value = chosen.id;
+      write(PICK, { room: roomId, channel: chosen.id });
+      showChannel(chosen.id);
+    }
+    roomPick.addEventListener('change', () => fillChannels(roomPick.value, null));
+    chanPick.addEventListener('change', () => { write(PICK, { room: roomPick.value, channel: chanPick.value }); showChannel(chanPick.value); });
+    async function load() {
+      try {
+        db = await loadOnline();
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) {
+          bar.hidden = true;
+          list.replaceChildren(el('p', 'hn-muted', 'Sign in to Chalk Chat to see a channel here.'));
+          return;
+        }
+        const { data } = await db.from('rooms').select('id, name, is_global').order('is_global', { ascending: false }).order('name');
+        rooms = data || [];
+        roomPick.replaceChildren(...rooms.map((r) => { const o = el('option', '', r.name); o.value = r.id; return o; }));
+        const p = pick();
+        const room = rooms.find((r) => p && r.id === p.room) || rooms.find((r) => r.is_global) || rooms[0];
+        if (!room) { list.replaceChildren(el('p', 'hn-muted', 'No classes yet.')); return; }
+        roomPick.value = room.id;
+        await fillChannels(room.id, p && p.channel);
+      } catch (e) {
+        list.replaceChildren(el('p', 'hn-muted', 'Chat isn’t available right now.'));
+      }
+    }
+    let loaded = false;
+    const start = () => { if (!loaded) { loaded = true; load(); } };
+    window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') start(); });
+    section('chat', panel);
+    secs.chat.load = start;
+  }
+
   // ---- notes and to do: stay in this browser ----
   {
     const pair = el('div', 'hn-pair');
@@ -432,6 +620,7 @@
       return b;
     }) : [el('p', 'hn-muted', 'Everything is already on Home.')]));
     if (order.includes('vote') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.vote.load();
+    ['online', 'chat'].forEach((k) => { if (order.includes(k) && homePanel.classList.contains('active') && settings.homeLook === 'new') secs[k].load(); });
   }
   function editing(on) { grid.classList.toggle('editing', on); editBar.hidden = !on; tray.hidden = !on; }
   editDone.addEventListener('click', () => editing(false));
@@ -449,6 +638,7 @@
     lookChoice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.look === settings.homeLook));
     editRow.hidden = !isNew;
     if (isNew && homePanel.classList.contains('active') && settings.homeOrder.includes('vote')) secs.vote.load();
+    if (isNew && homePanel.classList.contains('active')) ['online', 'chat'].forEach((k) => { if (settings.homeOrder.includes(k)) secs[k].load(); });
   }
   const group = el('div', 'group');
   group.append(el('h2', '', 'Home'), el('p', '', 'What you see first.'));
