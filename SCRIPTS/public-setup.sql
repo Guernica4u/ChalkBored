@@ -1907,6 +1907,37 @@ begin
 exception when duplicate_object then null;
 end $$;
 
+-- ================================================================ More blocked words, and old names
+-- Three more words with their usual spellings (encoded, like the list above).
+insert into public.blocked_words (word, mode)
+select split_part(x, ':', 1), split_part(x, ':', 2)
+  from unnest(string_to_array(convert_from(decode('ZGlkZHk6cyxlcHN0ZWluOmEsZXBzdGllbjphLGVwc3RlZW46YSx0cm9vbjpz', 'base64'), 'UTF8'), ',')) as x
+on conflict (word) do update set mode = excluded.mode;
+
+-- Names, about lines, descriptions, topics and poll choices made before a word
+-- was blocked: each one is flagged for site mods (never renamed). The text is
+-- kept out of sight until a mod presses Show message. Safe to run again: an
+-- open flag for the same thing isn't repeated.
+do $$
+declare f record; rid bigint;
+begin
+  for f in
+    select id as who, null::uuid as room, 'Username' as what, username::text as txt from profiles
+     where not banned and (has_blocked_word(username::text) or has_blocked_word(regexp_replace(username::text, '[_.-]', ' ', 'g')))
+    union all select id, null, 'About line', bio from profiles where not banned and bio is not null and has_blocked_word(bio)
+    union all select owner_id, id, 'Class name or description', name || ' / ' || coalesce(about, '') from rooms where has_blocked_word(name) or has_blocked_word(coalesce(about, ''))
+    union all select c.created_by, c.room_id, 'Channel name, category or topic', c.name || ' / ' || c.category || ' / ' || coalesce(c.topic, '') from channels c
+     where has_blocked_word(c.name) or has_blocked_word(c.category) or has_blocked_word(coalesce(c.topic, ''))
+    union all select m.user_id, channel_room(m.channel_id), 'Poll choices', array_to_string(p.options, ' / ') from polls p join messages m on m.id = p.message_id
+     where has_blocked_word(array_to_string(p.options, ' '))
+  loop
+    continue when exists (select 1 from reports r join report_bodies b on b.report_id = r.id
+                           where r.kind = 'automod' and r.status = 'open' and r.reason = f.what || ' has a blocked word.' and b.body = f.txt);
+    insert into reports (kind, reported_user, reason) values ('automod', f.who, f.what || ' has a blocked word.') returning id into rid;
+    insert into report_bodies values (rid, f.txt);
+  end loop;
+end $$;
+
 -- ================================================================ Last step
 -- Keep this at the very end. Signed-out visitors can only reach the vote on
 -- Home (latest_poll), the old Requests poll and the online count.
