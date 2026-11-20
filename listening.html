@@ -659,6 +659,34 @@ async function findOnYouTube(t) {
   return ytSong(best.id, t.title + (t.artist ? " - " + t.artist : ""), best.author, best.secs);
 }
 
+/* ---- Audius: free full songs that play in the page itself, for when the
+   school blocks YouTube. Asked straight, or through the tide if Audius is
+   blocked too. ---- */
+const AUDIUS = "https://api.audius.co/v1";
+async function audiusGet(url) {
+  try { const res = await fetch(url); if (res.ok) return res; } catch (e) {}
+  return netFetch(url);
+}
+const audiusSong = t => ({
+  id: "au:" + t.id, kind: "file", url: AUDIUS + "/tracks/" + t.id + "/stream?app_name=chalkbored",
+  title: t.title || "Untitled", author: (t.user && t.user.name) || "", secs: t.duration || 0,
+  thumb: (t.artwork && (t.artwork["480x480"] || t.artwork["150x150"])) || ""
+});
+async function audiusSearch(q, max) {
+  const res = await audiusGet(AUDIUS + "/tracks/search?app_name=chalkbored&query=" + encodeURIComponent(q));
+  if (!res.ok) throw new Error("Audius answered " + res.status + ".");
+  const j = await res.json();
+  return (j.data || []).filter(t => t.is_streamable !== false).slice(0, max || 20).map(audiusSong);
+}
+/* the same song on Audius, for a YouTube one that can't play here */
+async function findOnAudius(s) {
+  const t = { title: s.title.replace(/\s+-\s+[^-]*$/, "") || s.title, artist: s.author || "", ms: (s.secs || 0) * 1000 };
+  const hits = await audiusSearch((t.title + " " + t.artist).trim(), 10);
+  let best = null, top = -Infinity;
+  hits.forEach((v, i) => { const sc = ytScore(v, t, i); if (sc > top) { top = sc; best = v; } });
+  return best && top >= 3 ? best : null;
+}
+
 /* ============================================================
    Playing. Files play in an <audio>; YouTube songs in YouTube's own
    player, kept out of sight.
@@ -680,8 +708,12 @@ function loadYouTubeApi() {
 }
 /* the player's frame is made here, so it can send YouTube the page's address:
    this page sends no referrer by default, and YouTube's player needs one */
+let ytBlocked = false;
+/* found out early, so searching already knows where songs come from */
+timeout(loadYouTubeApi(), 10000).catch(() => { ytBlocked = true; });
 function ytPlayer(firstVid) {
-  if (!ytReadyP) ytReadyP = loadYouTubeApi().then(() => new Promise(ok => {
+  /* a school filter often just never answers, so give up after a while */
+  if (!ytReadyP) ytReadyP = timeout(loadYouTubeApi(), 10000).then(() => timeout(new Promise(ok => {
     const f = document.createElement("iframe");
     f.id = "yt-frame";
     f.title = "Player";
@@ -696,7 +728,7 @@ function ytPlayer(firstVid) {
         onError: e => ytError(e.data)
       }
     });
-  }));
+  }), 15000)).catch(e => { ytReadyP = null; ytBlocked = true; throw e; });
   return ytReadyP;
 }
 const ytPaused = () => !yt || !yt.getPlayerState || yt.getPlayerState() !== 1;
@@ -979,13 +1011,18 @@ async function play(i, dir) {
   S.now = { list: playingList, id: s.id };
   save();
   slide(back, () => dressUp(s));
-  if (s.kind === "yt") {
+  if (s.kind === "yt" && !ytBlocked) {
     audio.pause();
     using = "yt";
     try {
       if (!yt) await ytPlayer(s.vid);
       else yt.loadVideoById(s.vid);
-    } catch (e) { $("sub").textContent = e.message; }
+    } catch (e) {
+      if (!ytBlocked) $("sub").textContent = e.message;
+      else if (song(at) === s) { toast("YouTube won't load here, so songs come from Audius.", 5000); playFromAudius(s); }
+    }
+  } else if (s.kind === "yt") {
+    playFromAudius(s);
   } else {
     if (yt && yt.pauseVideo) yt.pauseVideo();
     using = "file";
@@ -995,6 +1032,24 @@ async function play(i, dir) {
   vis.follow();
   drawSongs();
   drawQueue();
+}
+async function playFromAudius(s) {
+  if (yt && yt.pauseVideo) yt.pauseVideo();
+  using = "file";
+  audio.pause();
+  if (!s.au) {
+    $("sub").textContent = "Finding this on Audius…";
+    let a = null;
+    try { a = await findOnAudius(s); } catch (e) {}
+    if (song(at) !== s) return;
+    if (!a) return skipSoon("This one isn't on Audius.");
+    s.au = a.url;
+    save();
+  }
+  dressUp(s);
+  $("sub").textContent = (s.author ? s.author + " · " : "") + "from Audius";
+  audio.src = s.au;
+  audio.play().catch(() => {});
 }
 function toggle() {
   if (at < 0) {
@@ -1260,7 +1315,7 @@ async function find(q) {
   box.appendChild(el("div", "none", "Looking…"));
   const tok = ++findTok;
   let hits;
-  try { hits = await ytSearch(q, 20); }
+  try { hits = ytBlocked ? await audiusSearch(q, 20) : (await ytSearch(q, 20)).map(h => ytSong(h.id, h.title, h.author, h.secs)); }
   catch (e) {
     if (tok !== findTok) return;
     box.innerHTML = "";
@@ -1270,8 +1325,7 @@ async function find(q) {
   if (tok !== findTok) return;
   box.innerHTML = "";
   if (!hits.length) { box.appendChild(el("div", "none", "Nothing found. Try other words.")); return; }
-  hits.forEach(h => {
-    const s = ytSong(h.id, h.title, h.author, h.secs);
+  hits.forEach(s => {
     box.appendChild(songRow(s, { play: () => takeSong(s, true) }));
   });
 }
@@ -1341,7 +1395,23 @@ $("vol").oninput = () => setVol(Number($("vol").value));
 audio.onplay = audio.onpause = playingChanged;
 audio.onplaying = () => { fails = 0; };   /* "play" comes even when the link then fails */
 audio.onended = () => { if (using === "file") ended(); };
-audio.onerror = () => { if (using === "file" && audio.getAttribute("src")) skipSoon("That link wouldn't play."); };
+let relayBlob = "";
+audio.onerror = async () => {
+  const src = audio.getAttribute("src");
+  if (using !== "file" || !src) return;
+  if (src.startsWith(AUDIUS)) {
+    const s = song(at);
+    try {
+      const res = await netFetch(src);
+      if (res.ok && song(at) === s) {
+        if (relayBlob) URL.revokeObjectURL(relayBlob);
+        audio.src = relayBlob = URL.createObjectURL(await res.blob());
+        return audio.play().catch(() => {});
+      }
+    } catch (e) {}
+  }
+  skipSoon("That link wouldn't play.");
+};
 /* the clock, and keeping up with YouTube's player, which says less on its own */
 setInterval(() => {
   if (using === "none") return;
