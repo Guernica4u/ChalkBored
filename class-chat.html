@@ -188,6 +188,13 @@
     transition: background-color 0.12s ease, color 0.12s ease;
   }
   .channel .hash { color: var(--muted); font-size: 0.95rem; line-height: 1; }
+  .channel .chan-grip { display: inline-flex; flex: none; margin: 0 -3px 0 -6px; padding: 2px 0; color: var(--muted); opacity: 0; cursor: grab; touch-action: none; }
+  .channel .chan-grip svg { width: 12px; height: 14px; fill: currentColor; }
+  .channel:hover .chan-grip, .channel:focus-within .chan-grip, .channel .chan-grip:focus-visible { opacity: 1; }
+  .channel .chan-grip:focus-visible { outline: 1px solid var(--accent); }
+  @media (hover: none) { .channel .chan-grip { opacity: 0.6; } }
+  .channel.dragging { opacity: 0.45; }
+  .drop-line { height: 2px; margin: 1px 9px; background: var(--accent); border-radius: 1px; pointer-events: none; }
   .channel:hover, .channel:focus-visible { background: var(--hover); color: var(--ink); outline: none; }
   .channel.on { background: var(--sel); color: var(--ink); }
   .channel.on .hash { color: var(--accent); }
@@ -1084,6 +1091,7 @@
   <symbol id="pfp-13" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.2 L14.1 6.1 l3.8 3.8 L6.8 21 H3 Z M15.6 4.6 l1.8 -1.8 3.8 3.8 -1.8 1.8 Z"/></symbol>
 
   <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="ic-grip" viewBox="0 0 12 14"><circle cx="3.5" cy="3" r="1.3"/><circle cx="8.5" cy="3" r="1.3"/><circle cx="3.5" cy="7" r="1.3"/><circle cx="8.5" cy="7" r="1.3"/><circle cx="3.5" cy="11" r="1.3"/><circle cx="8.5" cy="11" r="1.3"/></symbol>
   <symbol id="ic-voice" viewBox="0 0 24 24"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></symbol>
   <symbol id="ic-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></symbol>
   <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol>
@@ -2167,7 +2175,7 @@ async function loadChannels() {
   const room = state.room;
   const { data } = await db.from('channels')
     .select('id, name, room_id, allow_links, category, kind, topic, post_role, slow_seconds, user_limit')
-    .eq('room_id', room.id).order('created_at');
+    .eq('room_id', room.id).order('position').order('created_at');
   if (state.room !== room) return;   // switched rooms while this was loading
   state.channels = data || [];
   const keep = state.channel && state.channels.find((c) => c.id === state.channel.id);
@@ -2205,6 +2213,7 @@ function paintChannels() {
     head.type = 'button';
     head.className = 'chan-cat' + (open ? '' : ' closed') + (firstGroup ? ' first' : '');
     head.setAttribute('aria-expanded', String(open));
+    head.dataset.cat = cat;
     const caret = document.createElement('span');
     caret.className = 'caret';
     caret.textContent = '▾';
@@ -2231,6 +2240,9 @@ function paintChannels() {
       btn.className = 'channel' + ((isVoice ? voice.key === key : state.channel && state.channel.id === ch.id) ? ' on' : '');
       btn.type = 'button';
       btn.title = isVoice ? (voice.key === key ? 'Open ' : 'Join ') + ch.name : '# ' + ch.name;
+      btn.dataset.id = ch.id;
+      btn.dataset.cat = cat;
+      if (canManage(state.room)) btn.appendChild(dragGrip(ch, btn));
 
       const name = document.createElement('span');
       name.className = 'chan-name';
@@ -2300,6 +2312,77 @@ function paintChannels() {
       }
     });
   });
+}
+
+// ---- the people who run a class drag channels into order (mouse, touch or arrow keys)
+function dragGrip(ch, btn) {
+  const grip = make('span', 'chan-grip');
+  grip.appendChild(shape('ic-grip'));
+  grip.setAttribute('role', 'button');
+  grip.setAttribute('tabindex', '0');
+  grip.setAttribute('aria-label', 'Move ' + ch.name + ' (drag, or use the arrow keys)');
+  grip.title = 'Drag to move';
+  grip.onclick = (e) => e.stopPropagation();
+  grip.onkeydown = (e) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const list = state.channels.filter((c) => c.id !== ch.id);
+    const at = state.channels.findIndex((c) => c.id === ch.id) + (e.key === 'ArrowUp' ? -1 : 1);
+    if (at < 0 || at >= state.channels.length) return;
+    const near = list[Math.min(at, list.length - 1)];
+    list.splice(at, 0, { ...ch, category: near ? near.category : ch.category });
+    saveOrder(list, ch.id);
+  };
+  grip.onpointerdown = (e) => {
+    if (e.button > 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    try { grip.setPointerCapture(e.pointerId); } catch (err) {}   // keeps the drag when the finger leaves the grip
+    btn.classList.add('dragging');
+    const line = make('div', 'drop-line');
+    let target = null;
+    const move = (ev) => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const over = el && el.closest('#channels .channel, #channels .chan-cat');
+      if (!over || over === btn) return;
+      const box = over.getBoundingClientRect();
+      const after = over.classList.contains('chan-cat') || ev.clientY > box.top + box.height / 2;
+      target = { id: over.dataset.id || null, cat: over.dataset.cat, after };
+      over.parentNode.insertBefore(line, after ? over.nextSibling : over);
+    };
+    const end = (ev) => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      btn.classList.remove('dragging');
+      line.remove();
+      if (ev.type === 'pointercancel' || !target) return;
+      const list = state.channels.filter((c) => c.id !== ch.id);
+      let at = target.id ? list.findIndex((c) => c.id === target.id) + (target.after ? 1 : 0)
+        : list.findIndex((c) => (c.category || 'General') === target.cat);
+      if (at < 0) at = list.length;
+      list.splice(at, 0, { ...ch, category: target.cat });
+      saveOrder(list, ch.id);
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  };
+  return grip;
+}
+
+async function saveOrder(list, movedId) {
+  const room = state.room;
+  if (list.every((c, i) => c.id === state.channels[i].id && c.category === state.channels[i].category)) return;
+  state.channels = list;
+  paintChannels();
+  const grip = $('channels').querySelector('.channel[data-id="' + movedId + '"] .chan-grip');
+  if (grip) grip.focus();
+  const { data: why, error } = await db.rpc('reorder_channels', {
+    p_room: room.id, p_ids: list.map((c) => c.id), p_categories: list.map((c) => c.category || 'General'),
+  });
+  if (error || why) { showToast(error ? error.message : why); loadChannels(); }
 }
 
 // Add a channel, or change one (ch)
