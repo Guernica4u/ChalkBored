@@ -1,6 +1,6 @@
 // Announcements from Chalk Chat's Global announcements channel pop up on every
 // Study Hall page, for everyone, account or not. Each one shows once per browser.
-// People signed in to Chalk Chat also get a notifications bell next to Settings.
+// People signed in to Chalk Chat also get a notifications bell next to the version number.
 // Runs after the page's own script and uses its loadOnline() (the Supabase client).
 (() => {
   const SEEN = 'chalk-news-seen';
@@ -49,6 +49,12 @@
   const bellCss = document.createElement('style');
   bellCss.textContent = `
   .bell-btn { position: relative; }
+  .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .35rem; }
+  .ver-row .ver-corner { position: static; }
+  .ver-row .bell-btn { width: 28px; height: 28px; }
+  .ver-row .bell-btn svg { width: 16px; height: 16px; }
+  @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
+  @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
   .bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .bell-count { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; background: var(--ink, #f2f2f2); color: var(--paper, #111);
     border-radius: 2px; font-size: .62rem; font-weight: 700; line-height: 15px; text-align: center; }
@@ -65,8 +71,8 @@
 
   async function bell(db) {
     const { data: { user } } = await db.auth.getUser();
-    const gear = document.getElementById('gear');
-    if (!user || !gear) return;
+    const ver = document.getElementById('hello-updated');
+    if (!user || !ver) return;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'icon-btn bell-btn';
@@ -77,7 +83,10 @@
     count.className = 'bell-count';
     count.hidden = true;
     btn.appendChild(count);
-    gear.parentNode.insertBefore(btn, gear);
+    const row = document.createElement('div');
+    row.className = 'ver-row';
+    ver.parentNode.insertBefore(row, ver);
+    row.append(ver, btn);
     const list = document.createElement('div');
     list.className = 'bell-list';
     list.hidden = true;
@@ -138,8 +147,8 @@
       btn.setAttribute('aria-expanded', String(!list.hidden));
       if (list.hidden) return;
       const at = btn.getBoundingClientRect();
-      list.style.top = (at.bottom + 6) + 'px';
-      list.style.right = Math.max(12, window.innerWidth - at.right) + 'px';
+      list.style.bottom = (window.innerHeight - at.top + 6) + 'px';
+      list.style.left = Math.max(12, at.left) + 'px';
       paintList();
     });
     document.addEventListener('click', (e) => { if (!list.hidden && !list.contains(e.target)) { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
