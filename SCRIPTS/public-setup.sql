@@ -1916,3 +1916,56 @@ end $$;
 revoke execute on all functions in schema public from public, anon;
 grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
   public.i_am_here(uuid), public.online_count(), public.latest_poll() to anon, authenticated;
+
+-- ================================================================ Channel order
+-- The people who run a class drag channels into order (and between
+-- categories); everyone in the class sees the same order.
+
+alter table public.channels add column if not exists position int not null default 0;
+-- the first time: keep today's order (oldest first)
+update public.channels c set position = s.n
+  from (select id, row_number() over (partition by room_id order by created_at) as n from public.channels) s
+ where s.id = c.id and c.position = 0
+   and not exists (select 1 from public.channels x where x.room_id = c.room_id and x.position <> 0);
+
+-- new channels go to the end
+create or replace function public.channel_position()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if new.position = 0 then
+    new.position := coalesce((select max(position) from channels where room_id = new.room_id), 0) + 1;
+  end if;
+  return new;
+end; $$;
+drop trigger if exists channels_position on public.channels;
+create trigger channels_position before insert on public.channels
+  for each row execute function public.channel_position();
+revoke execute on function public.channel_position() from public, anon, authenticated;
+
+-- Save a class's whole channel order. p_ids lists every channel once, and
+-- p_categories says which category each one is under. Returns null or a reason.
+create or replace function public.reorder_channels(p_room uuid, p_ids uuid[], p_categories text[])
+returns text language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if is_banned() then return 'Your account is banned.'; end if;
+  if not can_manage_room(p_room) then return 'Only the people who run this class can move channels.'; end if;
+  if coalesce(array_length(p_ids, 1), 0) <> coalesce(array_length(p_categories, 1), 0) then return 'Something went wrong. Reload and try again.'; end if;
+  if (select count(distinct x) from unnest(p_ids) x) <> coalesce(array_length(p_ids, 1), 0)
+     or exists (select 1 from channels where room_id = p_room and not (id = any(p_ids)))
+     or exists (select 1 from unnest(p_ids) x where not exists (select 1 from channels where id = x and room_id = p_room)) then
+    return 'The channel list changed. Reload and try again.';
+  end if;
+  if exists (select 1 from unnest(p_categories) c where char_length(btrim(coalesce(c, ''))) not between 1 and 24) then
+    return 'Categories are 1-24 characters.';
+  end if;
+  update channels c set position = o.n, category = btrim(o.cat)
+    from unnest(p_ids, p_categories) with ordinality as o(id, cat, n)
+   where c.id = o.id and (c.position is distinct from o.n or c.category is distinct from btrim(o.cat));
+  return null;
+exception when raise_exception then
+  return sqlerrm;   -- the blocked-words check on category names
+end; $$;
+
+revoke execute on function public.reorder_channels(uuid, uuid[], text[]) from public, anon;
+grant execute on function public.reorder_channels(uuid, uuid[], text[]) to authenticated;
