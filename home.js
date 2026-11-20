@@ -202,7 +202,7 @@
   }
 
   // ---- featured: a few hand-picked activities ----
-  const FEATURED = ['LESSONS/Climb-Physics/index.html', 'LESSONS/Story-Yellow/index.html', 'LESSONS/Ragdoll-Sandbox/index.html', 'LESSONS/Class-Day-1/index.html'].map(byPath).filter(Boolean);
+  const FEATURED = ['LESSONS/Story-Yellow/index.html', 'LESSONS/Ragdoll-Sandbox/index.html', 'LESSONS/Class-Day-1/index.html'].map(byPath).filter(Boolean);
   {
     const panel = el('article', 'hn-panel hn-feature');
     const art = el('span', 'hn-feature-art');
