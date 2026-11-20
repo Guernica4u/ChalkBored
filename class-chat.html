@@ -254,6 +254,15 @@
   .msg-mark { margin-left: 6px; font-size: 0.6rem; color: var(--muted); }
   .reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
   .reactions:empty { display: none; }
+  .poll { display: flex; flex-direction: column; gap: 4px; max-width: 420px; margin-top: 6px; }
+  .poll:empty { display: none; }
+  .poll-choice { position: relative; display: flex; justify-content: space-between; gap: 8px; padding: 6px 9px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font: inherit; font-size: 0.78rem; text-align: left; cursor: pointer; overflow: hidden; }
+  .poll-choice:hover, .poll-choice:focus-visible { border-color: var(--accent-dim); outline: none; }
+  .poll-choice.mine { border-color: var(--accent); }
+  .poll-choice i { position: absolute; inset: 0 auto 0 0; background: var(--sel); }
+  .poll-choice span, .poll-choice b { position: relative; }
+  .poll-choice b { flex: none; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .poll-note { font-size: 0.62rem; color: var(--muted); }
   .reaction { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--muted); font: inherit; font-size: 0.68rem; cursor: pointer; }
   .reaction:hover, .reaction:focus-visible { border-color: var(--accent-dim); outline: none; }
   .reaction.on { border-color: var(--accent); color: var(--ink); }
@@ -1216,6 +1225,7 @@
         <button class="reply-x" id="reply-cancel" type="button" aria-label="Cancel reply">×</button>
       </div>
       <input id="text" maxlength="500" placeholder="Message #…" aria-label="Message" disabled>
+      <button class="ghost" id="poll-btn" type="button" hidden>Poll</button>
       <button class="primary" type="submit" disabled>Send</button>
     </form>
     <p class="compose-note" id="compose-note" role="status"></p>
@@ -2350,6 +2360,7 @@ async function openChannel(ch) {
   if (!rows.length) renderEmpty('Nothing here yet. Say something.');
   rows.forEach(addMessage);
   loadReactions(rows.map((r) => r.id));
+  loadPolls(rows.map((r) => r.id));
   scrollDown();
   markRead();
   markChannelSeen(ch.id);
@@ -2357,6 +2368,9 @@ async function openChannel(ch) {
 }
 
 // the channel's topic, and whether you can write in it
+// Global's polls are made by site mods; anyone who runs a class makes polls there
+const globalOnlyHidden = () => state.room.is_global && !state.me.is_mod;
+
 function paintChannelHead() {
   const ch = state.channel;
   if (!ch) return;
@@ -2366,6 +2380,7 @@ function paintChannelHead() {
   $('channel-topic').textContent = ch.topic || '';
   $('channel-topic').hidden = !ch.topic;
   $('pins-btn').hidden = false;
+  $('poll-btn').hidden = !runs || globalOnlyHidden();
   const globalOnly = state.room.is_global && !state.me.is_mod;
   const modsOnly = ch.post_role === 'mods' && !runs;
   lockComposer(globalOnly || modsOnly);
@@ -2461,6 +2476,7 @@ function addMessage(m) {
   }
 
   body.appendChild(text);
+  body.appendChild(make('div', 'poll'));
   body.appendChild(make('div', 'reactions'));
 
   const tools = document.createElement('div');
@@ -2535,6 +2551,7 @@ function applyMessageChange(m) {
   known.pinned_at = m.pinned_at;
   paintMarks(row, m);
   loadReactions([m.id]);
+  loadPolls([m.id]);
 }
 
 function startEdit(row, id) {
@@ -2588,6 +2605,56 @@ $('pins-btn').onclick = async () => {
 };
 $('pins-close').onclick = () => $('pins-veil').classList.add('hide');
 $('pins-veil').addEventListener('click', (e) => { if (e.target.id === 'pins-veil') $('pins-close').click(); });
+
+// ---- polls
+async function loadPolls(ids) {
+  if (!ids.length) return;
+  const [{ data: polls }, { data: counts }] = await Promise.all([
+    db.from('polls').select('message_id, options').in('message_id', ids),
+    db.rpc('poll_results', { p_ids: ids }),
+  ]);
+  (polls || []).forEach((pl) => paintPoll(pl, (counts || []).filter((c) => c.message_id === pl.message_id)));
+}
+
+function paintPoll(pl, counts) {
+  const box = $('messages').querySelector('[data-id="' + pl.message_id + '"] .poll');
+  if (!box) return;
+  const total = counts.reduce((n, c) => n + c.votes, 0);
+  const mine = counts.find((c) => c.mine);
+  box.innerHTML = '';
+  pl.options.forEach((label, i) => {
+    const votes = (counts.find((c) => c.choice === i) || { votes: 0 }).votes;
+    const b = make('button', 'poll-choice' + (mine && mine.choice === i ? ' mine' : ''));
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(!!mine && mine.choice === i));
+    const fill = make('i');
+    fill.style.width = (total ? Math.round(votes / total * 100) : 0) + '%';
+    b.append(fill, make('span', '', label), make('b', '', String(votes)));
+    b.onclick = async () => {
+      const { data: why, error } = await db.rpc('vote_poll', { p_message: pl.message_id, p_choice: i });
+      if (error || why) composeNote(error ? error.message : why); else loadPolls([pl.message_id]);
+    };
+    box.appendChild(b);
+  });
+  box.appendChild(make('span', 'poll-note', (total === 1 ? '1 vote' : total + ' votes') + (mine ? ' · press your choice again to take it back' : '')));
+}
+
+$('poll-btn').onclick = async () => {
+  const answer = await openForm({
+    title: 'New poll',
+    text: 'In #' + state.channel.name + '. Everyone here can vote once and change their vote.',
+    fields: [
+      { key: 'question', label: 'Question', required: true, max: 300 },
+      { key: 'options', label: 'Choices, one per line (2 to 10)', type: 'textarea', required: true },
+    ],
+    submit: 'Post poll',
+  });
+  if (!answer) return;
+  const { data: why, error } = await db.rpc('create_poll', {
+    p_channel: state.channel.id, p_question: answer.question, p_options: answer.options.split('\n'),
+  });
+  if (error || why) showToast(error ? error.message : why);
+};
 
 // ---- reactions
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉'];
@@ -2760,6 +2827,7 @@ function watchFeed() {
           const { data } = await db.from('profiles').select('username').eq('id', row.user_id).single();
           addMessage({ ...row, profiles: data });
         }
+        loadPolls([row.id]);
         scrollDown();
         markRead();
       })

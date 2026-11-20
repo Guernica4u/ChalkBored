@@ -1658,3 +1658,124 @@ grant execute on function public.edit_message(bigint, text), public.toggle_react
 revoke execute on all functions in schema public from public, anon;
 grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
   public.i_am_here(uuid), public.online_count() to anon, authenticated;
+
+-- ================================================================ Polls
+-- Polls are messages with choices. Only the people who run a class (site mods
+-- in Global) make them; members vote, one choice each, and can take it back.
+-- The newest poll in Global's "polls" channel is the site's vote (it replaces
+-- the old Requests page; that page's tables above are kept but unused).
+
+alter table public.channels add column if not exists purpose text;
+alter table public.channels drop constraint if exists channels_purpose_check;
+alter table public.channels add constraint channels_purpose_check check (purpose is null or purpose in ('polls', 'announce'));
+
+create table if not exists public.polls (
+  message_id bigint primary key references public.messages on delete cascade,
+  options    text[] not null check (array_length(options, 1) between 2 and 10),
+  created_at timestamptz not null default now()
+);
+create table if not exists public.poll_votes (
+  message_id bigint not null references public.polls on delete cascade,
+  user_id    uuid not null references public.profiles on delete cascade,
+  choice     int not null,
+  created_at timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+alter table public.polls enable row level security;
+alter table public.poll_votes enable row level security;   -- no policies: counts come from poll_results
+drop policy if exists polls_read on public.polls;
+create policy polls_read on public.polls for select to authenticated
+  using (exists (select 1 from messages m where m.id = message_id and can_read_room(channel_room(m.channel_id))));
+revoke all on public.polls, public.poll_votes from anon, authenticated;
+grant select on public.polls to authenticated;
+
+-- Global's polls channel
+insert into public.channels (room_id, name, post_role, purpose)
+select r.id, 'polls', 'mods', 'polls' from public.rooms r
+ where r.is_global and not exists (select 1 from public.channels c where c.room_id = r.id and c.purpose = 'polls')
+on conflict (room_id, name) do update set purpose = 'polls', post_role = 'mods';
+
+-- Post a poll. Returns null or a reason.
+create or replace function public.create_poll(p_channel uuid, p_question text, p_options text[])
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare me profiles; ch channels; v_q text := btrim(coalesce(p_question, '')); v_opts text[]; new_id bigint;
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  select * into me from profiles where id = auth.uid();
+  if me.id is null or me.banned then return 'Your account is banned.'; end if;
+  if me.muted_until > now() then return 'You''re timed out for now.'; end if;
+  select * into ch from channels where id = p_channel;
+  if ch.id is null or ch.kind <> 'text' then return 'Pick a text channel.'; end if;
+  if not can_manage_room(ch.room_id) then return 'Only the people who run this class can make polls.'; end if;
+  select array_agg(o order by first) into v_opts from (
+    select btrim(o) o, min(n) first from unnest(coalesce(p_options, '{}')) with ordinality as t(o, n)
+     where btrim(o) <> '' group by btrim(o)) x;
+  if char_length(v_q) not between 1 and 300 then return 'Write a question (up to 300 characters).'; end if;
+  if coalesce(array_length(v_opts, 1), 0) not between 2 and 10 then return 'Give 2 to 10 different choices.'; end if;
+  if exists (select 1 from unnest(v_opts) o where char_length(o) > 60) then return 'Choices max out at 60 characters.'; end if;
+  if not me.is_mod and (has_blocked_word(v_q || ' ' || array_to_string(v_opts, ' '))
+                        or has_link(v_q || ' ' || array_to_string(v_opts, ' '))) then
+    return 'That poll has a blocked word or a link.';
+  end if;
+  insert into messages (channel_id, user_id, body) values (p_channel, me.id, v_q) returning id into new_id;
+  insert into polls (message_id, options) values (new_id, v_opts);
+  return null;
+end; $$;
+
+-- Vote, change your vote, or pick the same choice again to take it back.
+create or replace function public.vote_poll(p_message bigint, p_choice int)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare me profiles; pl polls; v_room uuid; had int;
+begin
+  if auth.uid() is null then return 'Sign in to Chalk Chat to vote.'; end if;
+  select * into me from profiles where id = auth.uid();
+  if me.id is null or me.banned then return 'Your account is banned.'; end if;
+  select * into pl from polls where message_id = p_message;
+  if pl.message_id is null then return 'That poll is gone.'; end if;
+  v_room := channel_room((select channel_id from messages where id = p_message));
+  if not can_read_room(v_room) then return 'You aren''t in this class.'; end if;
+  if p_choice is null or p_choice < 0 or p_choice >= array_length(pl.options, 1) then return 'Pick one of the choices.'; end if;
+  if (select count(*) from secret_attempts where user_id = me.id and kind = 'vote' and created_at > now() - interval '1 minute') >= 30 then
+    return 'Slow down a little.';
+  end if;
+  perform record_wrong_guess('vote');   -- counts votes for the limit
+  select choice into had from poll_votes where message_id = p_message and user_id = me.id;
+  if had = p_choice then
+    delete from poll_votes where message_id = p_message and user_id = me.id;
+  else
+    insert into poll_votes (message_id, user_id, choice) values (p_message, me.id, p_choice)
+    on conflict (message_id, user_id) do update set choice = excluded.choice, created_at = now();
+  end if;
+  update messages set reacted_at = now() where id = p_message;   -- open pages reload the counts
+  return null;
+end; $$;
+
+-- Counts for polls you can see, and which choice is yours.
+create or replace function public.poll_results(p_ids bigint[])
+returns table (message_id bigint, choice int, votes int, mine boolean)
+language sql stable security definer set search_path = public, extensions as $$
+  select v.message_id, v.choice, count(*)::int, bool_or(v.user_id = auth.uid())
+    from poll_votes v join messages m on m.id = v.message_id
+   where v.message_id = any(p_ids) and can_read_room(channel_room(m.channel_id))
+   group by v.message_id, v.choice;
+$$;
+
+-- The site's vote: the newest poll in Global's polls channel, with counts.
+-- Anyone may read it, as they could the old Requests list.
+create or replace function public.latest_poll()
+returns table (message_id bigint, question text, options text[], counts int[], mine int)
+language sql stable security definer set search_path = public, extensions as $$
+  select m.id, m.body, p.options,
+         array(select count(v.user_id)::int from generate_subscripts(p.options, 1) as i(n)
+                left join poll_votes v on v.message_id = m.id and v.choice = i.n - 1 group by i.n order by i.n),
+         (select choice from poll_votes where message_id = m.id and user_id = auth.uid())
+    from messages m join polls p on p.message_id = m.id join channels c on c.id = m.channel_id join rooms r on r.id = c.room_id
+   where r.is_global and c.purpose = 'polls'
+   order by m.id desc limit 1;
+$$;
+
+revoke execute on function public.create_poll(uuid, text, text[]), public.vote_poll(bigint, int),
+  public.poll_results(bigint[]), public.latest_poll() from public, anon;
+grant execute on function public.create_poll(uuid, text, text[]), public.vote_poll(bigint, int),
+  public.poll_results(bigint[]), public.latest_poll() to authenticated;
+grant execute on function public.latest_poll() to anon;
