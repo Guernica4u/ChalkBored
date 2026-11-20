@@ -1987,8 +1987,8 @@ declare v_doing text := case when p_doing in ('play', 'listen') then p_doing end
         v_item text := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
 begin
   if p_device is null then return; end if;
-  insert into online_now (device, seen_at, doing, item) values (p_device, now(), v_doing, v_item)
-  on conflict (device) do update set seen_at = now(), doing = excluded.doing, item = excluded.item;
+  insert into online_now (device, seen_at, doing, item, user_id) values (p_device, now(), v_doing, v_item, auth.uid())
+  on conflict (device) do update set seen_at = now(), doing = excluded.doing, item = excluded.item, user_id = excluded.user_id;
   delete from online_now where seen_at < now() - interval '1 hour';
 end; $$;
 
@@ -2010,3 +2010,36 @@ grant execute on function public.here_now(uuid, text, text), public.online_stats
 -- Everyone posts and reacts in Global's open channels; #announcements and #polls stay mods-only.
 update public.channels c set post_role = 'mods'
   from public.rooms r where r.id = c.room_id and r.is_global and c.purpose in ('announce', 'polls');
+
+-- ================================================================ Friends on Home
+-- When you're signed in to Chalk Chat, Home's check-in also notes your account,
+-- so your friends see you online. What you play or listen to is only there if
+-- you pressed Sure (here_now stores nothing else). Only friends see it.
+
+alter table public.online_now add column if not exists user_id uuid references public.profiles on delete cascade;
+create index if not exists online_now_user_idx on public.online_now (user_id, seen_at desc);
+
+-- shortcut: browser ids aren't checked, so a script could pad the counts; add a per-network cap if that happens
+
+-- Your friends: online or not, and what they share.
+create or replace function public.friends_now()
+returns table (user_id uuid, username text, avatar text, online boolean, doing text, item text)
+language sql stable security definer set search_path = public, extensions as $$
+  with mine as (
+    select case when requester = auth.uid() then addressee else requester end as uid
+      from friendships where status = 'accepted' and (requester = auth.uid() or addressee = auth.uid())
+  ), seen as (
+    select distinct on (o.user_id) o.user_id, o.doing, o.item
+      from online_now o where o.user_id in (select uid from mine) and o.seen_at > now() - interval '90 seconds'
+     order by o.user_id, o.seen_at desc
+  )
+  select p.id, p.username::text, p.avatar,
+         s.user_id is not null or exists (select 1 from chat_online c where c.user_id = p.id and c.seen_at > now() - interval '90 seconds'),
+         s.doing, s.item
+    from profiles p join mine m on m.uid = p.id left join seen s on s.user_id = p.id
+   where not p.banned
+   order by 4 desc, p.username;
+$$;
+
+revoke execute on function public.friends_now() from public, anon;
+grant execute on function public.friends_now() to authenticated;
