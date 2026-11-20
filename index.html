@@ -794,6 +794,7 @@
       const auto = document.getElementById('auto-open');
       const bar = document.getElementById('auto-bar');
       const halls = [...grid.querySelectorAll('.hall')];
+      halls.forEach((a, i) => { a.textContent = 'Game page ' + (i + 1); });
       let last = null;
       try { last = localStorage.getItem(KEY); } catch (e) {}
       const pinned = last && halls.find((a) => a.getAttribute('href') === last);

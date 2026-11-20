@@ -14,70 +14,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* ---------------- themes ----------------
-     Basic (default): soft dark colors, in Night (blue-grey) or Mono
-     (plain black and white). Space: soft panels over a dim starry sky.
-     (The paper look
-     below in :root is only the base the themes build on.)                 */
-  :root {
-    --paper: #fbfbf7;
-    --paper-2: #f3f3ec;
-    --card: #ffffff;
-    --ink: #1f2d44;
-    --pencil: #66708a;
-    --rule-line: #dde6f2;
-    --margin-line: #ecb3ad;
-    --edge: #d9dde4;
-    --accent: #2c5fb8;         /* pen blue */
-    --highlight: #ffe680;      /* highlighter */
-    --highlight-ink: #1f2d44;
-    --danger: #c0473a;
-    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
-    --rail: #f1f2ec;
+  /* ---------------- colors ----------------
+     One look: plain black and white (Mono), under the OS layout further down. */
+  body {
+    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --rule-line: transparent; --edge: #2e2e2e; --accent: #f2f2f2; --highlight: #3a3a3a; --highlight-ink: #f2f2f2;
+    --danger: #e6e6e6; --shadow: none; --rail: #080808;
     --rule: 28px;
     --margin: 64px;
     --hand: var(--body);
     --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
     --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
     --r: 3px;                  /* the one corner size: almost square, like the homepage */
-    color-scheme: light;
-  }
-
-  /* Basic: soft and dark, warm text, gentle accent. Easy on the eyes.
-     Night (blue-grey) is the base; Mono only swaps the colors. */
-  body[data-theme="basic"] {
-    --paper: #16181d;
-    --paper-2: #1f232a;
-    --card: #1c1f26;
-    --ink: #d9d5cc;
-    --pencil: #8b909a;
-    --rule-line: transparent;
-    --margin-line: transparent;
-    --edge: #2b3039;
-    --accent: #8fb3d9;
-    --highlight: #2f4157;
-    --highlight-ink: #e8e4db;
-    --danger: #d98b7f;
-    --shadow: none;
-    --rail: #14161a;
-    --hand: var(--body);
     color-scheme: dark;
   }
-  body[data-theme="basic"] .main { background-image: none; }
-  body[data-theme="basic"] .thumb { background-image: none; background: #20242c; }
-  body[data-theme="basic"] .mono { transform: none; font-size: 2rem; color: var(--accent); }
-  body[data-theme="basic"] .card:hover,
-  body[data-theme="basic"] .card-wrap.is-open .card { border-color: var(--accent); }
-  body[data-theme="basic"] h1 .scribble { background: none; padding: 0; color: var(--ink); }
-  body[data-theme="basic"] .btn.primary { color: var(--paper); }
-  body[data-theme="basic"] .tip::before { color: var(--accent); }
-  /* Mono: the same Basic layout in plain black and white */
-  body[data-basic="mono"] {
-    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
-    --edge: #2e2e2e; --accent: #f2f2f2; --highlight: #3a3a3a; --highlight-ink: #f2f2f2;
-    --danger: #e6e6e6; --rail: #080808;
-  }
-  body[data-basic="mono"] .thumb { background: #1a1a1a; }
 
 
   * { box-sizing: border-box; }
@@ -340,10 +290,6 @@
     flex-direction: column;
     height: 100%;
     background-color: var(--paper);
-    background-image:
-      linear-gradient(to right, transparent calc(var(--margin) - 2px), var(--margin-line) calc(var(--margin) - 2px), var(--margin-line) var(--margin), transparent var(--margin)),
-      repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), var(--rule-line) calc(var(--rule) - 1px) var(--rule));
-    background-attachment: local;
   }
 
   .topbar {
@@ -360,10 +306,6 @@
     font-size: 2.1rem;
     line-height: 1;
     letter-spacing: -0.01em;
-  }
-  h1 .scribble {
-    background: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 90%, transparent 90%);
-    padding: 0 0.15em;
   }
 
   .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
@@ -463,15 +405,12 @@
     display: grid;
     place-items: center;
     aspect-ratio: 16 / 10;
-    background-color: var(--card);
-    background-image:
-      linear-gradient(to bottom, transparent 22px, var(--margin-line) 22px, var(--margin-line) 24px, transparent 24px),
-      repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule-line) 23px 24px);
+    background: #1a1a1a;
     border-bottom: 1px solid var(--edge);
     overflow: hidden;
   }
   .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .mono { font-family: var(--hand); font-weight: 700; font-size: 2.4rem; color: var(--accent); }
+  .mono { font-family: var(--hand); font-weight: 700; font-size: 2rem; color: var(--accent); }
 
   .card-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.85rem; }
   .card-name { font-weight: 700; min-width: 0; }
@@ -549,7 +488,7 @@
     transition: border-color 0.15s ease, background-color 0.15s ease;
   }
   .btn:hover { border-color: var(--accent); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 700; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--paper); font-weight: 700; }
   .btn.primary:hover { filter: brightness(1.08); }
 
   .empty-note { font-family: var(--hand); font-size: 1.15rem; color: var(--pencil); line-height: var(--rule); max-width: 52ch; }
@@ -717,7 +656,7 @@
     color: var(--ink);
     transition: opacity 0.4s ease;
   }
-  .tip::before { content: '\2605  '; color: var(--danger); }
+  .tip::before { content: '\2605  '; color: var(--accent); }
   .tip.fade { opacity: 0; }
 
   /* ---------------- dialogs ---------------- */
@@ -800,7 +739,7 @@
   }
   body.os.has-bg { background: #0e1014 var(--os-bg) center / cover no-repeat; }
   body.os .main, body.os footer { background: transparent; }
-  body.os footer, body.os .topbar h1, body:not(.os) .os-setting { display: none; }
+  body.os footer, body.os .topbar h1 { display: none; }
   body.os .topbar { position: fixed; top: 0.8rem; right: 1rem; z-index: 25; padding: 0; }
   body.os .content { padding-top: 3.4rem; }
   body.os.app-open .content { padding-top: 0; }
@@ -812,11 +751,12 @@
   .rail-search { padding: 0 0.9rem 0.7rem; }
   body.os .rail-search .search, body.os .rail-search .search:focus { width: 100%; }
   body.os .rail-search .results { left: 0; right: auto; width: 300px; }
-  .walls { display: grid; grid-template-columns: repeat(3, 96px); gap: 0.45rem; }
+  .walls { display: grid; grid-template-columns: repeat(4, 96px); gap: 0.45rem; }
   .wall { aspect-ratio: 16 / 9; padding: 0; background: var(--paper-2) center / cover; border: 2px solid var(--edge); border-radius: var(--r); cursor: pointer; }
   .wall.on { border-color: var(--accent); }
   .wall-text { display: grid; place-items: center; font-size: 0.78rem; color: var(--ink); }
-  .modal-body .walls { grid-template-columns: repeat(3, 1fr); }
+  .modal-body .walls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 480px) { .walls, .modal-body .walls { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   body.os .rail-top { justify-content: flex-start; gap: 0.6rem; padding-left: 0.9rem; }
   /* the sidebar folds down to its icons: the width eases, the words fade, the icons stay put */
   body.os .rail { transition: width 0.22s ease; }
@@ -1214,7 +1154,7 @@
     settings.shell = 'os';
     // saves from before wallpapers keep what they had: their own picture, or plain dark without one
     if (savedSettings && !('wallpaper' in savedSettings)) settings.wallpaper = 'own';
-    if (!['hands', 'mountains', 'ribbons', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
+    if (!['hands', 'mountains', 'nature', 'ribbons', 'moon', 'own', 'none'].includes(settings.wallpaper)) settings.wallpaper = 'hands';
 
     function saveSettings() {
       try { localStorage.setItem(SETTINGS_STORE, JSON.stringify(settings)); } catch (e) {}
@@ -2285,7 +2225,7 @@
         };
       });
     }
-    const WALLPAPERS = [['hands', 'Hands'], ['mountains', 'Mountains'], ['ribbons', 'Ribbons'], ['moon', 'Moon']];
+    const WALLPAPERS = [['hands', 'Hands'], ['mountains', 'Mountains'], ['nature', 'Nature'], ['ribbons', 'Ribbons'], ['moon', 'Moon']];
     let bgShownFor = null;
     let bgUrl = '';
     async function showBackground() {
@@ -2297,7 +2237,7 @@
       document.body.style.setProperty('--os-bg', url ? 'url("' + url + '")' : 'none');
       document.body.classList.toggle('has-bg', !!url);
     }
-    // the four pictures, your own, or none (Settings and setup share this)
+    // the pictures, your own, or none (Settings and setup share this)
     function makeWallpapers(after) {
       const box = document.createElement('div');
       box.className = 'walls';
@@ -2450,7 +2390,7 @@
       {
         step: 'First-time setup',
         title: 'Welcome to ChalkBored',
-        text: 'Two quick choices and you\u2019re in.',
+        text: 'A few quick choices and you\u2019re in.',
         body: () => null,
         next: 'Start',
       },
