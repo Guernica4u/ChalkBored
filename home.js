@@ -27,11 +27,12 @@
   }
 
   // ---- settings: new people get the new Home; anyone can switch in Settings or setup ----
-  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', chat: 'Chat preview', notes: 'Notes and to do' };
+  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', chat: 'Chat preview', friends: 'Friends', notes: 'Notes and to do' };
   if (settings.homeLook !== 'new' && settings.homeLook !== 'classic') settings.homeLook = 'new';
-  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'chat'];
+  if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'chat', 'friends'];
   // people who set up Home before these existed get them once (they can remove them)
   if (!settings.homeOnlineAdded) { settings.homeOnlineAdded = true; ['online', 'chat'].forEach((k) => { if (!settings.homeOrder.includes(k)) settings.homeOrder.push(k); }); }
+  if (!settings.homeFriendsAdded) { settings.homeFriendsAdded = true; if (!settings.homeOrder.includes('friends')) settings.homeOrder.push('friends'); }
   settings.homeOrder = settings.homeOrder.filter((k, i, a) => SECTIONS[k] && a.indexOf(k) === i);
   saveSettings();
 
@@ -62,7 +63,7 @@
   .hn-sec > .hn-panel { flex: 1; }
   .hn-sec[data-key="featured"] { grid-column: span 4; }
   .hn-sec[data-key="recent"] { grid-column: span 2; }
-  .hn-sec[data-key="music"], .hn-sec[data-key="vote"] { grid-column: span 3; }
+  .hn-sec[data-key="music"], .hn-sec[data-key="vote"], .hn-sec[data-key="friends"] { grid-column: span 3; }
   .hn-sec[data-key="chat"] { grid-column: span 6; }
   .hn-sec[data-key="notes"] { grid-column: 1 / -1; }
   .hn-panel { min-width: 0; padding: 1.05rem 1.15rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r); }
@@ -98,6 +99,14 @@
   .hn-bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .4s linear; }
   .hn-vote { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; margin-bottom: .4rem; padding: .55rem .7rem; background: var(--paper-2); border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
   .hn-vote:hover { border-color: var(--pencil); }
+  .hn-friends { display: flex; flex-direction: column; gap: .15rem; margin-bottom: .6rem; }
+  .hn-friend { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: .55rem; padding: .25rem 0; font-size: .88rem; }
+  .hn-friend-txt { display: flex; flex-direction: column; min-width: 0; }
+  .hn-friend .hn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--edge); }
+  .hn-friend.on .hn-dot { background: var(--accent); }
+  .hn-friend-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hn-friend-what { display: flex; align-items: center; gap: .35rem; min-width: 0; font-size: .8rem; color: var(--pencil); overflow: hidden; white-space: nowrap; }
+  .hn-friend:not(.on) .hn-friend-name { color: var(--pencil); font-weight: 400; }
   .hn-online { display: none; }
   body.home-new .hn-online { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; }
   .hn-online-nums:empty, .hn-online-top:empty { display: none; }
@@ -486,6 +495,54 @@
     window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') startOnline(); });
   }
 
+  // ---- friends: who's online, and what they play or listen to if they chose to share ----
+  {
+    const panel = el('section', 'hn-panel');
+    const list = el('div', 'hn-friends');
+    const open = el('button', 'hn-tiny ghost', 'Open Chalk Chat');
+    open.type = 'button';
+    open.addEventListener('click', () => { if (typeof showPanel === 'function') showPanel('chat'); });
+    panel.append(el('p', 'hn-label', 'Friends'), list, open);
+    async function load() {
+      try {
+        const db = await loadOnline();
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) { list.replaceChildren(el('p', 'hn-muted', 'Sign in to Chalk Chat to see your friends here.')); return; }
+        const { data, error } = await db.rpc('friends_now');
+        if (error) throw error;
+        if (!(data || []).length) { list.replaceChildren(el('p', 'hn-muted', 'No friends yet. Add some in Chalk Chat.')); return; }
+        list.replaceChildren(...data.map((f) => {
+          const row = el('div', 'hn-friend' + (f.online ? ' on' : ''));
+          const item = f.doing === 'play' && f.item ? byPath(f.item) : null;
+          const what = el('span', 'hn-friend-what');
+          if (item) { what.append('Playing '); what.append(nameOf(item, 0.95)); }
+          else what.textContent = f.doing === 'play' ? 'Playing a game' : f.doing === 'listen' ? 'Listening to Chalk Music' : f.online ? 'Online' : 'Offline';
+          const name = el('span', 'hn-friend-name', f.username);
+          const dot = el('span', 'hn-dot');
+          dot.setAttribute('aria-hidden', 'true');
+          const txt = el('span', 'hn-friend-txt');
+          txt.append(name, what);
+          row.append(dot, txt);
+          if (item) {
+            const go = el('button', 'hn-tiny ghost', 'Play too');
+            go.type = 'button';
+            go.setAttribute('aria-label', 'Open what ' + f.username + ' is playing');
+            go.addEventListener('click', () => launch(item));
+            row.append(go);
+          }
+          return row;
+        }));
+      } catch (e) {
+        list.replaceChildren(el('p', 'hn-muted', 'Friends aren’t available right now.'));
+      }
+    }
+    let timer = null;
+    const start = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
+    window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') start(); });
+    section('friends', panel);
+    secs.friends.load = start;
+  }
+
   // ---- chat preview: the newest messages from one Chalk Chat channel you pick ----
   {
     const PICK = 'cb-chat-preview';   // { room, channel }
@@ -627,6 +684,7 @@
     }) : [el('p', 'hn-muted', 'Everything is already on Home.')]));
     if (order.includes('vote') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.vote.load();
     if (order.includes('chat') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.chat.load();
+    if (order.includes('friends') && homePanel.classList.contains('active') && settings.homeLook === 'new') secs.friends.load();
   }
   function editing(on) { grid.classList.toggle('editing', on); editBar.hidden = !on; tray.hidden = !on; }
   editDone.addEventListener('click', () => editing(false));
@@ -644,7 +702,7 @@
     lookChoice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.look === settings.homeLook));
     editRow.hidden = !isNew;
     if (isNew && homePanel.classList.contains('active') && settings.homeOrder.includes('vote')) secs.vote.load();
-    if (isNew && homePanel.classList.contains('active')) { startOnline(); if (settings.homeOrder.includes('chat')) secs.chat.load(); }
+    if (isNew && homePanel.classList.contains('active')) { startOnline(); if (settings.homeOrder.includes('chat')) secs.chat.load(); if (settings.homeOrder.includes('friends')) secs.friends.load(); }
   }
   const group = el('div', 'group');
   group.append(el('h2', '', 'Home'), el('p', '', 'What you see first.'));
