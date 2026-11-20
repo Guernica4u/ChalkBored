@@ -78,9 +78,7 @@ const LIST = {
     { name: '.SM64?'                          , path: 'LESSONS/Polygon-Platformer/index.html' },
     { name: '.Binding;of;Is55c?'              , path: 'LESSONS/Basement-Diary/index.html' },
     { name: '.Sp33d;St5rs?'                   , path: 'LESSONS/Track-Sprints/index.html' },
-    { name: '.R5ft?'                          , path: 'LESSONS/Ocean-Survival/index.html' },
     { name: '.Sl3nd3r;M5n;Th3;Eight;P5g3s?',  path: 'LESSONS/Forest-Logs/index.html' },
-    { name: '.Th3;M5n;in;th3;Window?'         , path: 'LESSONS/Night-Watch/index.html' },
     { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
     { name: '.Pig3on;Asc3nt?'                 , path: 'LESSONS/Pigeon/index.html' },
     { name: '.Stickm5n;Dismount?'             , path: 'LESSONS/Motion-Lab-Dismount/index.html' },
@@ -90,7 +88,6 @@ const LIST = {
     { name: '.S5ndbox3ls?'                    , path: 'LESSONS/Particle-Chemistry/index.html' },
     { name: '.Th3r3;Is;No;G5m3?'              , path: 'LESSONS/Empty-Lesson/index.html' },
     { name: '.Stick;W5r?'                     , path: 'LESSONS/Ancient-Warfare-History/index.html' },
-    { name: '.Fr3ddy;in;Sp5c3;2?',            path: 'LESSONS/Space-Shift-2/index.html' },
     { name: '.Int3r5ctiv3;Buddy?',            path: 'LESSONS/Physics-Buddy/index.html' },
     { name: '.Drift;Boss?',                   path: 'LESSONS/Drift-Physics/index.html' },
     { name: '.Boxing;R5ndom?',                path: 'LESSONS/Boxing-Physics/index.html' },
@@ -100,7 +97,6 @@ const LIST = {
     { name: '.P3opl3;Pl5yground?',            path: 'LESSONS/Ragdoll-Sandbox/index.html' },
     { name: '.Kind3rg5rt3n?',                 path: 'LESSONS/Class-Day-1/index.html' },
     { name: '.Kind3rg5rt3n;2?',               path: 'LESSONS/Class-Day-2/index.html' },
-    { name: '.G3tting;Ov3r;It?',              path: 'LESSONS/Climb-Physics/index.html' },
     { name: '.Und3rt5l3;Y3llow?',             path: 'LESSONS/Story-Yellow/index.html' },
     { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
     { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
@@ -132,11 +128,9 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
-  'LESSONS/Space-Shift-2/index.html': { src: 'LESSONS/art/space-shift-2.webp', fit: 'cover' },
   'LESSONS/Ragdoll-Sandbox/index.html': { src: 'LESSONS/art/ragdoll-sandbox.webp', fit: 'cover' },
   'LESSONS/Class-Day-1/index.html': { src: 'LESSONS/art/class-day-1.webp', fit: 'cover' },
   'LESSONS/Class-Day-2/index.html': { src: 'LESSONS/art/class-day-2.webp', fit: 'cover' },
-  'LESSONS/Climb-Physics/index.html': { src: 'LESSONS/art/climb-physics.webp', fit: 'cover' },
   'LESSONS/Story-Yellow/index.html': { src: 'LESSONS/art/story-yellow.webp', fit: 'cover' },
   'LESSONS/Duel-Physics/index.html': { src: 'LESSONS/art/duel-physics.webp', fit: 'cover' },
   'LESSONS/Escape-Plan-1/index.html': { src: 'LESSONS/art/escape-plan-1.webp', fit: 'cover' },
@@ -160,7 +154,6 @@ const ART = {
   'LESSONS/Line-Drawing-Physics/index.html':         { src: 'LESSONS/art/line-drawing-physics.webp', bg: '#1b2430', fit: 'cover' },
   'LESSONS/Square-Platformer/index.html':            { src: 'LESSONS/art/square-platformer.webp', bg: '#2a1518', fit: 'cover' },
   'LESSONS/Basement-Diary/index.html':               { src: 'LESSONS/art/basement-diary.webp', bg: '#171412', fit: 'cover' },
-  'LESSONS/Night-Watch/index.html':                  { src: 'LESSONS/art/night-watch.webp', bg: '#140f10', fit: 'cover' },
   'LESSONS/Study-Hall-Remake/index.html':            { src: 'LESSONS/art/study-hall-remake.webp', bg: '#204020', fit: 'cover' },
 
   'LESSONS/City-Planning/index.html':             { src: 'LESSONS/City-Planning/img/cover.jpg', bg: '#0d1b2a', fit: 'contain' },
@@ -256,7 +249,6 @@ const ART = {
   'LESSONS/Rooftop-Angles/index.html': { src: 'LESSONS/art/rooftop-angles.webp', fit: 'cover' },
   'LESSONS/Polygon-Platformer/index.html': { src: 'LESSONS/art/polygon-platformer.webp', fit: 'cover' },
   'LESSONS/Track-Sprints/index.html': { src: 'LESSONS/art/track-sprints.webp', fit: 'cover' },
-  'LESSONS/Ocean-Survival/index.html': { src: 'LESSONS/art/ocean-survival.webp', fit: 'cover' },
   'LESSONS/Forest-Logs/index.html': { src: 'LESSONS/art/forest-logs.webp', fit: 'cover' },
 };
 
