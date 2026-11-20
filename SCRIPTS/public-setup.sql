@@ -1779,3 +1779,44 @@ revoke execute on function public.create_poll(uuid, text, text[]), public.vote_p
 grant execute on function public.create_poll(uuid, text, text[]), public.vote_poll(bigint, int),
   public.poll_results(bigint[]), public.latest_poll() to authenticated;
 grant execute on function public.latest_poll() to anon;
+
+-- ================================================================ Announcements
+-- A post in Global's announcements channel pops up on every open ChalkBored
+-- page, for visitors without an account too, so it is copied to a table
+-- anyone may read. Deleting the message takes the announcement away.
+
+update public.channels c set purpose = 'announce', post_role = 'mods'
+  from public.rooms r where r.id = c.room_id and r.is_global and c.name = 'announcements' and c.purpose is null;
+
+create table if not exists public.announcements (
+  id         bigserial primary key,
+  message_id bigint unique references public.messages on delete cascade,
+  body       text not null,
+  author     text,
+  created_at timestamptz not null default now()
+);
+alter table public.announcements enable row level security;
+drop policy if exists announcements_read on public.announcements;
+create policy announcements_read on public.announcements for select to anon, authenticated using (true);
+revoke all on public.announcements from anon, authenticated;
+grant select on public.announcements to anon, authenticated;
+
+create or replace function public.copy_announcement()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if exists (select 1 from channels where id = new.channel_id and purpose = 'announce') then
+    insert into announcements (message_id, body, author)
+    values (new.id, new.body, (select username::text from profiles where id = new.user_id));
+  end if;
+  return new;
+end; $$;
+drop trigger if exists messages_announce on public.messages;
+create trigger messages_announce after insert on public.messages
+  for each row execute function public.copy_announcement();
+revoke execute on function public.copy_announcement() from public, anon, authenticated;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.announcements;
+exception when duplicate_object then null;
+end $$;
