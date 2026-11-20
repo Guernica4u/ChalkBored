@@ -1653,11 +1653,6 @@ $$;
 grant execute on function public.edit_message(bigint, text), public.toggle_reaction(bigint, text),
   public.set_pin(bigint, boolean), public.mark_read(uuid, bigint), public.unread_channels() to authenticated;
 
--- ================================================================ Last step
--- Signed-out visitors can only reach the Requests poll and the online count.
-revoke execute on all functions in schema public from public, anon;
-grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
-  public.i_am_here(uuid), public.online_count() to anon, authenticated;
 
 -- ================================================================ Polls
 -- Polls are messages with choices. Only the people who run a class (site mods
@@ -1914,3 +1909,10 @@ begin
   alter publication supabase_realtime add table public.notifications;
 exception when duplicate_object then null;
 end $$;
+
+-- ================================================================ Last step
+-- Keep this at the very end. Signed-out visitors can only reach the vote on
+-- Home (latest_poll), the old Requests poll and the online count.
+revoke execute on all functions in schema public from public, anon;
+grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
+  public.i_am_here(uuid), public.online_count(), public.latest_poll() to anon, authenticated;
