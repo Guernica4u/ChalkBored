@@ -1139,7 +1139,7 @@
 
     // ---- settings that stick (same storage as before, so nobody loses theirs) ----
     const SETTINGS_STORE = 'vault-settings';
-    const SEEN_STORE = 'vault-seen-version';
+    const SEEN_STORE = 'vault-seen-notes';
     const FAVS_STORE = 'vault-favorites';
     const VERSION = '1.5';
     const SETUP_VERSION = '1.5';   // bump this when everyone should see setup again
@@ -1201,6 +1201,8 @@
     delete settings.rememberTide;
     // 1.1: new tabs from games are always blocked, and the homepage opens the vault for everyone once
     settings.blockPopups = true;
+    // 1.5: games always open cloaked; a saved Normal tab moves to the default cloak
+    if (settings.cloakMode === 'normal') settings.cloakMode = 'classroom';
     // cloaking is back: Google Classroom by default, and ask before opening a game
     if (!settings.cloakDefaults) {
       settings.disguise = 'classroom';
@@ -1290,7 +1292,6 @@
       ['docs', 'Google Docs'],
       ['drive', 'Google Drive'],
       ['google', 'Google'],
-      ['normal', 'Normal tab'],
     ];
     const ORIGINAL_TITLE = document.title;
 
@@ -2358,7 +2359,7 @@
         b.classList.toggle('on', settings.disguise === key);
         b.addEventListener('click', () => {
           settings.disguise = key;
-          settings.cloakMode = key === 'off' ? 'normal' : key;
+          settings.cloakMode = key === 'off' ? 'classroom' : key;
           saveSettings();
           applySettings();
         });
@@ -2427,14 +2428,14 @@
         name.textContent = d ? d.title : ORIGINAL_TITLE;
         choice.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.disguise === settings.disguise));
       };
-      Object.entries(DISGUISES).forEach(([key, d]) => {
+      Object.entries(DISGUISES).filter(([, d]) => d).forEach(([key, d]) => {
         const b = document.createElement('button');
         b.type = 'button';
         b.dataset.disguise = key;
-        b.textContent = d ? d.label : 'Normal tab';
+        b.textContent = d.label;
         b.addEventListener('click', () => {
           settings.disguise = key;
-          settings.cloakMode = key === 'off' ? 'normal' : key;
+          settings.cloakMode = key;
           saveSettings();
           applySettings();
           paint();
@@ -2556,6 +2557,7 @@
 
     // what's new for a version you haven't seen, after the milestone screen
     function showNewNotes() {
+      try { localStorage.setItem(SEEN_STORE, VERSION); } catch (e) {}
       if (VERSION === '1.5') showMilestone();
       else notesEl.hidden = false;
     }
@@ -2570,8 +2572,7 @@
         b.textContent = label;
         b.addEventListener('click', () => {
           settings.cloakMode = mode;
-          if (mode === 'normal') settings.askCloak = false;
-          else settings.disguise = mode;
+          settings.disguise = mode;
           settings.cloakAsked = true;
           saveSettings();
           applySettings();
@@ -2595,17 +2596,17 @@
 
     // ---- first visit to Games: how activities open (shown once) ----
     function gamesWays() {
-      const look = DISGUISES[settings.disguise];
+      const look = DISGUISES[settings.disguise] || DISGUISES.classroom;
       return [
         ['ask', 'Ask each time', 'Choose how it opens when you pick a card.'],
-        ['tab', look ? 'Cloaked tab' : 'New tab', look ? 'Opens right away in a tab that looks like ' + look.label + '.' : 'Opens right away in a new tab.'],
+        ['tab', 'Cloaked tab', 'Opens right away in a tab that looks like ' + look.label + '.'],
         ['here', 'On this page', 'Opens on top of ChalkBored, with no new tab.'],
       ];
     }
     function setGamesWay(way) {
       settings.noNewTabs = way === 'here';
       if (way !== 'here') settings.askCloak = way === 'ask';
-      if (way === 'tab') settings.cloakMode = DISGUISES[settings.disguise] ? settings.disguise : 'normal';
+      if (way === 'tab') settings.cloakMode = DISGUISES[settings.disguise] ? settings.disguise : 'classroom';
       saveSettings();
       applySettings();
     }
@@ -2700,7 +2701,7 @@
     let notesPending = false;
     let seenVersion = null;
     try { seenVersion = localStorage.getItem(SEEN_STORE); } catch (e) {}
-    try { localStorage.setItem(SEEN_STORE, VERSION); } catch (e) {}
+    if (!returningVisitor) try { localStorage.setItem(SEEN_STORE, VERSION); } catch (e) {}
 
     saveSettings();
     applySettings();
