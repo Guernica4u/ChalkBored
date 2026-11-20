@@ -480,6 +480,7 @@
       }
     }
     paintAsk();
+    window.addEventListener('chalk-share', () => { paintAsk(); checkIn(); });
     let timer = null;
     startOnline = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
     window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') startOnline(); });
@@ -684,7 +685,27 @@
     });
     return box;
   }
-  SETUP_STEPS.splice(SETUP_STEPS.length - 1, 0, { step: 'Home', title: 'Pick your Home', text: 'You can switch any time in Settings.', body: lookPicker });
+  // same choice as the question beside the ChalkBored title on Home
+  function sharePicker() {
+    const box = el('div', 'home-look-pick');
+    const now = read(SHARE, '');
+    [['yes', 'Sure', 'Home shows numbers like 3 playing. No names.'], ['no', 'No I have W opsec', 'Nothing about what you play leaves this browser.']].forEach(([choice, title, about]) => {
+      const b = el('button', 'way');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(now === choice));
+      b.append(el('b', '', title), el('span', '', about));
+      b.addEventListener('click', () => {
+        write(SHARE, choice);
+        window.dispatchEvent(new Event('chalk-share'));
+        box.querySelectorAll('.way').forEach((w) => w.setAttribute('aria-pressed', String(w === b)));
+      });
+      box.append(b);
+    });
+    return box;
+  }
+  SETUP_STEPS.splice(SETUP_STEPS.length - 1, 0,
+    { step: 'Home', title: 'Pick your Home', text: 'You can switch any time in Settings.', body: lookPicker },
+    { step: 'Sharing', title: 'Count what you play?', text: 'You can change this any time on Home.', body: sharePicker });
   if (!$('setup').hidden) renderSetup();
 
   // keep the look right when settings change in another tab
