@@ -37,6 +37,9 @@
   css.textContent = `
   body.home-new.on-home .brand { opacity: 0; transform: translateY(-6px); pointer-events: none; }
   .brand { transition: opacity .28s ease, transform .28s cubic-bezier(.22,1,.36,1); }
+  .rail-top, .rail-search { transition: padding .28s cubic-bezier(.22,1,.36,1); }
+  body.home-new.on-home .rail-top { padding-bottom: .25rem; }
+  body.home-new.on-home .rail-search { padding-bottom: 0; }
   .hn, .hn-edit-bar, .hn-tray { display: none; }
   body.home-new #panel-home.active { display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 1120px; min-height: calc(100vh - 6.4rem); margin: 0 auto; }
   body.home-new .hn { display: grid; }
