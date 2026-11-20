@@ -930,6 +930,10 @@
   .vc-stage[hidden] { display: none; }
   .vc-status { min-width: 0; font-size: 0.72rem; color: var(--muted); }
   .vc-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; align-content: start; padding: 16px; }
+  .vc-grid.fit { grid-template-columns: repeat(var(--cols), var(--tile)); grid-auto-rows: var(--tile); justify-content: center; align-content: center; overflow: hidden; }
+  .vc-grid.fit .vc-tile { aspect-ratio: auto; }
+  .vc-grid.fit .vc-tile .avatar { width: clamp(48px, calc(var(--tile) * 0.38), 160px); height: clamp(48px, calc(var(--tile) * 0.38), 160px); font-size: clamp(1.2rem, calc(var(--tile) * 0.14), 3.6rem); }
+  .vc-grid.fit .vc-name { font-size: clamp(0.78rem, calc(var(--tile) * 0.055), 1.1rem); }
   .vc-tile { aspect-ratio: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--ink); font: inherit; cursor: pointer; }
   .vc-tile:hover, .vc-tile:focus-visible { border-color: var(--accent-dim); outline: none; }
   .vc-tile.me { cursor: default; }
@@ -1061,6 +1065,27 @@
     .suggest { left: 12px; }
   }
 
+  /* Motion: quick fades and 4px slides, nothing that bounces. Only opacity and
+     transform move, so it stays light on Chromebooks. Off for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes cc-fade { from { opacity: 0; } }
+    @keyframes cc-rise { from { opacity: 0; transform: translateY(4px); } }
+    @keyframes cc-drop { from { opacity: 0; transform: translateY(-4px); } }
+    @keyframes cc-pop { from { opacity: 0; transform: scale(0.98); } }
+    #messages.swap { animation: cc-fade 0.16s ease-out; }
+    .msg.arrive { animation: cc-rise 0.18s ease-out; }
+    .veil:not(.hide) { animation: cc-fade 0.14s ease-out; }
+    .veil:not(.hide) > .card { animation: cc-pop 0.16s ease-out; }
+    .ctx:not(.hide), .user-menu:not(.hide), .suggest:not([hidden]) { animation: cc-drop 0.12s ease-out; }
+    .class-page:not([hidden]), .vc-stage:not([hidden]), .home:not([hidden]) { animation: cc-fade 0.16s ease-out; }
+    .vc-tile.enter { animation: cc-pop 0.18s ease-out; }
+    .reaction.on, .poll-choice.mine { animation: cc-pop 0.14s ease-out; }
+    .msg-tools { transition: opacity 0.12s ease, transform 0.12s ease; transform: translateY(2px); }
+    .msg:hover .msg-tools, .msg:focus-within .msg-tools { transform: none; }
+    .poll-choice i { transition: width 0.3s ease-out; }
+    button, .channel, .server, .pick-row, .person, .cp-nav button, .vc-tile { transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.08s ease, opacity 0.12s ease; }
+    button:active:not(:disabled), .channel:active, .pick-row:active, .person:active, .vc-tile:active:not(:disabled) { transform: scale(0.98); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .dot { animation: none; }
     .app, .people-fold, .people-inner { transition: none; }
@@ -2443,7 +2468,11 @@ async function openChannel(ch) {
   const rows = (data || []).reverse();
   $('messages').innerHTML = '';
   if (!rows.length) renderEmpty('Nothing here yet. Say something.');
-  rows.forEach(addMessage);
+  rows.forEach((r) => addMessage(r));
+  const list = $('messages');
+  list.classList.remove('swap');
+  void list.offsetWidth;   // restart the fade
+  list.classList.add('swap');
   loadReactions(rows.map((r) => r.id));
   loadPolls(rows.map((r) => r.id));
   scrollDown();
@@ -2909,6 +2938,8 @@ function watchFeed() {
           const { data } = await db.from('profiles').select('username').eq('id', row.user_id).single();
           addMessage({ ...row, profiles: data });
         }
+        const added = $('messages').querySelector('[data-id="' + row.id + '"]');
+        if (added) added.classList.add('arrive');
         loadPolls([row.id]);
         scrollDown();
         markRead();
@@ -4540,15 +4571,38 @@ function paintVoice() {
   }
 }
 
+// The biggest square tiles that fit every person on screen without scrolling;
+// a large group falls back to a scrolling list of small squares.
+function fitCallGrid() {
+  const grid = $('vc-grid');
+  const n = grid.children.length;
+  const pad = 32, gap = 10;
+  const w = grid.clientWidth - pad, h = grid.clientHeight - pad;
+  let best = { size: 0, cols: 1 };
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols);
+    const size = Math.floor(Math.min((w - gap * (cols - 1)) / cols, (h - gap * (rows - 1)) / rows));
+    if (size > best.size) best = { size, cols };
+  }
+  const fits = n > 0 && best.size >= 110;
+  grid.classList.toggle('fit', fits);
+  grid.style.setProperty('--cols', best.cols);
+  grid.style.setProperty('--tile', Math.min(best.size, 420) + 'px');
+}
+if (window.ResizeObserver) new ResizeObserver(() => { if (!$('vc-stage').hidden) fitCallGrid(); }).observe($('vc-grid'));
+let shownTiles = new Set();
+
 function paintCallGrid() {
   const grid = $('vc-grid');
   if ($('vc-stage').hidden) return;
   const linked = voice.v.connected();
   const stuck = voice.v.failed();
+  const before = shownTiles;
+  shownTiles = new Set((voice.people || []).map((p) => p.user_id));
   grid.innerHTML = '';
   (voice.people || []).forEach((p) => {
     const mine = p.user_id === state.me.id;
-    const tile = make('button', 'vc-tile' + (mine ? ' me' : ''));
+    const tile = make('button', 'vc-tile' + (mine ? ' me' : '') + (before.has(p.user_id) ? '' : ' enter'));
     tile.type = 'button';
     const note = p.muted ? 'Muted by a mod' : voice.hush.has(p.user_id) ? 'Muted for you'
       : mine ? (voice.v.muted ? 'Muted' : 'You') : linked.includes(p.user_id) ? '' : stuck.includes(p.user_id) ? 'Can’t connect' : 'Connecting…';
@@ -4562,6 +4616,7 @@ function paintCallGrid() {
     };
     grid.appendChild(tile);
   });
+  fitCallGrid();
 }
 
 function openCallMenu(p, x, y) {
