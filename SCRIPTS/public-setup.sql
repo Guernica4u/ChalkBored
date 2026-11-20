@@ -668,8 +668,6 @@ begin
   select * into ch from channels where id = p_channel;
   if ch.id is null then return 'That channel is gone.'; end if;
   if ch.kind <> 'text' then return 'That''s a voice channel.'; end if;
-  select is_global into glob from rooms where id = ch.room_id;
-  if glob and not me.is_mod then return 'Only mods post in Global. Add friends to talk with them.'; end if;
   if not me.is_mod and not exists (select 1 from room_members where room_id = ch.room_id and user_id = me.id) then
     return 'You aren''t in this class.';
   end if;
@@ -1601,7 +1599,6 @@ begin
   if m.id is null then return 'That message is gone.'; end if;
   v_room := channel_room(m.channel_id);
   if not can_read_room(v_room) then return 'You aren''t in this class.'; end if;
-  if not me.is_mod and (select is_global from rooms where id = v_room) then return 'Only mods post in Global.'; end if;
   if (select count(*) from secret_attempts where user_id = me.id and kind = 'react' and created_at > now() - interval '1 minute') >= 30 then
     return 'Slow down a little.';
   end if;
@@ -2008,3 +2005,8 @@ language sql stable security definer set search_path = public, extensions as $$
 $$;
 
 grant execute on function public.here_now(uuid, text, text), public.online_stats() to anon, authenticated;
+
+-- ================================================================ Global is a normal class (2026-11-20)
+-- Everyone posts and reacts in Global's open channels; #announcements and #polls stay mods-only.
+update public.channels c set post_role = 'mods'
+  from public.rooms r where r.id = c.room_id and r.is_global and c.purpose in ('announce', 'polls');
