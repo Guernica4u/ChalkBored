@@ -1343,7 +1343,7 @@
   <div class="gate-box">
     <h2>Chalk Chat</h2>
     <p class="safe">Moderated and safe for students</p>
-    <p>Global is for news from the mods. Add friends to talk with them, and make a class to invite them to.</p>
+    <p>Talk with everyone in Global. Add friends to message them, and make a class to invite them to.</p>
     <p>Pick a name and a password. No email, no verification — the password is hashed on the server and never leaves your browser in the clear.</p>
     <input id="u" maxlength="20" placeholder="Username" autocomplete="username">
     <input id="p" type="password" placeholder="Password" autocomplete="current-password">
@@ -2452,9 +2452,8 @@ async function openChannel(ch) {
   watchFeed();
 }
 
-// the channel's topic, and whether you can write in it
-// Global's polls are made by site mods; anyone who runs a class makes polls there
-const globalOnlyHidden = () => state.room.is_global && !state.me.is_mod;
+// the channel's topic, and whether you can write in it (Global works like any class:
+// its site mods run it, and #announcements and #polls are mods-only channels)
 
 function paintChannelHead() {
   const ch = state.channel;
@@ -2465,12 +2464,10 @@ function paintChannelHead() {
   $('channel-topic').textContent = ch.topic || '';
   $('channel-topic').hidden = !ch.topic;
   $('pins-btn').hidden = false;
-  $('poll-btn').hidden = !runs || globalOnlyHidden();
-  const globalOnly = state.room.is_global && !state.me.is_mod;
+  $('poll-btn').hidden = !runs;
   const modsOnly = ch.post_role === 'mods' && !runs;
-  lockComposer(globalOnly || modsOnly);
-  $('text').placeholder = globalOnly ? 'Only mods post in Global. Add friends to talk with them.'
-    : modsOnly ? 'Only the people who run this class can post here.'
+  lockComposer(modsOnly);
+  $('text').placeholder = modsOnly ? (state.room.is_global ? 'Only mods post here.' : 'Only the people who run this class can post here.')
       : 'Message #' + ch.name + (ch.slow_seconds && !runs ? ' · slow mode ' + ch.slow_seconds + 's' : '');
 }
 
@@ -2580,7 +2577,7 @@ function addMessage(m) {
   };
 
   tool('ic-reply', 'Reply', () => setReply({ id: m.id, name, body: state.messageById.get(String(m.id)).body }));
-  if (!state.room.is_global || state.me.is_mod) tool('ic-smile', 'Add a reaction', (e) => { e.stopPropagation(); openReactionPicker(m.id, e.currentTarget); });
+  tool('ic-smile', 'Add a reaction', (e) => { e.stopPropagation(); openReactionPicker(m.id, e.currentTarget); });
   if (mine) tool('ic-edit', 'Edit your message', () => startEdit(row, m.id));
   if (canManage(state.room)) tool('ic-pin', 'Pin or unpin', () => togglePin(m.id));
   if (!mine) tool('ic-flag', 'Report this message', () => reportMessage(m.id));
@@ -4226,7 +4223,7 @@ function openBotThread() {
   link.textContent = 'add some friends';
   link.onclick = () => openPicker('friend');
   text.append(
-    'Hi ' + state.me.username + '! I’m Chalk Bot. Global is where the mods post news. To talk, ',
+    'Hi ' + state.me.username + '! I’m Chalk Bot. Everyone can talk in Global #general. To message someone, ',
     link,
     ': once they say yes you can message them here and invite them to a class you make.'
   );
