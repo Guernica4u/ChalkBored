@@ -1969,3 +1969,42 @@ end; $$;
 
 revoke execute on function public.reorder_channels(uuid, uuid[], text[]) from public, anon;
 grant execute on function public.reorder_channels(uuid, uuid[], text[]) to authenticated;
+
+-- ================================================================ Online stats
+-- Each open Study Hall page checks in every 30 seconds with what it's doing,
+-- but only if that person said yes to sharing ("Sure" on Home); otherwise it
+-- only counts as online. No names: a random id per browser, and an activity's
+-- path. Home shows online / playing / listening counts and the most played.
+
+alter table public.online_now add column if not exists doing text;
+alter table public.online_now add column if not exists item text;
+alter table public.online_now drop constraint if exists online_now_doing_check;
+alter table public.online_now add constraint online_now_doing_check check (doing is null or doing in ('play', 'listen'));
+alter table public.online_now drop constraint if exists online_now_item_check;
+alter table public.online_now add constraint online_now_item_check check (item is null or item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$');
+
+-- shortcut: browser ids aren't checked, so a script could pad the counts; add a per-network cap if that happens
+create or replace function public.here_now(p_device uuid, p_doing text default null, p_item text default null)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare v_doing text := case when p_doing in ('play', 'listen') then p_doing end;
+        v_item text := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
+begin
+  if p_device is null then return; end if;
+  insert into online_now (device, seen_at, doing, item) values (p_device, now(), v_doing, v_item)
+  on conflict (device) do update set seen_at = now(), doing = excluded.doing, item = excluded.item;
+  delete from online_now where seen_at < now() - interval '1 hour';
+end; $$;
+
+create or replace function public.online_stats()
+returns table (online int, playing int, listening int, top jsonb)
+language sql stable security definer set search_path = public, extensions as $$
+  with now_on as (select * from online_now where seen_at > now() - interval '90 seconds')
+  select (select count(*)::int from now_on),
+         (select count(*)::int from now_on where doing = 'play'),
+         (select count(*)::int from now_on where doing = 'listen'),
+         coalesce((select jsonb_agg(jsonb_build_object('item', item, 'n', n) order by n desc, item)
+                     from (select item, count(*)::int n from now_on where doing = 'play' and item is not null
+                            group by item order by count(*) desc, item limit 5) t), '[]'::jsonb);
+$$;
+
+grant execute on function public.here_now(uuid, text, text), public.online_stats() to anon, authenticated;
