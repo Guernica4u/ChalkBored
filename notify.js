@@ -10,13 +10,13 @@
   const style = document.createElement('style');
   style.textContent = `
   .news-pop { position: fixed; top: 18px; left: 50%; z-index: 9000; transform: translateX(-50%); width: min(460px, calc(100vw - 32px));
-    padding: 14px 16px 12px; background: var(--paper, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--pencil, #6b6b6b);
-    border-radius: var(--r, 3px); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); font: inherit; }
-  .news-pop h2 { margin: 0 0 6px; font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--pencil, #9a9a9a); }
+    padding: 14px 16px 12px; background: var(--card, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--edge, #2e2e2e);
+    border-radius: var(--r, 3px); box-shadow: var(--shadow, none); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font: inherit; }
+  .news-pop h2 { margin: 0 0 6px; font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent, #9a9a9a); }
   .news-pop p { margin: 0; font-size: .95rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
   .news-pop .news-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: .75rem; color: var(--pencil, #9a9a9a); }
-  .news-pop button { padding: 5px 12px; background: none; border: 1px solid var(--pencil, #6b6b6b); border-radius: var(--r, 3px); color: inherit; font: inherit; cursor: pointer; }
-  .news-pop button:hover, .news-pop button:focus-visible { border-color: var(--ink, #f2f2f2); outline: none; }`;
+  .news-pop button { padding: 5px 12px; background: none; border: 1px solid var(--edge, #2e2e2e); border-radius: var(--r, 3px); color: inherit; font: inherit; cursor: pointer; }
+  .news-pop button:hover, .news-pop button:focus-visible { border-color: var(--accent, #f2f2f2); outline: none; }`;
   document.head.appendChild(style);
 
   function show(a) {
@@ -56,14 +56,14 @@
   @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
   .bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .bell-count { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; background: var(--ink, #f2f2f2); color: var(--paper, #111);
+  .bell-count { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; background: var(--accent, #f2f2f2); color: var(--card, #111);
     border-radius: 2px; font-size: .62rem; font-weight: 700; line-height: 15px; text-align: center; }
   .bell-list { position: fixed; z-index: 8999; width: min(340px, calc(100vw - 24px)); max-height: 60vh; overflow-y: auto; padding: 6px;
-    background: var(--paper, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--pencil, #6b6b6b); border-radius: var(--r, 3px); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+    background: var(--card, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--edge, #2e2e2e); border-radius: var(--r, 3px); box-shadow: var(--shadow, none); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   .bell-list h2 { display: flex; justify-content: space-between; align-items: center; margin: 2px 4px 6px; font-size: .78rem; font-weight: 600; }
-  .bell-list h2 button { padding: 2px 8px; background: none; border: 1px solid var(--pencil, #6b6b6b); border-radius: var(--r, 3px); color: inherit; font: inherit; font-size: .7rem; cursor: pointer; }
-  .bell-row { display: block; width: 100%; padding: 7px 6px; background: none; border: 0; border-top: 1px solid var(--pencil, #333); color: inherit; font: inherit; font-size: .8rem; text-align: left; cursor: pointer; }
-  .bell-row:hover, .bell-row:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
+  .bell-list h2 button { padding: 2px 8px; background: none; border: 1px solid var(--edge, #2e2e2e); border-radius: var(--r, 3px); color: inherit; font: inherit; font-size: .7rem; cursor: pointer; }
+  .bell-row { display: block; width: 100%; padding: 7px 6px; background: none; border: 0; border-top: 1px solid var(--edge, #2e2e2e); color: inherit; font: inherit; font-size: .8rem; text-align: left; cursor: pointer; }
+  .bell-row:hover, .bell-row:focus-visible { background: var(--paper-2, rgba(255, 255, 255, .06)); outline: none; }
   .bell-row.new { font-weight: 600; }
   .bell-row small { display: block; margin-top: 2px; font-size: .68rem; font-weight: 400; color: var(--pencil, #9a9a9a); }
   .bell-empty { margin: 4px 6px 6px; font-size: .78rem; color: var(--pencil, #9a9a9a); }`;
