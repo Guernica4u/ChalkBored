@@ -939,7 +939,7 @@
 
     </nav>
 
-    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.2</b> <span class="ver-tag">Early Access</span></button>
+    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.5</b> <span class="ver-tag">Early Access</span></button>
 
     <div class="main">
       <header class="topbar">
@@ -1045,7 +1045,7 @@
       </main>
 
       <footer>
-        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.2 Early Access</button></span>
+        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.5 Early Access</button></span>
         <p class="tip" id="tip"></p>
       </footer>
     </div>
@@ -1093,12 +1093,12 @@
   </div>
 
   <!-- version milestone screen, shown once before what's new -->
-  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.2">
+  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.5">
     <div class="milestone-inner">
       <p class="ms-name">ChalkBored</p>
-      <div class="ms-mask"><p class="ms-num">1.2</p></div>
+      <div class="ms-mask"><p class="ms-num">1.5</p></div>
       <span class="ms-line" aria-hidden="true"></span>
-      <p class="milestone-msg" id="milestone-msg">A little guy with a lot of feelings.</p>
+      <p class="milestone-msg" id="milestone-msg">A new Home, and classes that talk back.</p>
       <p class="milestone-hint">Click anywhere to see what’s new</p>
     </div>
   </div>
@@ -1107,12 +1107,13 @@
   <div class="modal" id="notes" hidden role="dialog" aria-modal="true" aria-labelledby="notes-title">
     <div class="modal-box">
       <p class="modal-step">What's new</p>
-      <h2 id="notes-title">ChalkBored 1.2</h2>
+      <h2 id="notes-title">ChalkBored 1.5</h2>
       <ul>
-        <li><b>The little guy has feelings now:</b> five faces, a mood meter above the footer, and a landing that settles instead of snapping.</li>
-        <li><b>He tags along through setup,</b> pulling a face at every step.</li>
-        <li><b>Home stays quiet:</b> the activity list stays in its own tab, not on the landing page.</li>
-        <li><b>Picture-first cards:</b> covers lead, and each name is part of the picture.</li>
+        <li><b>A new Home:</b> featured picks, what you opened last, Chalk Music and the class vote, all on one screen. Move sections around with Edit Home screen in Settings, or switch back to the classic Home.</li>
+        <li><b>Classes in Chalk Chat:</b> each class gets its own channels, including voice channels, and you can drag channels into the order you like.</li>
+        <li><b>Polls:</b> votes now happen in Chalk Chat, replacing the old Requests page.</li>
+        <li><b>Announcements and a bell:</b> big news pops up once, and the bell keeps your notifications in one place.</li>
+        <li><b>Setup again:</b> a quick walk-through with a new Home step. Your saved choices stay picked.</li>
       </ul>
       <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
     </div>
@@ -1140,8 +1141,8 @@
     const SETTINGS_STORE = 'vault-settings';
     const SEEN_STORE = 'vault-seen-version';
     const FAVS_STORE = 'vault-favorites';
-    const VERSION = '1.2';
-    const SETUP_VERSION = '1.2';   // bump this when everyone should see setup again
+    const VERSION = '1.5';
+    const SETUP_VERSION = '1.5';   // bump this when everyone should see setup again
     const THEMES = ['basic'];
     const BASIC_COLORS = [['mono', 'Mono']];
 
@@ -2555,7 +2556,7 @@
 
     // what's new for a version you haven't seen, after the milestone screen
     function showNewNotes() {
-      if (VERSION === '1.2') showMilestone();
+      if (VERSION === '1.5') showMilestone();
       else notesEl.hidden = false;
     }
 
@@ -2714,6 +2715,7 @@
 
     // everyone walks through the new setup once per big update
     if (settings.setupVersion !== SETUP_VERSION) {
+      settings.gamesSetup = false;
       notesPending = seenVersion !== VERSION && returningVisitor;
       openSetup();
     }
