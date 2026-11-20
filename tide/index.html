@@ -4263,26 +4263,8 @@
 
         /* ── Palette remaps: Tide's own vars adopt the masked browser's tone so every
               popup, modal and panel matches the disguise automatically ── */
-        html[data-skin="chrome"] {
-            /* Chrome 150 GM3 dark — colors probed from a real capture */
-            --bg0: #161c1f; --bg1: #1f272b; --bg2: #242d32; --bg3: #2c363c;
-            --bg-elevated: #1f272b;
-            --surface: rgba(255, 255, 255, .06); --surface2: rgba(255, 255, 255, .1);
-            --bd: #3a4449; --bd2: #484d4f;
-            --tx: #dfe4e7; --tx2: #bdc7cc; --tx3: #8f9ba1;
-            --ac: #a8c7fa; --ac2: #c2d7fc;
-            --ui: 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
-            --sk-bar: #161c1f; --sk-field: #222b30;
-        }
-        html[data-skin="brave"] {
-            --bg0: #16171c; --bg1: #1e2025; --bg2: #24262d; --bg3: #2c2f37;
-            --bg-elevated: #1e2025;
-            --bd: #33363e; --bd2: #494d58;
-            --tx: #e8e9ee; --tx2: #c3c6cf; --tx3: #8c90a1;
-            --ac: #fb542b; --ac2: #ff7654;
-            --ui: 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
-            --sk-bar: #22242b; --sk-field: #16171c;
-        }
+        
+        
         html[data-skin="firefox"] {
             --bg0: #1c1b22; --bg1: #2b2a33; --bg2: #35343e; --bg3: #42414d;
             --bg-elevated: #2b2a33;
@@ -4292,18 +4274,11 @@
             --ui: 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
             --sk-bar: #2b2a33; --sk-field: #42414d;
         }
-        html[data-skin="operagx"] {
-            --bg0: #0e0d13; --bg1: #16141d; --bg2: #1a1823; --bg3: #241f2e;
-            --bg-elevated: #16141d;
-            --bd: #2c2837; --bd2: #3d3749;
-            --tx: #f2f1f7; --tx2: #b5b1c1; --tx3: #7d7889;
-            --ac: #fa1e4e; --ac2: #ff5c81;
-            --sk-bar: #16141d; --sk-field: #1d1a26;
-        }
-        html[data-skin="chrome"] ::selection  { background: rgba(138, 180, 248, .3); }
-        html[data-skin="brave"] ::selection   { background: rgba(251, 84, 43, .3); }
+        
+        
+        
         html[data-skin="firefox"] ::selection { background: rgba(0, 221, 255, .25); }
-        html[data-skin="operagx"] ::selection { background: rgba(250, 30, 78, .3); }
+        
 
         /* ── Shared scaffolding for every skin ── */
         html[data-skin] .titlebar { background: var(--bg0); border-bottom: none; }
@@ -4343,11 +4318,7 @@
 
         /* Injected skin controls — hidden until a skin needs them */
         #skinMenuBtn, #skinAvatarBtn { display: none; }
-        html[data-skin="chrome"] #skinMenuBtn,
-        html[data-skin="brave"] #skinMenuBtn,
         html[data-skin="firefox"] #skinMenuBtn { display: grid; }
-        html[data-skin="chrome"] #skinAvatarBtn,
-        html[data-skin="brave"] #skinAvatarBtn,
         html[data-skin="firefox"] #skinAvatarBtn { display: grid; }
         #skinAvatarBtn .sk-avatar {
             width: 24px; height: 24px; border-radius: 50%;
@@ -4366,12 +4337,12 @@
         }
         #skinShieldsBtn:hover { background: var(--surface2); color: var(--tx); }
         #skinShieldsBtn .sk-i-ff { display: none; }
-        html[data-skin="brave"] #skinShieldsBtn { display: flex; order: 2; color: #fb542b; }
-        html[data-skin="brave"] #skinShieldsBtn:hover { color: #ff7654; }
-        html[data-skin="brave"] .omnibox .security-chip { order: 0; }
-        html[data-skin="brave"] .omnibox .url-input { order: 1; }
-        html[data-skin="brave"] .omnibox .omni-drop-hint { order: 1; }
-        html[data-skin="brave"] .omnibox .omnibox-actions { order: 3; }
+        
+        
+        
+        
+        
+        
         html[data-skin="firefox"] #skinShieldsBtn { display: flex; order: -1; border-radius: 4px; }
         html[data-skin="firefox"] #skinShieldsBtn .sk-i-brave { display: none; }
         html[data-skin="firefox"] #skinShieldsBtn .sk-i-ff { display: inline-block; }
@@ -4383,39 +4354,24 @@
         }
 
         /* ── Brave: Chromium-style tab strip (interim until Brave deep pass) ── */
-        html[data-skin="brave"] .titlebar { padding: 7px 10px 0; gap: 8px; }
-        html[data-skin="brave"] .tab-strip { gap: 0; align-self: stretch; }
-        html[data-skin="brave"] .tab {
-            position: relative; border: none; border-radius: 10px 10px 0 0;
-            background: transparent; color: var(--tx3); margin-left: 0;
-            height: 36px; max-width: 240px; flex-basis: 190px; padding: 0 10px;
-            box-shadow: none;
-        }
-        html[data-skin="brave"] .tab:hover:not(.active) { background: rgba(255, 255, 255, .07); color: var(--tx2); border: none; }
-        html[data-skin="brave"] .tab.active { background: var(--sk-bar); color: var(--tx); border: none; box-shadow: none; overflow: visible; z-index: 1; }
-        html[data-skin="brave"] .tab.active::before,
-        html[data-skin="brave"] .tab.active::after {
-            content: ''; position: absolute; bottom: 0; width: 10px; height: 10px; pointer-events: none;
-        }
-        html[data-skin="brave"] .tab.active::before { left: -10px; background: radial-gradient(circle at 0 0, transparent 9.5px, var(--sk-bar) 10px); }
-        html[data-skin="brave"] .tab.active::after { right: -10px; background: radial-gradient(circle at 100% 0, transparent 9.5px, var(--sk-bar) 10px); }
-        html[data-skin="brave"] .tab:not(.active):not(:first-child)::before {
-            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-            width: 1px; height: 18px; background: var(--bd2); opacity: .45;
-        }
-        html[data-skin="brave"] .tab-icon { color: var(--tx2); }
-        html[data-skin="brave"] .tab.active .tab-icon { color: var(--tx); }
-        html[data-skin="brave"] .tab-title { font-size: 12.5px; }
-        html[data-skin="brave"] .tab-add { border-radius: 50%; width: 28px; min-width: 28px; max-width: 28px; height: 28px; margin-left: 6px; align-self: center; }
-        html[data-skin="brave"] .navbar { background: var(--sk-bar); padding: 5px 10px; gap: 4px; }
-        html[data-skin="brave"] .nav-btn,
-        html[data-skin="brave"] .nav-pill-btn,
-        html[data-skin="brave"] .tool-btn,
-        html[data-skin="brave"] .tool-toggle,
-        html[data-skin="brave"] .omni-btn { border-radius: 50% !important; }
-        html[data-skin="brave"] .omnibox { background: var(--sk-field); height: 34px; border: 1px solid transparent; }
-        html[data-skin="brave"] .omnibox:focus-within { background: var(--bg1); border-color: transparent; box-shadow: 0 1px 6px rgba(0, 0, 0, .4); }
-        html[data-skin="brave"] .url-input { font-size: 13.5px; }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         /* ── Firefox: Proton (Dark theme), reference-tuned ── */
         html[data-skin="firefox"] #skinMenuBtn { --sk-m: var(--mi-menu); }
@@ -4502,35 +4458,19 @@
         .fntp-sc .fsc-menu .sk-mi { width: 13px; height: 13px; }
 
         /* ── Opera GX: sidebar rail, razor tabs, neon red ── */
-        html[data-skin="operagx"] .app { padding-left: 46px; }
-        html[data-skin="operagx"] .titlebar { padding: 0 8px 0 0; gap: 0; border-bottom: 1px solid rgba(250, 30, 78, .22); }
-        html[data-skin="operagx"] .tab-strip { gap: 0; }
-        html[data-skin="operagx"] .tab {
-            border: none; border-radius: 0; background: transparent; color: var(--tx3);
-            height: 40px; margin: 0; flex-basis: 175px; max-width: 220px; box-shadow: none;
-        }
-        html[data-skin="operagx"] .tab:hover:not(.active) { background: rgba(250, 30, 78, .08); color: var(--tx2); border: none; }
-        html[data-skin="operagx"] .tab.active { background: #201c29; color: var(--tx); border: none; box-shadow: inset 0 2px 0 var(--ac); }
-        html[data-skin="operagx"] .tab-add { border-radius: 4px; }
-        html[data-skin="operagx"] .navbar { background: var(--sk-bar); padding: 6px 12px; }
-        html[data-skin="operagx"] .nav-btn,
-        html[data-skin="operagx"] .nav-pill-btn,
-        html[data-skin="operagx"] .tool-btn,
-        html[data-skin="operagx"] .tool-toggle,
-        html[data-skin="operagx"] .omni-btn { border-radius: 6px !important; }
-        html[data-skin="operagx"] .omnibox {
-            max-width: 760px; margin: 0 auto; background: var(--sk-field);
-            border: 1px solid var(--bd); border-radius: 6px; height: 34px;
-        }
-        html[data-skin="operagx"] .omnibox:focus-within {
-            border-color: var(--ac);
-            box-shadow: 0 0 0 3px rgba(250, 30, 78, .15), 0 0 16px rgba(250, 30, 78, .25);
-        }
-        html[data-skin="operagx"] .url-input { caret-color: var(--ac); }
-        html[data-skin="operagx"] #aiBtn,
-        html[data-skin="operagx"] #devToggle,
-        html[data-skin="operagx"] #findOmniBtn,
-        html[data-skin="operagx"] #codeBtn { display: none !important; }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         /* GX titlebar buttons (O-menu + GX Corner) */
         .gx-topbtn {
@@ -4540,7 +4480,7 @@
         }
         .gx-topbtn:hover { background: rgba(255, 255, 255, .06); color: #fff; }
         .gx-topbtn:hover i { filter: drop-shadow(0 0 6px rgba(250, 30, 78, .85)); }
-        html[data-skin="operagx"] .gx-topbtn { display: grid; }
+        
         #gxOBtn i { color: var(--ac); font-size: 19px; }
 
         /* GX sidebar rail */
@@ -4553,7 +4493,7 @@
             overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
         }
         #gxSidebar::-webkit-scrollbar { display: none; }
-        html[data-skin="operagx"] #gxSidebar { display: flex; }
+        
         .gx-sbtn {
             width: 38px; height: 38px; border: none; background: transparent; color: #8b8695;
             border-radius: 8px; cursor: pointer; display: grid; place-items: center;
@@ -4590,13 +4530,10 @@
             padding: 8px 16px 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
             text-transform: uppercase; color: var(--tx3); font-family: var(--mono);
         }
-        html[data-skin="chrome"] #skinMenu, html[data-skin="brave"] #skinMenu { border-radius: 12px; }
+        
         html[data-skin="firefox"] #skinMenu { border-radius: 8px; }
-        html[data-skin="operagx"] #skinMenu {
-            border-radius: 6px; border-color: rgba(250, 30, 78, .35);
-            box-shadow: 0 14px 44px rgba(0, 0, 0, .6), 0 0 22px rgba(250, 30, 78, .12);
-        }
-        html[data-skin="operagx"] .skin-menu-head { color: var(--ac); }
+        
+        
 
         /* ── Settings: skin picker tiles ── */
         .skin-tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
@@ -4677,7 +4614,7 @@
         .sk-plus .sp-dot { background: #c9a2ff; }
         .sk-plus .sp-body { background: linear-gradient(160deg, #1a1530, #100e18); }
 
-        html[data-skin="chrome"], html[data-skin="brave"], html[data-skin="firefox"], html[data-skin="zen"] {
+        html[data-skin="firefox"], html[data-skin="zen"] {
             --mi-menu: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'  viewBox='0 -960 960 960'%3E%3Cpath d='M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z'/%3E%3C/svg%3E");
             --mi-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'  viewBox='0 -960 960 960'%3E%3Cpath d='M220-80q-24.75 0-42.375-17.625T160-140v-434q0-24.75 17.625-42.375T220-634h70v-96q0-78.85 55.606-134.425Q401.212-920 480.106-920T614.5-864.425Q670-808.85 670-730v96h70q24.75 0 42.375 17.625T800-574v434q0 24.75-17.625 42.375T740-80H220Zm0-60h520v-434H220v434Zm260.168-140Q512-280 534.5-302.031T557-355q0-30-22.668-54.5t-54.5-24.5Q448-434 425.5-409.5t-22.5 55q0 30.5 22.668 52.5t54.5 22ZM350-634h260v-96q0-54.167-37.882-92.083-37.883-37.917-92-37.917Q426-860 388-822.083 350-784.167 350-730v96ZM220-140v-434 434Z'/%3E%3C/svg%3E");
             --mi-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'  viewBox='0 -960 960 960'%3E%3Cpath d='M480-81q-140-35-230-162.5T160-523v-238l320-120 320 120v238q0 152-90 279.5T480-81Zm0-62q115-38 187.5-143.5T740-523v-196l-260-98-260 98v196q0 131 72.5 236.5T480-143Zm0-337Z'/%3E%3C/svg%3E");
@@ -4774,98 +4711,57 @@
         html:is([data-skin="chrome"],[data-skin="brave"],[data-skin="firefox"]) #skinAvatarBtn .sk-avatar { display: none; }
 
         /* frame & tab strip */
-        html[data-skin="chrome"] .titlebar {
-            background: #222b30; padding: 7px 8px 0; gap: 0;
-        }
-        html[data-skin="chrome"] .tab-strip { gap: 0; align-self: stretch; }
-        html[data-skin="chrome"] .tab {
-            position: relative; border: 1px solid transparent; border-bottom: none;
-            border-radius: 10px 10px 0 0; background: transparent; color: #9fb0b8;
-            margin-left: 0; height: 35px; max-width: 240px; align-self: flex-end;
-            flex-basis: 200px; padding: 0 8px 0 10px; box-shadow: none; z-index: 0;
-        }
-        html[data-skin="chrome"] .tab:hover:not(.active) {
-            background: rgba(255, 255, 255, .06); color: #c6d2d8; border-color: transparent;
-        }
-        html[data-skin="chrome"] .tab.active {
-            background: #161c1f; color: #dfe4e7;
-            border-color: transparent; box-shadow: none; overflow: visible; z-index: 2;
-        }
-        html[data-skin="chrome"] .tab.active::before,
-        html[data-skin="chrome"] .tab.active::after {
-            content: ''; position: absolute; bottom: 0; width: 10px; height: 11px; pointer-events: none;
-        }
-        html[data-skin="chrome"] .tab.active::before {
-            left: -10px;
-            background: radial-gradient(circle at 0 0, transparent 9.5px, #161c1f 10px);
-        }
-        html[data-skin="chrome"] .tab.active::after {
-            right: -10px;
-            background: radial-gradient(circle at 100% 0, transparent 9.5px, #161c1f 10px);
-        }
-        html[data-skin="chrome"] .tab-icon { color: #9fb0b8; }
-        html[data-skin="chrome"] .tab.active .tab-icon { color: #c6d2d8; }
-        html[data-skin="chrome"] .tab-title { font-size: 12.5px; }
-        html[data-skin="chrome"] .tab-close {
-            width: 18px; min-width: 18px; height: 18px; border-radius: 50%; color: #9fb0b8;
-        }
-        html[data-skin="chrome"] .tab-close:hover { background: rgba(255, 255, 255, .12); color: #dfe4e7; }
-        html[data-skin="chrome"] .tab-add {
-            border-radius: 50%; width: 28px; min-width: 28px; max-width: 28px; height: 28px; margin-left: 4px;
-            align-self: center; color: #c6d2d8;
-        }
-        html[data-skin="chrome"] .tab-add:hover { background: rgba(255, 255, 255, .1); }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         #skinTabSearchBtn {
             display: none; width: 28px; height: 28px; border: none; border-radius: 50%;
             background: transparent; color: #c6d2d8; cursor: pointer;
             place-items: center; flex-shrink: 0; align-self: center; margin-right: 4px;
         }
         #skinTabSearchBtn:hover { background: rgba(255, 255, 255, .1); }
-        html[data-skin="chrome"] #skinTabSearchBtn { display: grid; }
+        
 
         /* toolbar */
-        html[data-skin="chrome"] .navbar { background: #161c1f; padding: 6px 8px; gap: 2px; box-shadow: none; }
-        html[data-skin="chrome"] .nav-btn, html[data-skin="chrome"] .nav-pill-btn {
-            border-radius: 50% !important; width: 34px !important; height: 34px !important; color: #c6d2d8;
-        }
-        html[data-skin="chrome"] .nav-btn:hover:not(:disabled), html[data-skin="chrome"] .nav-pill-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, .1) !important;
-        }
-        html[data-skin="chrome"] .nav-btn:disabled { opacity: 1; color: #4a5b64; }
-        html[data-skin="chrome"] .tool-btn { border-radius: 50% !important; width: 34px; height: 34px; color: #c6d2d8; }
-        html[data-skin="chrome"] .tool-btn:hover { background: rgba(255, 255, 255, .1); }
-        html[data-skin="chrome"] #home, html[data-skin="chrome"] #findOmniBtn, html[data-skin="chrome"] #go,
-        html[data-skin="chrome"] #devToggle, html[data-skin="chrome"] #codeBtn, html[data-skin="chrome"] #aiBtn,
-        html[data-skin="chrome"] #blockToggle, html[data-skin="chrome"] #showBookmarksBtn { display: none !important; }
-        html[data-skin="chrome"] .omnibox {
-            background: #222b30; height: 34px; border: none; margin: 0 6px;
-            transition: background .12s, box-shadow .12s;
-        }
-        html[data-skin="chrome"] .omnibox:hover:not(:focus-within) { background: #283238; }
-        html[data-skin="chrome"] .omnibox:focus-within {
-            background: #202124; border: none; box-shadow: 0 0 0 2px #a8c7fa;
-        }
-        html[data-skin="chrome"] .url-input { font-size: 13.5px; color: #dfe4e7; }
-        html[data-skin="chrome"] .security-chip { color: #9fb0b8; padding: 6px 2px 6px 4px; }
-        html[data-skin="chrome"] .omni-btn { border-radius: 50%; color: #9fb0b8; }
-        html[data-skin="chrome"] #bookmarkBtn i { transform: none; }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         #skinPuzzleBtn { display: none; }
-        html[data-skin="chrome"] #skinPuzzleBtn { display: grid; }
+        
 
         /* bookmarks bar */
-        html[data-skin="chrome"] .bookmarks-bar { background: #161c1f; border: none; padding: 2px 8px; min-height: 30px; }
+        
 
         /* GM3 menu */
-        html[data-skin="chrome"] #skinMenu, html[data-skin="chrome"] #skinSubMenu {
-            background: #161c1f; border: none; border-radius: 12px;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .04);
-            min-width: 288px; padding: 8px 0; font-family: var(--ui);
-        }
-        html[data-skin="chrome"] .skin-menu-item { padding: 7px 20px 7px 16px; font-size: 13px; color: #dfe4e7; gap: 14px; }
-        html[data-skin="chrome"] .skin-menu-item i { color: #c6d2d8; }
-        html[data-skin="chrome"] .skin-menu-item .sk-mi { width: 18px; height: 18px; flex-shrink: 0; }
-        html[data-skin="chrome"] .skin-menu-item:hover { background: rgba(255, 255, 255, .08); }
-        html[data-skin="chrome"] .skin-menu-sep { background: rgba(255, 255, 255, .1); margin: 8px 0; }
+        
+        
+        
+        
+        
+        
         .skin-menu-accel { margin-left: auto; padding-left: 28px; font-size: 12px; color: #8f9ba1; }
         .skin-menu-chev { margin-left: auto; padding-left: 28px; color: #8f9ba1; font-size: 10px; }
         .skin-menu-item.disabled { opacity: .45; pointer-events: none; }
@@ -4998,18 +4894,13 @@
         .cntp-customize .sk-mi { width: 16px; height: 16px; }
 
         /* chrome find bar */
-        html[data-skin="chrome"] #skinMenu { max-height: 88vh; min-width: 384px; }
-        html[data-skin="chrome"] #skinSubMenu { max-width: 340px; }
+        
+        
         .bookmarks-bar-wrap.sk-empty { display: none; }
-        html[data-skin="chrome"] .tab-add { border: none; }
-        html[data-skin="chrome"] .bookmarks-bar .bookmark-add,
-        html[data-skin="chrome"] #bookmarksToggle { display: none !important; }
-        html[data-skin="chrome"] .skin-menu-item .sk-lbl,
-        html[data-skin="chrome"] .skp-row .sk-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        html[data-skin="chrome"] .find-bar {
-            background: #1f272b; border: none; border-radius: 10px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05);
-        }
+        
+        
+        
+        
 
         /* ═══════════ OPERA GX — deep skin ═══════════ */
         /* GX NTP */
@@ -5158,46 +5049,39 @@
         .gxk-load i { color: var(--ac); margin-right: 8px; }
 
         /* ═══════════ BRAVE — deep skin ═══════════ */
-        html[data-skin="brave"] .titlebar { padding: 7px 8px 0; gap: 0; }
-        html[data-skin="brave"] .tab { border: 1px solid transparent; border-bottom: none; border-radius: 10px 10px 0 0; height: 35px; padding: 0 8px 0 10px; color: #9a9eae; align-self: flex-end; }
-        html[data-skin="brave"] .tab.active { background: var(--sk-bar); border-color: transparent; color: #e8e9ee; overflow: visible; z-index: 2; }
-        html[data-skin="brave"] .tab.active::before { left: -10px; width: 10px; height: 11px; bottom: 0;
-            background: radial-gradient(circle at 0 0, transparent 9.5px, var(--sk-bar) 10px); }
-        html[data-skin="brave"] .tab.active::after { right: -10px; width: 10px; height: 11px; bottom: 0;
-            background: radial-gradient(circle at 100% 0, transparent 9.5px, var(--sk-bar) 10px); }
-        html[data-skin="brave"] .tab-close { width: 18px; min-width: 18px; height: 18px; border-radius: 50%; }
-        html[data-skin="brave"] .tab-add { border: none; border-radius: 50%; width: 28px; min-width: 28px; max-width: 28px; height: 28px; }
-        html[data-skin="brave"] #skinTabSearchBtn { display: grid; order: 5; margin: 0 2px 0 4px; }
-        html[data-skin="brave"] .tab-strip-wrapper { order: 1; }
-        html[data-skin="brave"] .navbar { background: var(--sk-bar); padding: 5px 8px; gap: 2px; box-shadow: none; }
-        html[data-skin="brave"] .nav-btn, html[data-skin="brave"] .nav-pill-btn { width: 34px !important; height: 34px !important; color: #c3c6cf; }
-        html[data-skin="brave"] .nav-btn:disabled { opacity: 1; color: #565a66; }
-        html[data-skin="brave"] .tool-btn { width: 34px; height: 34px; color: #c3c6cf; }
-        html[data-skin="brave"] #home, html[data-skin="brave"] #findOmniBtn, html[data-skin="brave"] #go,
-        html[data-skin="brave"] #devToggle, html[data-skin="brave"] #codeBtn, html[data-skin="brave"] #aiBtn,
-        html[data-skin="brave"] #blockToggle, html[data-skin="brave"] #showBookmarksBtn { display: none !important; }
-        html[data-skin="brave"] #skinPuzzleBtn { display: grid; }
-        html[data-skin="brave"] .omnibox { background: var(--sk-field); height: 34px; border: none; margin: 0 6px; }
-        html[data-skin="brave"] .omnibox:focus-within { background: #101116; box-shadow: 0 0 0 2px #fb542b66; border: none; }
-        html[data-skin="brave"] .url-input { font-size: 13.5px; }
-        html[data-skin="brave"] .bookmarks-bar { background: var(--sk-bar); border: none; padding: 2px 8px; min-height: 30px; }
-        html[data-skin="brave"] .bookmarks-bar .bookmark-add, html[data-skin="brave"] #bookmarksToggle { display: none !important; }
-        html[data-skin="brave"] #skinShieldsBtn { width: 28px; height: 28px; }
-        html[data-skin="brave"] #skinShieldsBtn .sk-i-brave { font-size: 15px; }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         #skinRewardsBtn { display: none; align-items: center; justify-content: center; width: 28px; height: 28px;
             border: none; background: transparent; border-radius: 50%; cursor: pointer; flex-shrink: 0; padding: 0; position: relative; }
         #skinRewardsBtn:hover { background: var(--surface2); }
-        html[data-skin="brave"] #skinRewardsBtn { display: flex; order: 3; }
+        
         .bat-tri { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid #c3c6cf; position: relative; display: block; }
         #skinRewardsBtn:hover .bat-tri { border-bottom-color: #fb542b; }
-        html[data-skin="brave"] #skinMenu, html[data-skin="brave"] #skinSubMenu {
-            background: #1e2025; border: none; border-radius: 12px; min-width: 340px; max-height: 88vh;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .05); padding: 8px 0;
-        }
-        html[data-skin="brave"] .skin-menu-item { padding: 7px 20px 7px 16px; font-size: 13px; color: #e8e9ee; gap: 14px; }
-        html[data-skin="brave"] .skin-menu-item .sk-mi { width: 18px; height: 18px; flex-shrink: 0; }
-        html[data-skin="brave"] .skin-menu-sep { background: rgba(255, 255, 255, .1); margin: 8px 0; }
-        html[data-skin="brave"] #skinPanel { background: #1e2025; }
+        
+        
+        
+        
+        
         /* Brave NTP — photographic bg, square frosted tiles, stats + news cards */
         .bntp { min-height: 100%; position: relative; font-family: var(--ui); color: #fff; overflow: hidden;
             background: radial-gradient(1200px 700px at 80% -20%, #3b2d3f 0%, transparent 55%),
@@ -5570,28 +5454,25 @@
            html[data-skin="plus"][data-plus-<part>="X"], and each hex color in
            the clone is routed through var(--px-RRGGBB, original) so every
            single color is user-overridable. Below is only the hand scaffolding. */
-        html[data-skin="plus"] { --sk-bar: var(--bg1); --sk-field: var(--bg2); }
-        html[data-skin="plus"]:not([data-plus-tabs]) .titlebar { border-bottom: 1px solid var(--bd); }
+        
+        
         /* horizontal dividers (regular-Tide style) — donor navs strip them */
-        html[data-skin="plus"] .navbar { border-bottom: 1px solid var(--bd) !important; box-shadow: none !important; }
-        html[data-skin="plus"] .bookmarks-bar { border-bottom: 1px solid var(--bd) !important; }
-        html[data-skin="plus"] .bookmarks-bar-wrap.hidden .bookmarks-bar { border-bottom-color: transparent !important; }
+        
+        
+        
         /* stock Tide adblock pill look when no toolbar donor is borrowed */
-        html[data-skin="plus"]:not([data-plus-nav]) .tool-toggle {
-            width: auto; min-width: 0; height: 36px; padding: 0 12px; display: flex;
-            border: 1px solid var(--bd); background: var(--bg2);
-        }
-        html[data-skin="plus"]:not([data-plus-nav]) .tool-toggle span { display: inline; }
+        
+        
 
         /* shape / density / tab width / font — engage only once their attr is set */
-        html[data-skin="plus"][data-plus-radius] .tab { border-radius: var(--plus-r) var(--plus-r) 0 0 !important; }
-        html[data-skin="plus"][data-plus-radius] :is(.omnibox, .nav-btn, .nav-pill-btn, .tool-btn, .tool-toggle, .status-pill, .tab-add, .omni-btn, #skinMenu, #skinSubMenu, #skinPanel) { border-radius: var(--plus-r) !important; }
-        html[data-skin="plus"][data-plus-density] .titlebar { padding-top: calc(8px * var(--plus-d)) !important; padding-bottom: calc(8px * var(--plus-d)) !important; }
-        html[data-skin="plus"][data-plus-density] .navbar { padding-top: calc(6px * var(--plus-d)) !important; padding-bottom: calc(6px * var(--plus-d)) !important; }
-        html[data-skin="plus"][data-plus-density] .tab { height: calc(34px * var(--plus-d)) !important; }
-        html[data-skin="plus"][data-plus-density] .omnibox { height: calc(36px * var(--plus-d)) !important; }
-        html[data-skin="plus"][data-plus-tabw] .tab { flex-basis: var(--plus-tw) !important; max-width: var(--plus-tw) !important; }
-        html[data-skin="plus"][data-plus-font] :is(.titlebar, .navbar, .bookmarks-bar, .tab, #skinMenu, #skinSubMenu, #skinPanel) { font-family: var(--ui) !important; }
+        
+        
+        
+        
+        
+        
+        
+        
 
         /* ── Tide+ settings controls ── */
         .plus-seg { display: flex; flex-wrap: wrap; gap: 6px; }
