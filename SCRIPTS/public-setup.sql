@@ -1820,3 +1820,97 @@ begin
   alter publication supabase_realtime add table public.announcements;
 exception when duplicate_object then null;
 end $$;
+
+-- ================================================================ Notifications
+-- One list per account for the bell on every Study Hall page: @mentions, friend
+-- requests, new polls and announcements. The database writes them (triggers),
+-- so nobody can send fake ones; you only read and clear your own.
+
+create table if not exists public.notifications (
+  id         bigserial primary key,
+  user_id    uuid not null references public.profiles on delete cascade,
+  kind       text not null check (kind in ('mention', 'friend', 'poll', 'announce')),
+  title      text not null,
+  room_id    uuid references public.rooms on delete cascade,
+  channel_id uuid references public.channels on delete cascade,
+  message_id bigint references public.messages on delete cascade,
+  seen       boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists notifications_user_idx on public.notifications (user_id, seen, id desc);
+alter table public.notifications enable row level security;
+drop policy if exists notifications_mine on public.notifications;
+create policy notifications_mine on public.notifications for select to authenticated using (user_id = auth.uid());
+revoke all on public.notifications from anon, authenticated;
+grant select on public.notifications to authenticated;
+
+create or replace function public.notify_mention()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  insert into notifications (user_id, kind, title, room_id, channel_id, message_id)
+  select new.user_id, 'mention',
+         coalesce((select username::text from profiles where id = new.by_user), 'Someone') || ' mentioned you in #' ||
+         coalesce((select name from channels where id = new.channel_id), 'a channel'),
+         new.room_id, new.channel_id, new.message_id;
+  return new;
+end; $$;
+drop trigger if exists mentions_notify on public.mentions;
+create trigger mentions_notify after insert on public.mentions for each row execute function public.notify_mention();
+
+create or replace function public.notify_friend()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if new.status = 'pending' then
+    insert into notifications (user_id, kind, title)
+    values (new.addressee, 'friend', coalesce((select username::text from profiles where id = new.requester), 'Someone') || ' sent you a friend request');
+  end if;
+  return new;
+end; $$;
+drop trigger if exists friendships_notify on public.friendships;
+create trigger friendships_notify after insert on public.friendships for each row execute function public.notify_friend();
+
+-- shortcut: one row per member for every poll and announcement; fine at this size, move to a shared feed if it grows to thousands
+create or replace function public.notify_poll()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+declare m messages; v_room uuid;
+begin
+  select * into m from messages where id = new.message_id;
+  v_room := channel_room(m.channel_id);
+  insert into notifications (user_id, kind, title, room_id, channel_id, message_id)
+  select rm.user_id, 'poll', 'New poll: ' || left(m.body, 120), v_room, m.channel_id, m.id
+    from room_members rm join profiles p on p.id = rm.user_id
+   where rm.room_id = v_room and rm.user_id <> m.user_id and not p.banned;
+  return new;
+end; $$;
+drop trigger if exists polls_notify on public.polls;
+create trigger polls_notify after insert on public.polls for each row execute function public.notify_poll();
+
+create or replace function public.notify_announcement()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+declare m messages;
+begin
+  select * into m from messages where id = new.message_id;
+  insert into notifications (user_id, kind, title, room_id, channel_id, message_id)
+  select p.id, 'announce', 'Announcement: ' || left(new.body, 120), channel_room(m.channel_id), m.channel_id, m.id
+    from profiles p where p.id <> m.user_id and not p.banned;
+  return new;
+end; $$;
+drop trigger if exists announcements_notify on public.announcements;
+create trigger announcements_notify after insert on public.announcements for each row execute function public.notify_announcement();
+
+-- Clear some (by id) or all of yours, and drop ones you cleared over a month ago.
+create or replace function public.clear_notifications(p_ids bigint[] default null)
+returns void language sql security definer set search_path = public, extensions as $$
+  update notifications set seen = true where user_id = auth.uid() and not seen and (p_ids is null or id = any(p_ids));
+  delete from notifications where user_id = auth.uid() and seen and created_at < now() - interval '30 days';
+$$;
+
+revoke execute on function public.notify_mention(), public.notify_friend(), public.notify_poll(), public.notify_announcement(),
+  public.clear_notifications(bigint[]) from public, anon, authenticated;
+grant execute on function public.clear_notifications(bigint[]) to authenticated;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.notifications;
+exception when duplicate_object then null;
+end $$;

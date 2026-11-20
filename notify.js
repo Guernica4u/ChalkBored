@@ -1,5 +1,6 @@
 // Announcements from Chalk Chat's Global announcements channel pop up on every
 // Study Hall page, for everyone, account or not. Each one shows once per browser.
+// People signed in to Chalk Chat also get a notifications bell next to Settings.
 // Runs after the page's own script and uses its loadOnline() (the Supabase client).
 (() => {
   const SEEN = 'chalk-news-seen';
@@ -43,9 +44,116 @@
     ok.focus();
   }
 
+  // ---- the bell: @mentions, friend requests, new polls and announcements, for
+  // anyone signed in to Chalk Chat in this browser (the page shares its sign-in)
+  const bellCss = document.createElement('style');
+  bellCss.textContent = `
+  .bell-btn { position: relative; }
+  .bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .bell-count { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; background: var(--ink, #f2f2f2); color: var(--paper, #111);
+    border-radius: 2px; font-size: .62rem; font-weight: 700; line-height: 15px; text-align: center; }
+  .bell-list { position: fixed; z-index: 8999; width: min(340px, calc(100vw - 24px)); max-height: 60vh; overflow-y: auto; padding: 6px;
+    background: var(--paper, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--pencil, #6b6b6b); border-radius: var(--r, 3px); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .bell-list h2 { display: flex; justify-content: space-between; align-items: center; margin: 2px 4px 6px; font-size: .78rem; font-weight: 600; }
+  .bell-list h2 button { padding: 2px 8px; background: none; border: 1px solid var(--pencil, #6b6b6b); border-radius: var(--r, 3px); color: inherit; font: inherit; font-size: .7rem; cursor: pointer; }
+  .bell-row { display: block; width: 100%; padding: 7px 6px; background: none; border: 0; border-top: 1px solid var(--pencil, #333); color: inherit; font: inherit; font-size: .8rem; text-align: left; cursor: pointer; }
+  .bell-row:hover, .bell-row:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
+  .bell-row.new { font-weight: 600; }
+  .bell-row small { display: block; margin-top: 2px; font-size: .68rem; font-weight: 400; color: var(--pencil, #9a9a9a); }
+  .bell-empty { margin: 4px 6px 6px; font-size: .78rem; color: var(--pencil, #9a9a9a); }`;
+  document.head.appendChild(bellCss);
+
+  async function bell(db) {
+    const { data: { user } } = await db.auth.getUser();
+    const gear = document.getElementById('gear');
+    if (!user || !gear) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon-btn bell-btn';
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
+    const count = document.createElement('span');
+    count.className = 'bell-count';
+    count.hidden = true;
+    btn.appendChild(count);
+    gear.parentNode.insertBefore(btn, gear);
+    const list = document.createElement('div');
+    list.className = 'bell-list';
+    list.hidden = true;
+    list.setAttribute('role', 'region');
+    list.setAttribute('aria-label', 'Notifications');
+    document.body.appendChild(list);
+    let rows = [];
+
+    const paintCount = () => {
+      const n = rows.filter((r) => !r.seen).length;
+      count.textContent = n > 99 ? '99+' : String(n);
+      count.hidden = !n;
+      btn.title = n ? 'Notifications, ' + n + ' new' : 'Notifications';
+      btn.setAttribute('aria-label', btn.title);
+    };
+    const load = async () => {
+      const { data } = await db.from('notifications').select('id, kind, title, room_id, channel_id, message_id, seen, created_at')
+        .order('id', { ascending: false }).limit(30);
+      rows = data || [];
+      paintCount();
+      if (!list.hidden) paintList();
+    };
+    // opens Chalk Chat on that message (or just the chat, for friend requests)
+    const open = (r) => {
+      if (typeof showPanel !== 'function') return;
+      showPanel('chat');
+      const frame = document.querySelector('#panel-chat iframe');
+      if (frame && r.room_id && r.channel_id) frame.src = 'class-chat.html?room=' + r.room_id + '&channel=' + r.channel_id + (r.message_id ? '&msg=' + r.message_id : '');
+    };
+    const clear = (ids) => db.rpc('clear_notifications', { p_ids: ids }).then(load);
+    function paintList() {
+      list.replaceChildren();
+      const head = document.createElement('h2');
+      head.append('Notifications');
+      if (rows.some((r) => !r.seen)) {
+        const all = document.createElement('button');
+        all.type = 'button';
+        all.textContent = 'Mark all read';
+        all.addEventListener('click', () => clear(null));
+        head.append(all);
+      }
+      list.append(head);
+      if (!rows.length) { const p = document.createElement('p'); p.className = 'bell-empty'; p.textContent = 'You’re all caught up.'; list.append(p); }
+      rows.forEach((r) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'bell-row' + (r.seen ? '' : ' new');
+        const when = document.createElement('small');
+        when.textContent = new Date(r.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        b.append(r.title, when);
+        b.addEventListener('click', () => { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (!r.seen) clear([r.id]); open(r); });
+        list.append(b);
+      });
+    }
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      list.hidden = !list.hidden;
+      btn.setAttribute('aria-expanded', String(!list.hidden));
+      if (list.hidden) return;
+      const at = btn.getBoundingClientRect();
+      list.style.top = (at.bottom + 6) + 'px';
+      list.style.right = Math.max(12, window.innerWidth - at.right) + 'px';
+      paintList();
+    });
+    document.addEventListener('click', (e) => { if (!list.hidden && !list.contains(e.target)) { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !list.hidden) { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.focus(); } });
+    await load();
+    db.channel('notifications:' + user.id)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + user.id }, load)
+      .subscribe();
+  }
+
   async function start() {
     try {
       const db = await loadOnline();
+      bell(db).catch(() => {});
       // anything posted in the last 3 days that this browser hasn't seen yet
       const since = new Date(Date.now() - 3 * 864e5).toISOString();
       const { data } = await db.from('announcements').select('id, body, author').gt('created_at', since).order('id', { ascending: false }).limit(1);
