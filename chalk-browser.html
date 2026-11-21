@@ -157,9 +157,9 @@
   <div class="row"><button class="btn" id="keep-yes" type="button">Yes, remember it</button><button id="keep-no" type="button">No, save memory</button></div>
 </div>
 <script>
-/* Chalk Browser is the standalone Tide (github.com/Guernica4u/Tide), copied into tide-standalone/, with its own tabs and address bar. ?url=<site> opens that site first. */
+/* Chalk Browser is Tide (the GUST-based copy in tide/), with its own tabs and address bar. ?url=<site> opens that site first. */
 // served from this same site, so a blocked workers.dev can't break the browser
-const TIDE_PAGE = new URL("tide-standalone/", location.href).href;   // the standalone Tide (no GUST code); Chalk TV still uses tide/
+const TIDE_PAGE = new URL("tide/", location.href).href;   // tide-standalone/ is blocked at school (2026-11-20), so back to the Tide that gets through
 const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
 const MODE_STORE = "chalk-browser.mode";          /* "key" or "public" */
 /* "1": Notebook keeps Chalk Browser open on other tabs; "0": it closes it to save memory */
