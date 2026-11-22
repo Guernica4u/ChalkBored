@@ -56,10 +56,10 @@ html.framed #tabbar { background: transparent; }
 #navbar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; background: var(--bg1); border-bottom: 1px solid var(--bd); }
 .nav-btn { flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--tx2); display: grid; place-items: center; cursor: pointer; }
 .nav-btn:hover { background: color-mix(in srgb, var(--bg3) 60%, transparent); color: var(--tx); }
-#addr { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; margin: 0 4px;
-  border-radius: 17px; background: var(--bg2); border: 1px solid transparent; color: var(--tx3); }
+#addr { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px 0 12px; margin: 0 4px;
+  border-radius: 15px; background: var(--bg2); border: 1px solid transparent; color: var(--tx3); }
 #addr:focus-within { border-color: var(--ac); }
-#url { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: 14px var(--ui); }
+#url { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: 13px var(--ui); }
 #url::placeholder { color: var(--tx3); }
 
 #view { flex: 1; position: relative; min-height: 0; }
@@ -155,7 +155,7 @@ html.framed #loader { background: color-mix(in srgb, var(--bg0) 88%, transparent
 #marks .name { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 select { padding: 7px 10px; border-radius: 8px; background: var(--bg2); color: var(--tx); border: 1px solid var(--bd); font: inherit; }
 
-#navbar { padding-top: 0; }
+#navbar { padding: 4px 8px 8px; }   /* a little below the tabs */
 
 /* Chalk TV: just the site, Chalk TV has its own bar */
 html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
@@ -177,7 +177,7 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
     <form id="addr" role="search">
       <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="url" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Address">
-      <button type="button" id="star" title="Bookmark this page (Ctrl+D)" aria-label="Bookmark this page" disabled><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+      <button type="button" id="star" title="Bookmark this page (Ctrl+D)" aria-label="Bookmark this page" disabled><svg class="i" viewBox="0 0 24 24"><path d="M12 3.3l2.88 5.54 6.16 1.02-4.38 4.45.92 6.18L12 17.7l-5.58 2.79.92-6.18-4.38-4.45 6.16-1.02z"/></svg></button>
     </form>
     <button class="nav-btn" id="menu-btn" title="Menu" aria-label="Menu" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
   </div>
