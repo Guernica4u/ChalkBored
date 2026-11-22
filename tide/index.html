@@ -12,6 +12,8 @@
   --ui: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
   --bg0: #000000; --bg1: #000000; --bg2: #121212; --bg3: #1e1e1e;
   --bd: #1c1c1c; --bd2: #333333; --tx: #f2f2f2; --tx2: #bdbdbd; --tx3: #808080; --ac: #e8e8e8;
+  /* tabs: clearly lighter than the black bar behind them, the open one lightest */
+  --tab: #181818; --tab-hover: #232323; --tab-on: #2e2e2e; --tab-bd: #2a2a2a; --tab-bd-on: #474747;
 }
 
 /* ---------- layout ---------- */
@@ -24,14 +26,20 @@ button { font: inherit; color: inherit; }
 svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #app { display: flex; flex-direction: column; height: 100%; }
 
-#tabbar { display: flex; align-items: flex-end; gap: 4px; padding: 6px 8px 0; background: var(--bg0); }
+#tabbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--bg0); }
 html.framed #tabbar { background: transparent; }
-#tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#tabs { display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 #tabs::-webkit-scrollbar { display: none; }
-.tab { flex: 0 1 220px; width: 220px; min-width: 72px; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
-  border: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--tx2); cursor: pointer; text-align: left; }
-.tab:hover { background: color-mix(in srgb, var(--bg3) 45%, transparent); }
-.tab.active { background: var(--bg1); color: var(--tx); }
+.tab { flex: 0 1 220px; width: 220px; min-width: 72px; height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 5px 0 11px; overflow: hidden;
+  border: 1px solid var(--tab-bd); border-radius: 8px; background: var(--tab); color: var(--tx2); cursor: pointer; text-align: left; }
+.tab:hover { background: var(--tab-hover); color: var(--tx); }
+.tab.active { background: var(--tab-on); border-color: var(--tab-bd-on); color: var(--tx); }
+/* a new tab grows in, a closed one shrinks away */
+.tab.new { animation: tab-in .16s ease-out; }
+.tab.closing { animation: tab-out .14s ease-in forwards; pointer-events: none; }
+@keyframes tab-in { from { opacity: 0; width: 0; min-width: 0; padding: 0; } }
+@keyframes tab-out { to { opacity: 0; width: 0; min-width: 0; padding: 0; border-width: 0; margin-right: -6px; } }
+@media (prefers-reduced-motion: reduce) { .tab.new { animation: none; } }
 .tab .icon { width: 16px; height: 16px; flex: none; border-radius: 4px; display: grid; place-items: center; overflow: hidden;
   font-size: 10px; font-weight: 700; background: var(--bg3); color: var(--tx); }
 .tab .icon img { width: 16px; height: 16px; object-fit: contain; }
@@ -40,10 +48,10 @@ html.framed #tabbar { background: transparent; }
 .tab .icon:has(svg) { background: none; }
 .tab .title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tab .close { flex: none; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: var(--tx3); }
-.tab .close:hover { background: var(--bg3); color: var(--tx); }
+.tab .close:hover { background: var(--bd2); color: var(--tx); }
 .tab .close svg.i { width: 12px; height: 12px; }
-#new-tab { flex: none; width: 30px; height: 30px; margin-bottom: 2px; border: 0; border-radius: 8px; background: transparent; color: var(--tx2); cursor: pointer; display: grid; place-items: center; }
-#new-tab:hover { background: color-mix(in srgb, var(--bg3) 60%, transparent); color: var(--tx); }
+#new-tab { flex: none; width: 32px; height: 32px; border: 1px solid var(--tab-bd); border-radius: 8px; background: var(--tab); color: var(--tx2); cursor: pointer; display: grid; place-items: center; }
+#new-tab:hover { background: var(--tab-hover); color: var(--tx); }
 
 #navbar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; background: var(--bg1); border-bottom: 1px solid var(--bd); }
 .nav-btn { flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--tx2); display: grid; place-items: center; cursor: pointer; }
@@ -65,29 +73,25 @@ html.framed #tabbar { background: transparent; }
   padding: 24px 16px 14vh; text-align: center; overflow: auto; background: #000 url("background.webp") center / cover no-repeat; }
 html.framed #home { background: transparent; }
 #home[hidden] { display: none; }
-.logo { width: 76px; height: 76px; color: var(--tx); filter: drop-shadow(0 6px 22px rgba(0,0,0,.45)); animation: float 6s ease-in-out infinite; }
+.logo { width: 56px; height: 56px; color: var(--tx); }
 .logo .orb { fill: var(--ac); }
-#home h1 { margin: 14px 0 26px; font-size: 34px; font-weight: 650; letter-spacing: .5px; text-shadow: 0 2px 16px rgba(0,0,0,.4); }
-#home-search { width: min(640px, 100%); display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 8px 0 20px;
-  border-radius: 28px; background: color-mix(in srgb, var(--bg1) 84%, transparent); border: 1px solid var(--bd); color: var(--tx3);
-  box-shadow: 0 10px 34px rgba(0,0,0,.35); backdrop-filter: blur(12px); transition: border-color .15s, box-shadow .15s; }
-#home-search:focus-within { border-color: var(--ac); box-shadow: 0 10px 34px rgba(0,0,0,.35), 0 0 0 4px color-mix(in srgb, var(--ac) 22%, transparent); }
+#home h1 { margin: 10px 0 4px; font-size: 28px; font-weight: 600; letter-spacing: .3px; }
+#clock { margin: 0 0 22px; font-size: 13px; color: var(--tx2); }
+#home-search { width: min(600px, 100%); display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 16px;
+  border-radius: 10px; background: color-mix(in srgb, var(--bg2) 92%, transparent); border: 1px solid var(--bd2); color: var(--tx3); transition: border-color .15s; }
+#home-search:focus-within { border-color: var(--ac); }
 #home-input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tx); font: 16px var(--ui); }
 #home-input::placeholder { color: var(--tx3); }
-#home-search button { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ac); color: var(--bg0); cursor: pointer; display: grid; place-items: center; }
-#home-search button:hover { filter: brightness(1.1); }
-#clock { position: absolute; left: 0; right: 0; bottom: 22px; font-size: 13px; color: var(--tx2); }
+#home-search button { flex: none; width: 36px; height: 36px; border-radius: 7px; border: 0; background: var(--bg3); color: var(--tx); cursor: pointer; display: grid; place-items: center; }
+#home-search button:hover { background: var(--bd2); }
 
-/* while a tab loads its first page: the logo, its orb circling the moon */
+/* while a tab loads its first page: the logo fades in and out */
 #loader { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: var(--bg0); }
 html.framed #loader { background: color-mix(in srgb, var(--bg0) 88%, transparent); }
 #loader[hidden] { display: none; }
-#loader svg { width: 72px; height: 72px; color: var(--tx); }
-#loader .orbit { transform-box: view-box; transform-origin: 28px 34px; animation: spin 1.4s linear infinite; }
+#loader svg { width: 72px; height: 72px; color: var(--tx); animation: glow 1.6s ease-in-out infinite; }
 #loader .orb { fill: var(--ac); }
-#loader .moon { animation: glow 1.4s ease-in-out infinite; }
-@keyframes glow { 50% { opacity: .55; } }
-@media (prefers-reduced-motion: reduce) { #loader .orbit { animation: none; } }
+@keyframes glow { 50% { opacity: .35; } }
 
 /* a message instead of the page (no engine, no server answering) */
 #notice { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 4; background: var(--bg0); }
@@ -142,23 +146,21 @@ html.framed #loader { background: color-mix(in srgb, var(--bg0) 88%, transparent
 #star.on { color: var(--ac); }
 #star.on svg.i { fill: currentColor; }
 #star[disabled] { visibility: hidden; }
-#marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; margin-top: 22px; }
+#marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 600px; margin-top: 20px; }
 #marks:empty { display: none; }
-#marks button { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--bd2); cursor: pointer; font: 600 18px var(--ui); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.3); transition: transform .12s; }
-#marks button:hover, #marks button:focus-visible { transform: translateY(-3px); outline: 2px solid var(--ac); outline-offset: 2px; }
+#marks button { width: 84px; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px; background: none; cursor: pointer; color: var(--tx2); font-size: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#marks button:hover, #marks button:focus-visible { background: color-mix(in srgb, var(--bg2) 92%, transparent); border-color: var(--bd2); color: var(--tx); outline: none; }
+#marks .tile { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; font: 600 16px var(--ui); color: #fff; }
+#marks .name { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 select { padding: 7px 10px; border-radius: 8px; background: var(--bg2); color: var(--tx); border: 1px solid var(--bd); font: inherit; }
 
-#tabbar { padding-bottom: 6px; background: var(--bg1); }
-.tab { height: 32px; border-radius: 9px; }
-.tab.active { background: var(--bg2); }
 #navbar { padding-top: 0; }
 
 /* Chalk TV: just the site, Chalk TV has its own bar */
 html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes float { 50% { transform: translateY(-5px); } }
-@media (prefers-reduced-motion: reduce) { .logo { animation: none; } }
 @media (max-width: 520px) { #forward { display: none; } .tab { min-width: 56px; } }
 </style>
 </head>
@@ -184,8 +186,8 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
     <div id="loader" hidden role="status" aria-label="Loading">
       <svg viewBox="0 0 64 64" aria-hidden="true">
         <mask id="moon2"><rect width="64" height="64" fill="#fff"/><circle cx="40" cy="24" r="20" fill="#000"/></mask>
-        <circle class="moon" cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon2)"/>
-        <g class="orbit"><circle class="orb" cx="48" cy="18" r="6"/></g>
+        <circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon2)"/>
+        <circle class="orb" cx="48" cy="18" r="6"/>
       </svg>
     </div>
     <div id="home">
@@ -194,13 +196,13 @@ html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
         <circle cx="28" cy="34" r="22" fill="currentColor" mask="url(#moon)"/><circle class="orb" cx="48" cy="18" r="6"/>
       </svg>
       <h1>Tide</h1>
+      <div id="clock"></div>
       <form id="home-search" role="search">
         <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="home-input" placeholder="Search the web or type an address" autocomplete="off" spellcheck="false" aria-label="Search the web or type an address">
         <button type="submit" title="Go" aria-label="Go"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </form>
       <div id="marks"></div>
-      <div id="clock"></div>
     </div>
     <div id="notice" hidden><div class="card"><h2 id="notice-title"></h2><p id="notice-text"></p><button class="btn primary" id="notice-btn">Reload Tide</button></div></div>
   </main>
