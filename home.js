@@ -27,7 +27,7 @@
   }
 
   // ---- settings: new people get the new Home; anyone can switch in Settings or setup ----
-  const SECTIONS = { featured: 'Featured', recent: 'Recently opened', music: 'Chalk Music', vote: 'Vote', chat: 'Chat preview', friends: 'Friends', notes: 'Notes and to do' };
+  const SECTIONS = { featured: 'Featured', recent: 'Activity list', music: 'Chalk Music', vote: 'Vote', chat: 'Chat preview', friends: 'Friends', notes: 'Notes and to do' };
   if (settings.homeLook !== 'new' && settings.homeLook !== 'classic') settings.homeLook = 'new';
   if (!Array.isArray(settings.homeOrder)) settings.homeOrder = ['featured', 'recent', 'music', 'vote', 'chat', 'friends'];
   // people who set up Home before these existed get them once (they can remove them)
@@ -64,7 +64,7 @@
   .hn-sec[data-key="featured"] { grid-column: span 4; }
   .hn-sec[data-key="recent"] { grid-column: span 2; }
   .hn-sec[data-key="music"], .hn-sec[data-key="vote"], .hn-sec[data-key="friends"] { grid-column: span 3; }
-  .hn-sec[data-key="chat"] { grid-column: span 6; }
+  .hn-sec[data-key="chat"] { grid-column: span 3; }
   .hn-sec[data-key="notes"] { grid-column: 1 / -1; }
   .hn-panel { min-width: 0; padding: 1.05rem 1.15rem; background: var(--card); border: 1px solid var(--edge); border-radius: var(--r); }
   .hn-label { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: 0 0 .7rem; font-size: .86rem; font-weight: 700; color: var(--pencil); }
@@ -84,11 +84,12 @@
   .hn-pager button { width: 32px; height: 30px; padding: 0; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); cursor: pointer; }
   .hn-pager button:hover { border-color: var(--ink); }
   .hn-rows { display: flex; flex-direction: column; gap: .15rem; }
-  .hn-row { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: .65rem; width: 100%; padding: .25rem; background: none; border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .hn-row { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: .65rem; width: 100%; padding: .25rem; background: none; border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .hn-row:hover { background: var(--paper-2); border-color: var(--edge); }
   .hn-row-art { display: block; width: 50px; height: 31px; background: var(--paper-2); overflow: hidden; }
   .hn-row-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .hn-row-name { min-width: 0; font-weight: 700; overflow: hidden; white-space: nowrap; }
+  .hn-row-n { color: var(--pencil); font-size: .8rem; }
   .hn-track { display: flex; align-items: center; gap: .8rem; min-width: 0; }
   .hn-disc { flex: none; display: grid; place-items: center; width: 58px; height: 58px; background: var(--paper-2) center / cover; border: 1px solid var(--edge); border-radius: var(--r); color: var(--pencil); font-size: 1.4rem; }
   .hn-song { min-width: 0; overflow: hidden; }
@@ -99,11 +100,29 @@
   .hn-bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .4s linear; }
   .hn-vote { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; margin-bottom: .4rem; padding: .55rem .7rem; background: var(--paper-2); border: 1px solid transparent; border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
   .hn-vote:hover { border-color: var(--pencil); }
+  .hn-av { position: relative; width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 50%; color: #fff; }
+  .hn-av svg { width: 55%; height: 55%; }
+  .hn-av i { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%; background: var(--edge); border: 2px solid var(--card); }
+  .hn-friend.on .hn-av i { background: var(--accent); }
+  .hn-star { padding: .1rem .3rem; background: none; border: 0; color: var(--pencil); font: inherit; font-size: 1rem; line-height: 1; cursor: pointer; }
+  .hn-star[aria-pressed="true"] { color: var(--ink); }
+  .hn-star:hover, .hn-star:focus-visible { color: var(--ink); outline: none; }
+  .hn-pick { position: relative; display: inline-flex; align-items: center; }
+  .hn-pick select { appearance: none; -webkit-appearance: none; padding: 0 1.2rem 0 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
+  .hn-pick select:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .hn-pick::after { content: ''; position: absolute; right: .2rem; top: 50%; width: 6px; height: 6px; border-right: 2px solid var(--pencil); border-bottom: 2px solid var(--pencil); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+  .hn-pick select option { background: var(--card); color: var(--ink); }
+  .hn-sec[data-key="music"] > .hn-panel { display: flex; flex-direction: column; min-height: 0; }
+  .hn-queue { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: .1rem; margin-top: .8rem; }
+  .hn-queue:empty { display: none; }
+  .hn-queue p { margin: 0 0 .25rem; font-size: .8rem; font-weight: 700; color: var(--pencil); }
+  .hn-queue button { display: flex; align-items: baseline; gap: .5rem; width: 100%; padding: .3rem .25rem; background: none; border: 0; border-radius: var(--r); color: var(--ink); font: inherit; font-size: .86rem; text-align: left; cursor: pointer; }
+  .hn-queue button:hover, .hn-queue button:focus-visible { background: var(--paper-2); outline: none; }
+  .hn-queue small { color: var(--pencil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hn-friends { display: flex; flex-direction: column; gap: .15rem; margin-bottom: .6rem; }
-  .hn-friend { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: .55rem; padding: .25rem 0; font-size: .88rem; }
+  .hn-friend { display: flex; align-items: center; gap: .6rem; padding: .3rem 0; font-size: .88rem; }
+  .hn-friend .hn-friend-txt { flex: 1; }
   .hn-friend-txt { display: flex; flex-direction: column; min-width: 0; }
-  .hn-friend .hn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--edge); }
-  .hn-friend.on .hn-dot { background: var(--accent); }
   .hn-friend-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hn-friend-what { display: flex; align-items: center; gap: .35rem; min-width: 0; font-size: .8rem; color: var(--pencil); overflow: hidden; white-space: nowrap; }
   .hn-friend:not(.on) .hn-friend-name { color: var(--pencil); font-weight: 400; }
@@ -240,12 +259,25 @@
 
   let lastLaunch = null;   // what this page last opened, for the online stats
 
-  // ---- recently opened: kept in this browser ----
+  // ---- the opened list: what's played most right now, by friends, your favorites, or what you opened ----
   const RECENT = 'cb-recent';
+  const LIST_MODE = 'cb-list-mode';   // most | friends | favs | recent
+  const MODES = [['most', 'Most played'], ['friends', 'Most played by friends'], ['favs', 'Favorites'], ['recent', 'Recently opened']];
   const recentPanel = el('section', 'hn-panel');
+  let mostPlayed = null, friendsPlayed = null;   // filled from the online numbers and the friends list
   function paintRecent() {
-    const opened = read(RECENT, []).map(byPath).filter(Boolean);
-    const list = opened.length ? opened : favs.map(byPath).filter(Boolean);
+    const mode = MODES.some(([k]) => k === read(LIST_MODE, 'most')) ? read(LIST_MODE, 'most') : 'most';
+    const pick = el('span', 'hn-pick');
+    const sel = el('select');
+    sel.setAttribute('aria-label', 'Show');
+    MODES.forEach(([k, label]) => { const o = el('option', '', label); o.value = k; sel.append(o); });
+    sel.value = mode;
+    sel.addEventListener('change', () => { write(LIST_MODE, sel.value); paintRecent(); refreshLists(); });
+    pick.append(sel);
+    const head = el('p', 'hn-label');
+    head.append(pick);
+    const counted = mode === 'most' ? mostPlayed : mode === 'friends' ? friendsPlayed : null;
+    const list = (mode === 'recent' ? read(RECENT, []) : mode === 'favs' ? favs : (counted || []).map(([path]) => path)).map(byPath).filter(Boolean);
     const rows = el('div', 'hn-rows');
     list.slice(0, 5).forEach((item) => {
       const b = el('button', 'hn-row');
@@ -253,19 +285,52 @@
       const n = el('span', 'hn-row-name');
       n.append(nameOf(item, 1.1));
       b.append(cover(item, 'hn-row-art'), n);
+      const c = counted && counted.find(([path]) => path === item.path);
+      if (c) { b.append(el('span', 'hn-row-n', String(c[1]))); b.title = c[1] + ' playing now'; }
       b.addEventListener('click', () => launch(item));
       rows.append(b);
     });
-    const body = [el('p', 'hn-label', opened.length ? 'Recently opened' : list.length ? 'Your favorites' : 'Recently opened')];
+    const empty = {
+      most: mostPlayed === null ? 'Loading…' : 'Nobody is sharing what they play right now.',
+      friends: friendsPlayed === null ? 'Sign in to Chalk Chat to see what friends play.' : 'None of your friends are playing anything right now.',
+      favs: 'Star activities in Games to keep them here.',
+      recent: 'What you open shows up here.',
+    }[mode];
+    const body = [head];
     if (list.length) body.push(rows);
     else {
-      const go = el('button', 'hn-btn', 'Browse activities');
-      go.type = 'button';
-      go.addEventListener('click', () => showPanel('games'));
-      body.push(el('p', 'hn-muted', 'What you open shows up here.'), go);
+      body.push(el('p', 'hn-muted', empty));
+      if (mode === 'recent' || mode === 'favs') {
+        const go = el('button', 'hn-btn', 'Browse activities');
+        go.type = 'button';
+        go.addEventListener('click', () => showPanel('games'));
+        body.push(go);
+      }
     }
     recentPanel.replaceChildren(...body);
   }
+  async function refreshLists() {
+    const mode = read(LIST_MODE, 'most');
+    try {
+      const db = await loadOnline();
+      if (mode === 'most') {
+        const { data } = await db.rpc('online_stats');
+        mostPlayed = ((data && data[0] && data[0].top) || []).map((t) => [t.item, t.n]);
+      } else if (mode === 'friends') {
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) { friendsPlayed = null; paintRecent(); return; }
+        const { data } = await db.rpc('friends_now');
+        const tally = new Map();
+        (data || []).forEach((f) => { if (f.doing === 'play' && f.item) tally.set(f.item, (tally.get(f.item) || 0) + 1); });
+        friendsPlayed = [...tally].sort((a, b) => b[1] - a[1]);
+      } else return;
+    } catch (e) {
+      if (mode === 'most') mostPlayed = [];
+    }
+    paintRecent();
+  }
+  window.addEventListener('chalk-home', (e) => { if (e.detail) refreshLists(); });
+  setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) refreshLists(); }, 30000);
   // every way of opening an activity goes through launch()
   const openActivity = launch;
   window.launch = function (item, mode) {
@@ -275,6 +340,7 @@
     return openActivity(item, mode);
   };
   paintRecent();
+  refreshLists();
   section('recent', recentPanel);
 
   // ---- Chalk Music: works the player that lives in the Music tab ----
@@ -298,7 +364,8 @@
     bar.append(fill);
     const controls = el('div', 'hn-controls');
     controls.append(play, next, bar, open);
-    panel.append(el('p', 'hn-label', 'Chalk Music'), track, controls);
+    const queue = el('div', 'hn-queue');
+    panel.append(el('p', 'hn-label', 'Chalk Music'), track, controls, queue);
 
     const playerDoc = () => { try { const d = musicFrame && musicFrame.contentDocument; return d && d.getElementById('play') ? d : null; } catch (e) { return null; } };
     function ensurePlayer() {
@@ -340,6 +407,29 @@
       }
       play.textContent = playing ? 'Pause' : 'Play';
       fill.style.width = pos + '%';
+      paintQueue(d);
+    }
+    // what's next, read from Chalk Music's own Up next list; only as many rows as the room allows show
+    let shownQueue = '';
+    function paintQueue(d) {
+      const rows = d ? [...d.querySelectorAll('#qlist .row')] : [];
+      const at = rows.findIndex((r) => r.classList.contains('on'));
+      const next = rows.slice(at + 1, at + 13).map((r) => {
+        const n = r.querySelector('.n');
+        const small = n && n.querySelector('small');
+        return { row: r, title: n ? n.firstChild && n.firstChild.textContent || '' : '', by: small ? small.textContent : '' };
+      });
+      const key = next.map((x) => x.title + '|' + x.by).join('/');
+      if (key === shownQueue) return;
+      shownQueue = key;
+      if (!next.length) { queue.replaceChildren(); return; }
+      queue.replaceChildren(el('p', '', 'Up next'), ...next.map((x) => {
+        const b = el('button');
+        b.type = 'button';
+        b.append(words(x.title, 1), el('small', '', x.by));
+        b.addEventListener('click', () => { const pick = x.row.querySelector('.pick'); if (pick) pick.click(); setTimeout(paint, 300); });
+        return b;
+      }));
     }
     play.addEventListener('click', async () => { const d = await ensurePlayer(); if (d) d.getElementById('play').click(); setTimeout(paint, 300); });
     next.addEventListener('click', async () => { const d = await ensurePlayer(); if (d) d.getElementById('next').click(); setTimeout(paint, 300); });
@@ -496,6 +586,21 @@
   }
 
   // ---- friends: who's online, and what they play or listen to if they chose to share ----
+  // Profile pictures are the same 14 shapes and 10 colours Chalk Chat draws.
+  const PFP = ["<path fill=\"currentColor\" d=\"M12.0 1.8 L14.59 8.44 L21.7 8.85 L16.18 13.36 L18.0 20.25 L12.0 16.4 L6.0 20.25 L7.82 13.36 L2.3 8.85 L9.41 8.44 Z\"/>", "<path fill=\"currentColor\" d=\"M12 2 L22 12 L12 22 L2 12 Z\"/>", "<path fill=\"currentColor\" d=\"M12 1 Q13 10 23 12 Q13 14 12 23 Q11 14 1 12 Q11 10 12 1 Z\"/>", "<path fill=\"currentColor\" d=\"M12.0 1.6 L14.45 7.76 L21.01 6.8 L16.9 12.0 L21.01 17.2 L14.45 16.24 L12.0 22.4 L9.55 16.24 L2.99 17.2 L7.1 12.0 L2.99 6.8 L9.55 7.76 Z\"/>", "<path fill=\"currentColor\" d=\"M12 2 L20.66 7 L20.66 17 L12 22 L3.34 17 L3.34 7 Z\"/>", "<path fill=\"currentColor\" d=\"M12 3 L21.6 20.4 L2.4 20.4 Z\"/>", "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"1\" fill=\"currentColor\"/>", "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"currentColor\"/>", "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M12 1.5 L22.5 12 L12 22.5 L1.5 12 Z M12 7 L17 12 L12 17 L7 12 Z\"/>", "<path fill=\"currentColor\" d=\"M12 2.5 a4.3 4.3 0 0 1 3.1 7.3 a4.4 4.4 0 1 1 -3.1 7.4 a4.4 4.4 0 1 1 -3.1 -7.4 A4.3 4.3 0 0 1 12 2.5 Z M10.6 17.6 h2.8 l1.4 4.2 h-5.6 Z\"/>", "<path fill=\"currentColor\" d=\"M12 2 C9.4 7.4 3 10.6 3 14.6 A4.6 4.6 0 0 0 10.7 18.1 L9.2 22 h5.6 l-1.5 -3.9 A4.6 4.6 0 0 0 21 14.6 C21 10.6 14.6 7.4 12 2 Z\"/>", "<path fill=\"currentColor\" d=\"M12 21 C6 16.5 3 13.5 3 9.8 A4.9 4.9 0 0 1 12 7.1 A4.9 4.9 0 0 1 21 9.8 C21 13.5 18 16.5 12 21 Z\"/>", "<path fill=\"currentColor\" d=\"M10 6.4 L20 4.4 V14.6 a3.2 3.2 0 1 1 -2 -2.96 V8.1 L12 9.7 V16.6 a3.2 3.2 0 1 1 -2 -2.96 Z\"/>", "<path fill=\"currentColor\" d=\"M3 17.2 L14.1 6.1 l3.8 3.8 L6.8 21 H3 Z M15.6 4.6 l1.8 -1.8 3.8 3.8 -1.8 1.8 Z\"/>"];
+  const PFP_COLORS = ['#4a5568', '#44614f', '#6b5a3c', '#6a4644', '#57496b', '#3f5a6b', '#3f625f', '#654558', '#505a70', '#4d5f47'];
+  function friendPic(id, spec) {
+    const m = /^([0-9]|1[0-3])\.([0-9])$/.exec(String(spec || ''));
+    let h = 0;
+    for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const sym = m ? Number(m[1]) : h % PFP.length, color = m ? Number(m[2]) : (h >>> 4) % PFP_COLORS.length;
+    const box = el('span', 'hn-av');
+    box.style.background = PFP_COLORS[color];
+    box.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + PFP[sym] + '</svg>';
+    box.append(el('i'));
+    return box;
+  }
+  const FAV_FRIENDS = 'cb-fav-friends';
   {
     const panel = el('section', 'hn-panel');
     const list = el('div', 'hn-friends');
@@ -511,24 +616,32 @@
         const { data, error } = await db.rpc('friends_now');
         if (error) throw error;
         if (!(data || []).length) { list.replaceChildren(el('p', 'hn-muted', 'No friends yet. Add some in Chalk Chat.')); return; }
-        list.replaceChildren(...data.map((f) => {
+        const pinned = read(FAV_FRIENDS, []);
+        const shown = data.slice().sort((a, b) => (pinned.includes(b.user_id) - pinned.includes(a.user_id)) || (b.online - a.online) || a.username.localeCompare(b.username)).slice(0, 5);
+        list.replaceChildren(...shown.map((f) => {
           const row = el('div', 'hn-friend' + (f.online ? ' on' : ''));
           const item = f.doing === 'play' && f.item ? byPath(f.item) : null;
           const what = el('span', 'hn-friend-what');
           if (item) { what.append('Playing '); what.append(nameOf(item, 0.95)); }
           else what.textContent = f.doing === 'play' ? 'Playing a game' : f.doing === 'listen' ? 'Listening to Chalk Music' : f.online ? 'Online' : 'Offline';
           const name = el('span', 'hn-friend-name', f.username);
-          const dot = el('span', 'hn-dot');
-          dot.setAttribute('aria-hidden', 'true');
           const txt = el('span', 'hn-friend-txt');
           txt.append(name, what);
-          row.append(dot, txt);
+          const fav = pinned.includes(f.user_id);
+          const star = el('button', 'hn-star', fav ? '★' : '☆');
+          star.type = 'button';
+          star.setAttribute('aria-pressed', String(fav));
+          star.setAttribute('aria-label', (fav ? 'Unpin ' : 'Pin ') + f.username);
+          star.title = fav ? 'Pinned to the top' : 'Pin to the top';
+          star.addEventListener('click', () => { write(FAV_FRIENDS, fav ? pinned.filter((x) => x !== f.user_id) : [f.user_id, ...pinned]); load(); });
+          row.append(friendPic(f.user_id, f.avatar), txt);
+          if (!item) row.append(star);
           if (item) {
             const go = el('button', 'hn-tiny ghost', 'Play too');
             go.type = 'button';
             go.setAttribute('aria-label', 'Open what ' + f.username + ' is playing');
             go.addEventListener('click', () => launch(item));
-            row.append(go);
+            row.append(go, star);
           }
           return row;
         }));
