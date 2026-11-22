@@ -83,8 +83,9 @@
     me.title = user ? 'Your profile' : 'Make an account';
     me.setAttribute('aria-label', me.title);
     me.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>';
-    // opens Chalk Chat; signed in, it opens your profile there once the chat has loaded you
+    // signed in: your profile opens right here (home.js); signed out: Chalk Chat, to make an account
     me.addEventListener('click', () => {
+      if (user && typeof window.openProfileCard === 'function') { window.openProfileCard(); return; }
       if (typeof showPanel !== 'function') return;
       showPanel('chat');
       if (!user) return;
