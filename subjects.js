@@ -1,7 +1,12 @@
 // The activity list and card pictures shared by every Study Hall page.
 // Kept in its own file so the pages stay small. Edit it with game-tools/add15.py.
 // ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card.
-// `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark ----
+// `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark.
+// `remote: true` means the lesson's files are on LESSON_HOST ----
+// Lessons marked `remote: true` live in the separate chalkbored-lessons repo and load from here;
+// their `path` stays the same, so favorites, covers and history keep working.
+const LESSON_HOST = 'https://games.chalkbored.win/';
+
 const LIST = {
   lessons: [
     { name: '.BTD?'                           , path: 'LESSONS/Balloon-Math-1/index.html' },
@@ -25,10 +30,10 @@ const LIST = {
     { name: '.B5sk3t;Bros?'                   , path: 'LESSONS/Court-Physics/index.html' },
     { name: '.Wr3stl3;Bros?'                  , path: 'LESSONS/Grappling-Physics/index.html' },
     { name: '.B5sk3tb5ll;L3g3nds?'            , path: 'LESSONS/Court-Legends/index.html' },
-    { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html' },
-    { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html' },
-    { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
-    { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
+    { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html', remote: true },
+    { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html', remote: true },
+    { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html', remote: true },
+    { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html', remote: true },
     { name: '.Snow;Rid3r;~3D?'                , path: 'LESSONS/How-Sleds-Work/index.html' },
     { name: '.OvO?'                           , path: 'LESSONS/Parkour-Physics/index.html' },
     { name: '.Pl5nts;vs.;Zombi3s?'            , path: 'LESSONS/Botany-Defense-1/index.html' },
