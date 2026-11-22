@@ -125,6 +125,13 @@
   /* YouTube's player plays the sound from here, out of sight */
   #screen { position: absolute; left: 0; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
   #screen iframe { width: 100%; height: 100%; border: 0; }
+  /* YouTube through the tide: out of sight, unless it wants a check */
+  #tidebox { position: absolute; left: 0; top: 0; width: 320px; height: 240px; opacity: 0; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; }
+  #tidebox iframe { flex: 1; width: 100%; border: 0; }
+  #tidebox .bar { display: none; }
+  #tidebox.show { inset: 12px; width: auto; height: auto; z-index: 8; opacity: 1; pointer-events: auto; border-radius: var(--radius); border: 1px solid var(--edge); background: var(--card); box-shadow: var(--shadow); }
+  #tidebox.show .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-top: 1px solid var(--edge); font-size: 0.85rem; order: 2; }
+  #tidebox.show .bar span { flex: 1; color: var(--pencil); }
   #words { width: 100%; min-width: 0; }
   #title { font-size: 1.2rem; font-weight: 700; line-height: 1.3; max-width: 94%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #sub { font-size: 0.85rem; color: var(--pencil); max-width: 94%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -191,6 +198,7 @@
   .row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; border-radius: 8px; font-size: 0.85rem; }
   /* long lists: rows out of sight aren't drawn, and their pictures aren't fetched */
   .list .row { content-visibility: auto; contain-intrinsic-size: auto 48px; }
+  .from-head { padding: 10px 8px 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: var(--pencil); }
   .row:hover { background: var(--card); }
   #queue .row:hover { background: var(--paper-2); }
   .row.on { background: var(--highlight); }
@@ -284,6 +292,8 @@
       <div class="list" id="qlist"></div>
     </div>
     <div id="screen"></div>
+    <div id="tidebox"><div class="bar"><span>If a check shows here, do it and the song plays. Or play from the other sources.</span>
+      <button class="btn plain" id="tide-skip" type="button">Other sources</button></div></div>
   </div>
 
   <aside id="side">
@@ -319,7 +329,7 @@ const PUBLIC_WISP = [
   "wss://anura.pro/", "wss://motor-cycle-part.org/wisp/"
 ];
 /* the services' names as they show on the page: school filters block pages that name them */
-const NAME = { yt: "y0utub3", au: "audiu5", sp: "sp0tify" };
+const NAME = { yt: "y0utub3", au: "audiu5", sc: "s0undcl0ud", sp: "sp0tify" };
 const AUDIO_EXT = /\.(mp3|m4a|ogg|oga|opus|wav|aac|flac|weba)$/i;
 const LIBRARY_MAX = 2000;
 
@@ -679,13 +689,87 @@ async function audiusSearch(q, max) {
   const j = await res.json();
   return (j.data || []).filter(t => t.is_streamable !== false).slice(0, max || 20).map(audiusSong);
 }
-/* the same song on Audius, for a YouTube one that can't play here */
-async function findOnAudius(s) {
+/* ---- SoundCloud: many popular songs and remixes. Its API answers only its own
+   site, so it's asked through the tide, with the key its own pages use. Songs
+   play from its stream servers, which answer anyone. ---- */
+const SC_API = "https://api-v2.soundcloud.com";
+let scKey = "";
+try { scKey = localStorage.getItem("listening.sc") || ""; } catch (e) {}
+async function findScKey() {
+  const page = await (await netFetch("https://soundcloud.com/", { headers: { "Accept-Language": "en" } })).text();
+  const scripts = page.match(/https:\/\/a-v2\.sndcdn\.com\/assets\/[^"]+\.js/g) || [];
+  for (const u of scripts.reverse()) {
+    const m = /client_id:"([A-Za-z0-9]{20,40})"/.exec(await (await netFetch(u)).text());
+    if (m) { try { localStorage.setItem("listening.sc", m[1]); } catch (e) {} return m[1]; }
+  }
+  throw new Error(NAME.sc + " didn't answer.");
+}
+async function scGet(url) {
+  for (let tries = 0; tries < 2; tries++) {
+    if (!scKey) scKey = await findScKey();
+    const res = await netFetch(url + (url.includes("?") ? "&" : "?") + "client_id=" + scKey);
+    if (res.status !== 401 && res.status !== 403) return res;
+    scKey = "";   // the key changed: find the new one, once
+  }
+  throw new Error(NAME.sc + " wouldn't answer.");
+}
+/* songs with a plain stream only: the label releases there are locked to its own player */
+function scSong(t) {
+  const hls = ((t.media && t.media.transcodings) || []).find(x => x.format && x.format.protocol === "hls");
+  if (!hls || t.policy === "SNIP" || t.policy === "BLOCK") return null;
+  return { id: "sc:" + t.id, kind: "sc", tid: t.id, title: t.title || "Untitled", author: (t.user && t.user.username) || "",
+           secs: Math.round((t.duration || 0) / 1000), thumb: String(t.artwork_url || (t.user && t.user.avatar_url) || "").replace("-large.", "-t300x300.") };
+}
+async function scSearch(q, max) {
+  const res = await scGet(SC_API + "/search/tracks?limit=30&q=" + encodeURIComponent(q));
+  if (!res.ok) throw new Error(NAME.sc + " answered " + res.status + ".");
+  return ((await res.json()).collection || []).map(scSong).filter(Boolean).slice(0, max || 20);
+}
+/* a song's stream address, asked fresh each time: they only last a while */
+async function scStream(s) {
+  const t = await (await scGet(SC_API + "/tracks/" + s.tid)).json();
+  const hls = ((t.media && t.media.transcodings) || []).find(x => x.format && x.format.protocol === "hls");
+  if (!hls) throw new Error("This one can't play here.");
+  const j = await (await scGet(hls.url + (t.track_authorization ? "?track_authorization=" + t.track_authorization : ""))).json();
+  return j.url;
+}
+let hls = null, hlsP = null;
+function loadHls() {
+  if (window.Hls) return Promise.resolve();
+  if (!hlsP) hlsP = new Promise((ok, fail) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.20/hls.min.js";
+    sc.onload = ok;
+    sc.onerror = () => { hlsP = null; fail(new Error("The player part didn't load.")); };
+    document.head.appendChild(sc);
+  });
+  return hlsP;
+}
+function dropHls() { if (hls) { hls.destroy(); hls = null; } }
+/* plays a stream that comes in pieces (an .m3u8) in the page's <audio> */
+async function playPieces(url) {
+  dropHls();
+  if (audio.canPlayType("application/vnd.apple.mpegurl")) { audio.src = url; return audio.play().catch(() => {}); }
+  await loadHls();
+  hls = new Hls();
+  hls.on(Hls.Events.ERROR, (e, d) => { if (d.fatal && using === "file") skipSoon("That one wouldn't play."); });
+  hls.loadSource(url);
+  hls.attachMedia(audio);
+  audio.play().catch(() => {});
+}
+
+/* the same song somewhere else, for a YouTube one that can't play here */
+async function findElsewhere(s, where) {
   const t = { title: s.title.replace(/\s+-\s+[^-]*$/, "") || s.title, artist: s.author || "", ms: (s.secs || 0) * 1000 };
-  const hits = await audiusSearch((t.title + " " + t.artist).trim(), 10);
-  let best = null, top = -Infinity;
-  hits.forEach((v, i) => { const sc = ytScore(v, t, i); if (sc > top) { top = sc; best = v; } });
-  return best && top >= 3 ? best : null;
+  const q = (t.title + " " + t.artist).trim();
+  for (const w of where) {
+    let hits = [];
+    try { hits = w === "sc" ? await scSearch(q, 10) : await audiusSearch(q, 10); } catch (e) { continue; }
+    let best = null, top = -Infinity;
+    hits.forEach((v, i) => { const sc = ytScore(v, t, i); if (sc > top) { top = sc; best = v; } });
+    if (best && top >= 3) return best;
+  }
+  return null;
 }
 
 /* ============================================================
@@ -709,8 +793,43 @@ function loadYouTubeApi() {
 }
 /* the player's frame is made here, so it can send YouTube the page's address:
    this page sends no referrer by default, and YouTube's player needs one */
-let ytBlocked = false;
-const fromAudius = () => S.source === "au" || (S.source !== "yt" && ytBlocked);
+let ytBlocked = false, tideNo = false;
+/* YouTube through the tide: its watch page opens in Tide (same site as this page), out
+   of sight, and its own player is worked from here. Sometimes YouTube wants a person to
+   show they aren't a robot first; then the page is shown so they can. */
+let tideFrame = null, tideVid = "", tideAsked = 0, tideEnded = "";
+function tideDoc() {
+  try { const f = tideFrame && tideFrame.contentDocument.querySelector("iframe"); return f && f.contentDocument; } catch (e) { return null; }
+}
+const tideVideo = () => { const d = tideDoc(); return d && d.querySelector("video"); };
+function playThroughTide(s) {
+  using = "tide";
+  tideVid = s.vid;
+  tideAsked = Date.now();
+  const d = tideDoc(), mp = d && d.getElementById("movie_player");
+  if (mp && mp.loadVideoById) return mp.loadVideoById(s.vid);
+  if (tideFrame) tideFrame.remove();
+  tideFrame = document.createElement("iframe");
+  tideFrame.title = "Player";
+  tideFrame.allow = "autoplay; encrypted-media";
+  tideFrame.src = "tide/#tide=" + encodeURIComponent(JSON.stringify({ open: "https://www.youtube.com/watch?v=" + s.vid, ui: "tv" }));
+  $("tidebox").insertBefore(tideFrame, $("tidebox").firstChild);
+}
+function stopTide() { const v = tideVideo(); if (v) v.pause(); showTide(false); }
+function showTide(on) { $("tidebox").classList.toggle("show", !!on); }
+/* called with the clock: keeps up with the page's own <video> */
+function tideTick() {
+  const v = tideVideo();
+  const going = v && !v.paused && v.currentTime > 0;
+  if (going) {
+    showTide(false);
+    if (v.muted) v.muted = false;
+    if (Math.abs(v.volume - S.vol / 100) > 0.01) v.volume = S.vol / 100;
+  } else if (!$("tidebox").classList.contains("show") && Date.now() - tideAsked > 20000 && !(v && v.currentTime > 0)) {
+    showTide(true);   // probably YouTube's check: the person can do it here
+  }
+  if (v && v.ended && tideEnded !== tideVid) { tideEnded = tideVid; ended(); }
+}
 /* found out early, so searching already knows where songs come from */
 timeout(loadYouTubeApi(), 10000).catch(() => { ytBlocked = true; });
 function ytPlayer(firstVid) {
@@ -777,13 +896,14 @@ async function ytError(code) {
   }
   skipSoon(code === 101 || code === 150 || code === 153 ? "This one can't play outside " + NAME.yt + "." : "That one wouldn't play.");
 }
+const tv = () => tideVideo() || { paused: true, currentTime: 0, duration: 0, play() {}, pause() {} };
 const engine = {
-  paused: () => (using === "yt" ? ytPaused() : using === "file" ? audio.paused : true),
-  time: () => (using === "yt" ? (yt && yt.getCurrentTime ? yt.getCurrentTime() : 0) : audio.currentTime),
-  dur: () => (using === "yt" ? (yt && yt.getDuration ? yt.getDuration() : 0) : audio.duration),
-  seek: t => { if (using === "yt") yt && yt.seekTo(t, true); else if (audio.duration) audio.currentTime = t; },
-  play: () => { if (using === "yt") yt && yt.playVideo(); else if (using === "file") audio.play().catch(() => {}); },
-  pause: () => { if (yt && yt.pauseVideo) yt.pauseVideo(); audio.pause(); }
+  paused: () => (using === "yt" ? ytPaused() : using === "file" ? audio.paused : using === "tide" ? tv().paused : true),
+  time: () => (using === "yt" ? (yt && yt.getCurrentTime ? yt.getCurrentTime() : 0) : using === "tide" ? tv().currentTime : audio.currentTime),
+  dur: () => (using === "yt" ? (yt && yt.getDuration ? yt.getDuration() : 0) : using === "tide" ? tv().duration : audio.duration),
+  seek: t => { if (using === "yt") yt && yt.seekTo(t, true); else if (using === "tide") tv().currentTime = t; else if (audio.duration) audio.currentTime = t; },
+  play: () => { if (using === "yt") yt && yt.playVideo(); else if (using === "tide") tv().play(); else if (using === "file") audio.play().catch(() => {}); },
+  pause: () => { if (yt && yt.pauseVideo) yt.pauseVideo(); tv().pause(); audio.pause(); }
 };
 
 /* ---- the playlist being played, in the order it plays ---- */
@@ -1013,21 +1133,10 @@ async function play(i, dir) {
   S.now = { list: playingList, id: s.id };
   save();
   slide(back, () => dressUp(s));
-  if (s.kind === "yt" && !fromAudius()) {
-    audio.pause();
-    using = "yt";
-    try {
-      if (!yt) await ytPlayer(s.vid);
-      else yt.loadVideoById(s.vid);
-    } catch (e) {
-      if (!ytBlocked) $("sub").textContent = e.message;
-      else if (S.source === "yt") $("sub").textContent = e.message;
-      else if (song(at) === s) { toast(NAME.yt + " won't load here, so songs come from " + NAME.au + ".", 5000); playFromAudius(s); }
-    }
-  } else if (s.kind === "yt") {
-    playFromAudius(s);
-  } else {
-    if (yt && yt.pauseVideo) yt.pauseVideo();
+  stopOthers();
+  if (s.kind === "yt") playYouTubeSong(s);
+  else if (s.kind === "sc") playSc(s);
+  else {
     using = "file";
     audio.src = s.url;
     audio.play().catch(() => {});
@@ -1035,23 +1144,54 @@ async function play(i, dir) {
   drawSongs();
   drawQueue();
 }
-async function playFromAudius(s) {
+/* only one thing plays at a time */
+function stopOthers() {
   if (yt && yt.pauseVideo) yt.pauseVideo();
-  using = "file";
+  stopTide();
+  dropHls();
   audio.pause();
-  if (!s.au) {
-    $("sub").textContent = "Finding this on " + NAME.au + "…";
-    let a = null;
-    try { a = await findOnAudius(s); } catch (e) {}
+}
+/* a YouTube song plays from YouTube, through the tide, or as the same song from another source */
+async function playYouTubeSong(s) {
+  const how = S.source || "auto";
+  if (how === "ytt") return playThroughTide(s);
+  if (how === "sc" || how === "au") return playElsewhere(s, [how]);
+  if (how === "auto" && ytBlocked) return tideNo ? playElsewhere(s, ["sc", "au"]) : playThroughTide(s);
+  using = "yt";
+  try {
+    if (!yt) await ytPlayer(s.vid);
+    else yt.loadVideoById(s.vid);
+  } catch (e) {
+    if (!ytBlocked || how === "yt") $("sub").textContent = e.message;
+    else if (song(at) === s) { toast(NAME.yt + " won't load here, so it goes through the tide.", 5000); playThroughTide(s); }
+  }
+}
+async function playElsewhere(s, where) {
+  stopOthers();
+  using = "file";
+  /* songs matched before this kept just an address */
+  let alt = s.alt || (s.au ? { kind: "file", url: s.au } : null);
+  if (!alt || !where.includes(alt.kind === "sc" ? "sc" : "au")) {
+    $("sub").textContent = "Finding this on " + where.map(w => NAME[w]).join(" or ") + "…";
+    try { alt = await findElsewhere(s, where); } catch (e) { alt = null; }
     if (song(at) !== s) return;
-    if (!a) return skipSoon("This one isn't on " + NAME.au + ".");
-    s.au = a.url;
+    if (!alt) return skipSoon("This one isn't on " + where.map(w => NAME[w]).join(" or ") + ".");
+    s.alt = alt;
+    delete s.au;
     save();
   }
   dressUp(s);
-  $("sub").textContent = (s.author ? s.author + " · " : "") + "from " + NAME.au;
-  audio.src = s.au;
+  $("sub").textContent = (s.author ? s.author + " · " : "") + "from " + NAME[alt.kind === "sc" ? "sc" : "au"];
+  if (alt.kind === "sc") return playSc(alt, s);
+  audio.src = alt.url;
   audio.play().catch(() => {});
+}
+async function playSc(t, shown) {
+  using = "file";
+  const s = shown || t;
+  let url;
+  try { url = await scStream(t); } catch (e) { if (song(at) === s) skipSoon(e.message); return; }
+  if (song(at) === s) playPieces(url);
 }
 function toggle() {
   if (at < 0) {
@@ -1209,26 +1349,32 @@ async function find(q) {
   box.innerHTML = "";
   box.appendChild(el("div", "none", "Looking…"));
   const tok = ++findTok;
-  let hits;
-  try { hits = fromAudius() ? await audiusSearch(q, 20) : (await ytSearch(q, 20)).map(h => ytSong(h.id, h.title, h.author, h.secs)); }
-  catch (e) {
-    if (tok !== findTok) return;
-    box.innerHTML = "";
-    box.appendChild(el("div", "none", (e && e.message) || "That didn't work. Try again in a moment."));
-    return;
-  }
+  const how = S.source || "auto";
+  const where = how === "auto" ? ["yt", "sc", "au"] : how === "ytt" ? ["yt"] : [how];
+  const each = where.length > 1 ? 8 : 20;
+  const ask = w => w === "yt" ? ytSearch(q, each).then(h => h.map(x => ytSong(x.id, x.title, x.author, x.secs)))
+                  : w === "sc" ? scSearch(q, each) : audiusSearch(q, each);
+  const got = await Promise.allSettled(where.map(ask));
   if (tok !== findTok) return;
   box.innerHTML = "";
-  if (!hits.length) { box.appendChild(el("div", "none", "Nothing found. Try other words.")); return; }
-  hits.forEach(s => {
-    box.appendChild(songRow(s, { play: () => takeSong(s, true) }));
+  let any = false, err = "";
+  where.forEach((w, k) => {
+    const g = got[k];
+    if (g.status !== "fulfilled") { err = err || (g.reason && g.reason.message) || ""; return; }
+    if (!g.value.length) return;
+    any = true;
+    if (where.length > 1) box.appendChild(el("div", "from-head", NAME[w]));
+    g.value.forEach(s => box.appendChild(songRow(s, { play: () => takeSong(s, true) })));
   });
+  if (!any) box.appendChild(el("div", "none", err || "Nothing found. Try other words."));
 }
 
 const SOURCES = [
-  ["auto", "Automatic", NAME.yt + " first, and " + NAME.au + " when " + NAME.yt + " is blocked"],
-  ["yt", NAME.yt, "Only " + NAME.yt],
-  ["au", NAME.au, "Only " + NAME.au + ": free full songs, mostly independent artists"]
+  ["auto", "Automatic", NAME.yt + " first. When it's blocked: " + NAME.yt + " through the tide, then " + NAME.sc + " and " + NAME.au + ". Search looks in all of them."],
+  ["yt", NAME.yt, "Only " + NAME.yt + ", straight"],
+  ["ytt", NAME.yt + " through the tide", "For when " + NAME.yt + " is blocked. Sometimes it asks you to show you aren't a robot first."],
+  ["sc", NAME.sc, "Many popular songs and remixes"],
+  ["au", NAME.au, "Free full songs, mostly independent artists"]
 ];
 /* Settings; the first time Chalk Music opens, the same box sets it up */
 function settings(first) {
@@ -1291,6 +1437,7 @@ $("q").addEventListener("search", () => { if (!$("q").value.trim()) endSearch();
 $("search-clear").onclick = endSearch;
 $("add-btn").onclick = addLink;
 $("opts").onclick = () => settings(false);
+$("tide-skip").onclick = () => { tideNo = true; showTide(false); const s = song(at); if (s && s.kind === "yt") playElsewhere(s, ["sc", "au"]); };
 $("shuffle").onclick = () => { S.shuffle = !S.shuffle; save(); paintToggles(); reorder(); drawQueue(); };
 $("repeat").onclick = () => {
   S.repeat = S.repeat === "off" ? "all" : S.repeat === "all" ? "one" : "off";
@@ -1327,7 +1474,7 @@ audio.onended = () => { if (using === "file") ended(); };
 let relayBlob = "";
 audio.onerror = async () => {
   const src = audio.getAttribute("src");
-  if (using !== "file" || !src) return;
+  if (using !== "file" || !src || hls) return;
   if (src.startsWith(AUDIUS)) {
     const s = song(at);
     try {
@@ -1348,7 +1495,8 @@ setInterval(() => {
   if (!seeking && d) $("seek").value = String(Math.round(t / d * 1000));
   $("at").textContent = fmt(t);
   $("of").textContent = fmt(d);
-  if (using === "yt") playingChanged();
+  if (using === "tide") tideTick();
+  if (using === "yt" || using === "tide") playingChanged();
 }, 250);
 document.addEventListener("keydown", e => {
   const tag = e.target.tagName;
