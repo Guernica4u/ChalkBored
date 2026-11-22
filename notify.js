@@ -10,33 +10,42 @@
 
   const style = document.createElement('style');
   style.textContent = `
-  .news-pop { position: fixed; top: 18px; left: 50%; z-index: 9000; transform: translateX(-50%); width: min(460px, calc(100vw - 32px));
-    padding: 14px 16px 12px; background: var(--card, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--edge, #2e2e2e);
-    border-radius: var(--r, 3px); box-shadow: var(--shadow, none); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font: inherit; }
-  .news-pop h2 { margin: 0 0 6px; font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent, #9a9a9a); }
-  .news-pop p { margin: 0; font-size: .95rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .news-pop .news-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: .75rem; color: var(--pencil, #9a9a9a); }
-  .news-pop button { padding: 5px 12px; background: none; border: 1px solid var(--edge, #2e2e2e); border-radius: var(--r, 3px); color: inherit; font: inherit; cursor: pointer; }
-  .news-pop button:hover, .news-pop button:focus-visible { border-color: var(--accent, #f2f2f2); outline: none; }`;
+  /* the panel, border, corners and text come from the page's setup box (.modal-box, .modal-step, .btn) */
+  .news-pop { position: fixed; top: 18px; left: 50%; z-index: 9000; transform: translateX(-50%); width: min(460px, calc(100vw - 32px)); }
+  .news-pop > .news-body { margin: 0.2rem 0 0; color: var(--ink); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .news-pop .modal-row { margin-top: 1.1rem; }
+  .news-pop .news-who { color: var(--pencil); font-size: 0.85rem; }`;
   document.head.appendChild(style);
 
+  // never on top of setup: hold the newest one until setup closes
+  const busy = () => ['setup', 'games-setup'].some((id) => { const e = document.getElementById(id); return e && !e.hidden; });
+  let held = null, holdTimer = null;
   function show(a) {
     if (!a || a.id <= read()) return;
+    if (busy()) {
+      if (!held || a.id > held.id) held = a;
+      if (!holdTimer) holdTimer = setInterval(() => { if (busy()) return; clearInterval(holdTimer); holdTimer = null; const h = held; held = null; show(h); }, 1000);
+      return;
+    }
     write(a.id);
     document.querySelectorAll('.news-pop').forEach((x) => x.remove());
     const box = document.createElement('div');
-    box.className = 'news-pop';
+    box.className = 'modal-box news-pop';
     box.setAttribute('role', 'alert');
-    const head = document.createElement('h2');
+    const head = document.createElement('p');
+    head.className = 'modal-step';
     head.textContent = 'Announcement';
     const text = document.createElement('p');
+    text.className = 'news-body';
     text.textContent = a.body;
     const foot = document.createElement('div');
-    foot.className = 'news-foot';
+    foot.className = 'modal-row';
     const who = document.createElement('span');
+    who.className = 'news-who';
     who.textContent = a.author ? 'From ' + a.author : '';
     const ok = document.createElement('button');
     ok.type = 'button';
+    ok.className = 'btn primary';
     ok.textContent = 'Got it';
     ok.addEventListener('click', () => box.remove());
     foot.append(who, ok);
