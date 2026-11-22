@@ -416,6 +416,8 @@
   .card-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.85rem; }
   .card-name { font-weight: 700; min-width: 0; }
   .card-arrow { color: var(--pencil); transition: transform 0.2s ease; }
+  /* the site's C logo, on games ChalkBored made or modified */
+  .made-by { display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-left: 0.4rem; vertical-align: middle; background: var(--ink); color: var(--card); border-radius: var(--r, 3px); font: 600 0.78rem/1 Georgia, 'Times New Roman', serif; }
   .card:hover .card-arrow { transform: translateX(3px); color: var(--accent); }
   .card-wrap.is-open .card-arrow { transform: rotate(90deg); color: var(--accent); }
 
@@ -1930,6 +1932,15 @@
         card.querySelector('.mono').textContent = initials(shown(item));
         putName(card.querySelector('.card-name'), item);
         card.setAttribute('aria-label', 'Open activity');
+        if (item.ours) {
+          const mark = document.createElement('span');
+          mark.className = 'made-by';
+          mark.textContent = 'C';
+          mark.title = 'Made or modified by ChalkBored';
+          mark.setAttribute('role', 'img');
+          mark.setAttribute('aria-label', mark.title);
+          card.querySelector('.card-name').append(mark);
+        }
 
         const art = item.img ? { src: item.img } : (settings.gameArt && ART[item.path]);
         if (art) {
