@@ -103,9 +103,43 @@
   .hn-av svg { width: 55%; height: 55%; }
   .hn-av i { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; background: #6b6b6b; border: 2px solid #0b0b0b; }
   .hn-friend.on .hn-av i { background: #4cc57e; }
-  .hn-star { padding: .1rem .3rem; background: none; border: 0; color: var(--pencil); font: inherit; font-size: 1rem; line-height: 1; cursor: pointer; }
-  .hn-star[aria-pressed="true"] { color: var(--ink); }
-  .hn-star:hover, .hn-star:focus-visible { color: var(--ink); outline: none; }
+  .hn-friend-main { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; margin: -.2rem; padding: .2rem; background: none; border: 0; border-radius: var(--r); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .hn-friend-main:hover, .hn-friend-main:focus-visible { background: var(--paper-2); outline: none; }
+  .hn-veil { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .55); }
+  .hn-prof { position: relative; width: min(400px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .hn-prof-banner { height: 72px; }
+  .hn-prof-x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; background: rgba(0, 0, 0, .45); border: 0; border-radius: var(--r); color: #fff; font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+  .hn-prof-x:hover, .hn-prof-x:focus-visible { background: rgba(0, 0, 0, .7); outline: none; }
+  .hn-prof-body { padding: 0 18px 18px; }
+  .hn-prof-edit { padding-top: 18px; }
+  .hn-prof-wait { padding: 18px; }
+  .hn-prof .hn-av.big { width: 68px; height: 68px; margin-top: -34px; border: 3px solid #0b0b0b; box-sizing: content-box; }
+  .hn-prof .hn-av.big i { width: 14px; height: 14px; right: 0; bottom: 0; }
+  .hn-prof.on .hn-av i { background: #4cc57e; }
+  .hn-prof-name { margin: .5rem 0 .15rem; font-size: 1.2rem; }
+  .hn-prof-line { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 0; font-size: .86rem; color: var(--pencil); }
+  .hn-prof-status { margin: .75rem 0 0; font-size: .95rem; }
+  .hn-prof-bio { margin: .4rem 0 0; font-size: .88rem; color: var(--pencil); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .hn-prof-sec { margin: 1rem 0 .3rem; font-size: .78rem; font-weight: 700; color: var(--pencil); }
+  .hn-prof-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1.1rem; }
+  .hn-prof .hn-field { display: grid; gap: .35rem; margin-top: .9rem; font-size: .8rem; font-weight: 700; color: var(--pencil); }
+  .hn-prof input[type="text"], .hn-prof input[type="search"] { width: 100%; padding: .45rem .55rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; font-size: .9rem; font-weight: 400; box-sizing: border-box; }
+  .hn-pick-now { display: flex; align-items: center; gap: .6rem; min-height: 33px; font-weight: 400; }
+  .hn-pick-now .hn-tiny { margin-left: auto; }
+  .hn-games { display: grid; gap: .1rem; max-height: 190px; overflow-y: auto; font-weight: 400; }
+  .hn-prof fieldset { margin: .9rem 0 0; padding: 0; border: 0; }
+  .hn-prof legend { padding: 0; font-size: .8rem; font-weight: 700; color: var(--pencil); }
+  .hn-sws { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .hn-sws legend { width: 100%; margin-bottom: .35rem; }
+  .hn-sw { position: relative; }
+  .hn-sw input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .hn-sw span { display: block; width: 26px; height: 26px; border: 2px solid transparent; border-radius: var(--r); }
+  .hn-sw span.none { border: 2px dashed var(--edge); }
+  .hn-sw input:checked + span { border-color: var(--ink); }
+  .hn-sw input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hn-check { display: flex; align-items: center; gap: .55rem; margin-top: .45rem; font-size: .9rem; cursor: pointer; }
+  .hn-prof-note { margin: .9rem 0 0; font-size: .8rem; }
+  .hn-prof-err { min-height: 1.2em; margin: .6rem 0 0; font-size: .85rem; }
   .hn-pick { position: relative; display: inline-flex; align-items: center; }
   .hn-pick select { appearance: none; -webkit-appearance: none; padding: 0 1.2rem 0 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
   .hn-pick select:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
@@ -509,14 +543,55 @@
   // ---- online now: counts, the most played, and asking before sharing ----
   // Nothing about what you play or hear leaves this browser until you press Sure.
   const SHARE = 'cb-share-activity';   // 'yes' | 'no' | missing (not asked yet)
+  const PROFILE_COLS = 'id, username, avatar, bio, banner, status, fav_game, accent';
+  const me = { user: null, profile: null };   // profile also has the three share_ switches
+  let meLoading = null;
+  function loadMe(force) {
+    if (meLoading && !force) return meLoading;
+    meLoading = (async () => {
+      try {
+        const db = await loadOnline();
+        const { data: { user } } = await db.auth.getUser();
+        me.user = user || null;
+        me.profile = null;
+        if (!user) return me;
+        const { data } = await db.from('profiles').select(PROFILE_COLS + ', share_online, share_play, share_listen').eq('id', user.id).maybeSingle();
+        me.profile = data || null;
+        // a Sure / No answered before profiles had switches carries over once
+        const local = read(SHARE, '');
+        if (me.profile && me.profile.share_play === null && me.profile.share_listen === null && (local === 'yes' || local === 'no')) {
+          await db.rpc('save_sharing', { p_play: local === 'yes', p_listen: local === 'yes' });
+          me.profile.share_play = me.profile.share_listen = local === 'yes';
+        }
+      } catch (e) {}
+      return me;
+    })();
+    return meLoading;
+  }
+  // signed in, the profile's switches decide; signed out, the Sure / No answer in this browser
+  const sharing = (kind) => (me.profile ? me.profile['share_' + kind] === true : read(SHARE, '') === 'yes');
+  function shareChoice() {
+    if (!me.profile) return read(SHARE, '');
+    if (me.profile.share_play === null && me.profile.share_listen === null) return '';
+    return me.profile.share_play || me.profile.share_listen ? 'yes' : 'no';
+  }
+  async function setSharing(play, listen, online) {
+    write(SHARE, play || listen ? 'yes' : 'no');
+    if (me.profile) {
+      me.profile.share_play = play;
+      me.profile.share_listen = listen;
+      if (online !== undefined) me.profile.share_online = online;
+      try { const db = await loadOnline(); await db.rpc('save_sharing', { p_online: online === undefined ? null : online, p_play: play, p_listen: listen }); } catch (e) {}
+    }
+    window.dispatchEvent(new Event('chalk-share'));
+  }
   let device = '';
   try { device = localStorage.getItem('chalk-device') || ''; if (!device) { device = crypto.randomUUID(); localStorage.setItem('chalk-device', device); } } catch (e) {}
   function doingNow() {
-    if (read(SHARE, '') !== 'yes') return [null, null];
     const viewer = document.getElementById('viewer');
     // shortcut: a game opened in its own tab counts as played for 20 minutes, since this page can't see that tab
-    if (lastLaunch && ((viewer && !viewer.hidden) || Date.now() - lastLaunch.at < 20 * 60 * 1000)) return ['play', lastLaunch.path];
-    try {
+    if (sharing('play') && lastLaunch && ((viewer && !viewer.hidden) || Date.now() - lastLaunch.at < 20 * 60 * 1000)) return ['play', lastLaunch.path];
+    if (sharing('listen')) try {
       const music = document.querySelector('#panel-music iframe');
       if (music && music.contentDocument && music.contentDocument.body.classList.contains('playing')) return ['listen', null];
     } catch (e) {}
@@ -526,6 +601,7 @@
     if (!device) return;
     try {
       const db = await loadOnline();
+      await loadMe();
       const [doing, item] = doingNow();
       await db.rpc('here_now', { p_device: device, p_doing: doing, p_item: item });
     } catch (e) {}
@@ -545,19 +621,19 @@
     if (meta) meta.append(strip);
     const tiny = (text, ghost) => { const b = el('button', 'hn-tiny' + (ghost ? ' ghost' : ''), text); b.type = 'button'; return b; };
     function paintAsk() {
-      const choice = read(SHARE, '');
+      const choice = shareChoice();
       ask.replaceChildren();
       if (choice === 'yes' || choice === 'no') {
         const change = el('button', 'hn-link', choice === 'yes' ? 'Stop sharing' : 'Share what I play');
         change.type = 'button';
-        change.addEventListener('click', () => { write(SHARE, choice === 'yes' ? 'no' : 'yes'); paintAsk(); checkIn(); });
+        change.addEventListener('click', () => setSharing(choice !== 'yes', choice !== 'yes'));
         ask.append(change);
         return;
       }
       const yes = tiny('Sure');
       const no = tiny('No I have W opsec', true);
-      yes.addEventListener('click', () => { write(SHARE, 'yes'); paintAsk(); checkIn(); });
-      no.addEventListener('click', () => { write(SHARE, 'no'); paintAsk(); });
+      yes.addEventListener('click', () => setSharing(true, true));
+      no.addEventListener('click', () => setSharing(false, false));
       ask.append(el('span', '', 'Share what you play? No names.'), yes, no);
     }
     async function load() {
@@ -583,7 +659,9 @@
       }
     }
     paintAsk();
+    loadMe().then(paintAsk);
     window.addEventListener('chalk-share', () => { paintAsk(); checkIn(); });
+    window.addEventListener('chalk-home', (e) => { if (e.detail) loadMe(true).then(paintAsk); });
     let timer = null;
     startOnline = () => { if (timer) return; load(); timer = setInterval(() => { if (!document.hidden && document.body.classList.contains('on-home')) load(); }, 30000); };
     window.addEventListener('chalk-home', (e) => { if (e.detail && settings.homeLook === 'new') startOnline(); });
@@ -604,14 +682,227 @@
     box.append(el('i'));
     return box;
   }
-  const FAV_FRIENDS = 'cb-fav-friends';
+  const BANNERS = ['#2f4a3c', '#2f3f58', '#583332', '#3e3558', '#57482c', '#28494d', '#4c3250', '#3a3d42'];   // same as Chalk Chat
+  const hashOf = (text) => { let h = 0; for (const ch of String(text)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+  let profVeil = null, profBack = null;
+  function closeProfile() {
+    if (!profVeil) return;
+    profVeil.remove();
+    profVeil = null;
+    if (profBack && profBack.isConnected) profBack.focus();
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && profVeil) closeProfile(); });
+  function friendLine(f) {
+    const line = el('p', 'hn-prof-line');
+    const item = f.doing === 'play' && f.item ? byPath(f.item) : null;
+    if (item) { line.append('Playing '); line.append(nameOf(item, 0.95)); }
+    else line.textContent = f.doing === 'play' ? 'Playing a game' : f.doing === 'listen' ? 'Listening to Chalk Music' : f.online ? 'Online' : 'Offline';
+    return line;
+  }
+  // id: someone else's profile (live: their friends_now row); no id: yours
+  async function openProfileCard(id, live) {
+    const back = document.activeElement;
+    closeProfile();
+    profBack = back;
+    const veil = el('div', 'hn-veil');
+    const card = el('div', 'hn-prof');
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    card.setAttribute('aria-label', 'Profile');
+    card.append(el('p', 'hn-muted hn-prof-wait', 'Loading…'));
+    veil.append(card);
+    veil.addEventListener('click', (e) => { if (e.target === veil) closeProfile(); });
+    document.body.append(veil);
+    profVeil = veil;
+    let p = null, own = false;
+    try {
+      await loadMe(true);
+      own = !id || (me.user && id === me.user.id);
+      if (own) p = me.profile;
+      else {
+        const db = await loadOnline();
+        ({ data: p } = await db.from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle());
+      }
+    } catch (e) {}
+    if (veil !== profVeil) return;
+    if (!p) {
+      card.replaceChildren(closeButton(), el('p', 'hn-muted hn-prof-wait', own ? 'Sign in to Chalk Chat to make a profile.' : 'That profile isn’t available.'));
+      card.querySelector('button').focus();
+      return;
+    }
+    paintProfile(card, p, own, live);
+  }
+  window.openProfileCard = openProfileCard;
+  function closeButton() {
+    const x = el('button', 'hn-prof-x', '×');
+    x.type = 'button';
+    x.setAttribute('aria-label', 'Close');
+    x.addEventListener('click', closeProfile);
+    return x;
+  }
+  function paintProfile(card, p, own, live) {
+    const banner = el('div', 'hn-prof-banner');
+    banner.style.background = BANNERS[p.banner != null && p.banner !== '' ? Number(p.banner) : hashOf(p.id) % BANNERS.length];
+    const pic = friendPic(p.id, p.avatar);
+    pic.classList.add('big');
+    if (!live) pic.querySelector('i').remove();
+    const accent = p.accent != null && p.accent !== '' ? PFP_COLORS[Number(p.accent)] : null;
+    if (accent) pic.style.boxShadow = '0 0 0 3px ' + accent;
+    const body = el('div', 'hn-prof-body');
+    const name = el('h2', 'hn-prof-name', p.username);
+    name.id = 'hn-prof-name';
+    card.setAttribute('aria-labelledby', name.id);
+    card.classList.toggle('on', !!(live && live.online));
+    body.append(pic, name);
+    if (live) body.append(friendLine(live));
+    else if (own) body.append(el('p', 'hn-prof-line', 'Your profile'));
+    if (p.status) body.append(el('p', 'hn-prof-status', p.status));
+    if (p.bio) body.append(el('p', 'hn-prof-bio', p.bio));
+    const game = p.fav_game && byPath(p.fav_game);
+    if (game) {
+      const label = el('p', 'hn-prof-sec', 'Favorite game');
+      const b = el('button', 'hn-row');
+      b.type = 'button';
+      const n = el('span', 'hn-row-name');
+      n.append(nameOf(game, 1.05));
+      b.append(cover(game, 'hn-row-art'), n);
+      b.setAttribute('aria-label', 'Open ' + shown(game));
+      b.addEventListener('click', () => { closeProfile(); launch(game); });
+      body.append(label, b);
+    }
+    const actions = el('div', 'hn-prof-actions');
+    if (own) {
+      const edit = el('button', 'hn-btn', 'Edit profile');
+      edit.type = 'button';
+      edit.addEventListener('click', () => paintEdit(card, p));
+      actions.append(edit);
+    }
+    if (live && live.doing === 'play' && byPath(live.item)) {
+      const go = el('button', own ? 'hn-tiny ghost' : 'hn-btn', 'Play too');
+      go.type = 'button';
+      go.addEventListener('click', () => { closeProfile(); launch(byPath(live.item)); });
+      actions.append(go);
+    }
+    if (actions.children.length) body.append(actions);
+    card.replaceChildren(banner, closeButton(), body);
+    card.querySelector('.hn-prof-x').focus();
+  }
+  function paintEdit(card, p) {
+    const form = el('form', 'hn-prof-body hn-prof-edit');
+    const title = el('h2', 'hn-prof-name', 'Edit profile');
+    title.id = 'hn-prof-name';
+    const field = (labelText, input) => { const l = el('label', 'hn-field', labelText); l.append(input); return l; };
+    const status = el('input');
+    status.type = 'text';
+    status.maxLength = 60;
+    status.value = p.status || '';
+    status.placeholder = 'Studying for the quiz';
+    // favorite game: search the activity list (names are drawn as pictures, like everywhere else)
+    let chosen = p.fav_game && byPath(p.fav_game) ? p.fav_game : null;
+    const pickedRow = el('div', 'hn-pick-now');
+    const search = el('input');
+    search.type = 'search';
+    search.placeholder = 'Search activities';
+    search.setAttribute('aria-label', 'Search for your favorite game');
+    const results = el('div', 'hn-games');
+    function paintChosen() {
+      const item = chosen && byPath(chosen);
+      pickedRow.replaceChildren();
+      if (!item) { pickedRow.append(el('span', 'hn-muted', 'None picked')); return; }
+      const n = el('span', 'hn-row-name');
+      n.append(nameOf(item, 1));
+      const clear = el('button', 'hn-tiny ghost', 'Clear');
+      clear.type = 'button';
+      clear.addEventListener('click', () => { chosen = null; paintChosen(); });
+      pickedRow.append(cover(item, 'hn-row-art'), n, clear);
+    }
+    function paintResults() {
+      const q = search.value.trim().toLowerCase();
+      const hits = LIST.lessons.filter((x) => !q || shown(x).toLowerCase().includes(q)).slice(0, 30);
+      results.replaceChildren(...hits.map((item) => {
+        const b = el('button', 'hn-row');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Pick ' + shown(item));
+        const n = el('span', 'hn-row-name');
+        n.append(nameOf(item, 1));
+        b.append(cover(item, 'hn-row-art'), n);
+        b.addEventListener('click', () => { chosen = item.path; paintChosen(); });
+        return b;
+      }));
+      if (!hits.length) results.append(el('p', 'hn-muted', 'Nothing matches.'));
+    }
+    search.addEventListener('input', paintResults);
+    paintChosen();
+    paintResults();
+    const gameBox = el('div', 'hn-field');
+    gameBox.append(el('span', '', 'Favorite game'), pickedRow, search, results);
+    // accent: the ten picture colours
+    const sws = el('fieldset', 'hn-sws');
+    sws.append(el('legend', '', 'Accent colour'));
+    const swatch = (value, color, label) => {
+      const l = el('label', 'hn-sw');
+      const r = el('input');
+      r.type = 'radio';
+      r.name = 'hn-accent';
+      r.value = value;
+      r.checked = (p.accent || '') === value;
+      r.setAttribute('aria-label', label);
+      const box = el('span');
+      if (color) box.style.background = color; else box.classList.add('none');
+      l.append(r, box);
+      return l;
+    };
+    sws.append(swatch('', null, 'No accent'), ...PFP_COLORS.map((c, i) => swatch(String(i), c, 'Colour ' + (i + 1))));
+    // what friends see
+    const share = el('fieldset', 'hn-share');
+    share.append(el('legend', '', 'What friends can see'));
+    const check = (key, text) => {
+      const l = el('label', 'hn-check');
+      const c = el('input');
+      c.type = 'checkbox';
+      c.name = key;
+      c.checked = me.profile && me.profile['share_' + key] === true;
+      l.append(c, document.createTextNode(text));
+      return l;
+    };
+    share.append(check('online', 'When I’m online'), check('play', 'What I’m playing'), check('listen', 'What I’m listening to'));
+    const note = el('p', 'hn-muted hn-prof-note', 'Your picture, bio and banner are changed in Chalk Chat.');
+    const err = el('p', 'hn-prof-err');
+    err.setAttribute('role', 'status');
+    const save = el('button', 'hn-btn', 'Save');
+    save.type = 'submit';
+    const cancel = el('button', 'hn-tiny ghost', 'Cancel');
+    cancel.type = 'button';
+    cancel.addEventListener('click', () => paintProfile(card, me.profile || p, true));
+    const actions = el('div', 'hn-prof-actions');
+    actions.append(save, cancel);
+    form.append(title, field('Status', status), gameBox, sws, share, note, err, actions);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      save.disabled = true;
+      err.textContent = '';
+      const picked = form.querySelector('input[name="hn-accent"]:checked');
+      try {
+        const db = await loadOnline();
+        const { data: why, error } = await db.rpc('save_profile_more', { p_status: status.value, p_fav_game: chosen || '', p_accent: picked ? picked.value : '' });
+        if (error || why) { err.textContent = error ? 'Couldn’t save. Try again.' : why; save.disabled = false; return; }
+        const on = (k) => form.querySelector('input[name="' + k + '"]').checked;
+        await setSharing(on('play'), on('listen'), on('online'));
+        await loadMe(true);
+        paintProfile(card, me.profile, true);
+      } catch (x) {
+        err.textContent = 'Couldn’t save. Try again.';
+        save.disabled = false;
+      }
+    });
+    card.setAttribute('aria-labelledby', title.id);
+    card.replaceChildren(closeButton(), form);
+    status.focus();
+  }
   {
     const panel = el('section', 'hn-panel');
     const list = el('div', 'hn-friends');
-    const open = el('button', 'hn-tiny ghost', 'Open Chalk Chat');
-    open.type = 'button';
-    open.addEventListener('click', () => { if (typeof showPanel === 'function') showPanel('chat'); });
-    panel.append(el('p', 'hn-label', 'Friends'), list, open);
+    panel.append(el('p', 'hn-label', 'Friends'), list);
     async function load() {
       try {
         const db = await loadOnline();
@@ -620,9 +911,8 @@
         const { data, error } = await db.rpc('friends_now');
         if (error) throw error;
         if (!(data || []).length) { list.replaceChildren(el('p', 'hn-muted', 'No friends yet. Add some in Chalk Chat.')); return; }
-        const pinned = read(FAV_FRIENDS, []);
-        const shown = data.slice().sort((a, b) => (pinned.includes(b.user_id) - pinned.includes(a.user_id)) || (b.online - a.online) || a.username.localeCompare(b.username)).slice(0, 5);
-        list.replaceChildren(...shown.map((f) => {
+        const first = data.slice().sort((a, b) => (b.online - a.online) || a.username.localeCompare(b.username)).slice(0, 5);
+        list.replaceChildren(...first.map((f) => {
           const row = el('div', 'hn-friend' + (f.online ? ' on' : ''));
           const item = f.doing === 'play' && f.item ? byPath(f.item) : null;
           const what = el('span', 'hn-friend-what');
@@ -631,21 +921,18 @@
           const name = el('span', 'hn-friend-name', f.username);
           const txt = el('span', 'hn-friend-txt');
           txt.append(name, what);
-          const fav = pinned.includes(f.user_id);
-          const star = el('button', 'hn-star', fav ? '★' : '☆');
-          star.type = 'button';
-          star.setAttribute('aria-pressed', String(fav));
-          star.setAttribute('aria-label', (fav ? 'Unpin ' : 'Pin ') + f.username);
-          star.title = fav ? 'Pinned to the top' : 'Pin to the top';
-          star.addEventListener('click', () => { write(FAV_FRIENDS, fav ? pinned.filter((x) => x !== f.user_id) : [f.user_id, ...pinned]); load(); });
-          row.append(friendPic(f.user_id, f.avatar), txt);
-          if (!item) row.append(star);
+          const main = el('button', 'hn-friend-main');
+          main.type = 'button';
+          main.title = 'See ' + f.username + '’s profile';
+          main.append(friendPic(f.user_id, f.avatar), txt);
+          main.addEventListener('click', () => openProfileCard(f.user_id, f));
+          row.append(main);
           if (item) {
             const go = el('button', 'hn-tiny ghost', 'Play too');
             go.type = 'button';
             go.setAttribute('aria-label', 'Open what ' + f.username + ' is playing');
             go.addEventListener('click', () => launch(item));
-            row.append(go, star);
+            row.append(go);
           }
           return row;
         }));
