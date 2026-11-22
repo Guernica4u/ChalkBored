@@ -32,8 +32,60 @@
   ],
   "rewrites": [
     {
-      "source": "/:page(algebra|archive|biology|calendar|chemistry|english|handbook|history|notes|planner|practice|reading|resources|review).html",
-      "destination": "/study-hall/:page.html"
+      "source": "/algebra.html",
+      "destination": "/study-hall/algebra.html"
+    },
+    {
+      "source": "/archive.html",
+      "destination": "/study-hall/archive.html"
+    },
+    {
+      "source": "/biology.html",
+      "destination": "/study-hall/biology.html"
+    },
+    {
+      "source": "/calendar.html",
+      "destination": "/study-hall/calendar.html"
+    },
+    {
+      "source": "/chemistry.html",
+      "destination": "/study-hall/chemistry.html"
+    },
+    {
+      "source": "/english.html",
+      "destination": "/study-hall/english.html"
+    },
+    {
+      "source": "/handbook.html",
+      "destination": "/study-hall/handbook.html"
+    },
+    {
+      "source": "/history.html",
+      "destination": "/study-hall/history.html"
+    },
+    {
+      "source": "/notes.html",
+      "destination": "/study-hall/notes.html"
+    },
+    {
+      "source": "/planner.html",
+      "destination": "/study-hall/planner.html"
+    },
+    {
+      "source": "/practice.html",
+      "destination": "/study-hall/practice.html"
+    },
+    {
+      "source": "/reading.html",
+      "destination": "/study-hall/reading.html"
+    },
+    {
+      "source": "/resources.html",
+      "destination": "/study-hall/resources.html"
+    },
+    {
+      "source": "/review.html",
+      "destination": "/study-hall/review.html"
     }
   ]
 }
