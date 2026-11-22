@@ -769,6 +769,13 @@
   body.os.rail-mini .main { margin-left: 64px; }
   body.os.rail-mini .brand, body.os.rail-mini .nav-btn span, body.os.rail-mini .nav-btn .out,
   body.os.rail-mini .rail-foot, body.os.rail-mini .rail-search { opacity: 0; pointer-events: none; }
+  /* folded, the hidden search box takes no room, so the tabs sit right under the fold button on every page */
+  body.os .rail-top .icon-btn { flex: none; }
+  @media (min-width: 761px) {
+    body.os.rail-mini .rail-search { display: none; }
+    body.os.rail-mini .nav.tabs-drop, body.os.rail-mini .nav.tabs-rise { animation: none; }
+    body.os.rail-mini .rail-top { padding-left: 16px; padding-bottom: 0.25rem; }
+  }
   /* leaving Home, the search box drops into the sidebar */
   .search-wrap.arrive { animation: search-in 0.25s ease; }
   @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }

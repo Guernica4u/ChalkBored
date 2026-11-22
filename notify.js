@@ -61,7 +61,7 @@
   .bell-btn { position: relative; }
   .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .35rem; }
   .ver-row .ver-corner { position: static; }
-  .ver-row .icon-btn { width: 28px; height: 28px; }
+  .ver-row .icon-btn { width: 28px; height: 28px; padding: 0; }
   .ver-row .icon-btn svg { width: 16px; height: 16px; }
   @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
