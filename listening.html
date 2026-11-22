@@ -128,6 +128,14 @@
   /* YouTube's player plays the sound from here, out of sight */
   #screen { position: absolute; left: 0; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
   #screen iframe { width: 100%; height: 100%; border: 0; }
+  #screen .shield, #vhint { display: none; }
+  #screen.video { position: fixed; inset: 0; width: auto; height: auto; z-index: 30; opacity: 1; pointer-events: auto; background: #000; animation: fade-in 0.4s ease-out; }
+  /* covers the player, so YouTube's own buttons never show on hover */
+  #screen.video .shield { display: block; position: absolute; inset: 0; z-index: 1; cursor: none; }
+  #screen.video #vhint { display: block; position: absolute; top: 18px; left: 50%; z-index: 2; transform: translateX(-50%); padding: 7px 14px; border-radius: var(--radius);
+    background: rgba(0, 0, 0, 0.7); color: #fff; font-size: 0.85rem; animation: hint 3.2s ease forwards; pointer-events: none; }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes hint { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
   /* YouTube through the tide: out of sight, unless it wants a check */
   #tidebox { position: absolute; left: 0; top: 0; width: 320px; height: 240px; opacity: 0; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; }
   #tidebox iframe { flex: 1; width: 100%; border: 0; }
@@ -227,6 +235,7 @@
   .row .pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; }
   .row .g { flex: none; width: 18px; text-align: center; color: var(--pencil); font-size: 0.75rem; }
   .row .pic { flex: none; width: 40px; height: 30px; border-radius: 5px; background: var(--paper-2) center/cover; }
+  .row .mini.vid svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
   .row .pic.letter, .pl .ic { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
   .pl .ic.art { background: var(--paper-2) center/cover; border-color: transparent; }
   .row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -270,7 +279,7 @@
   @media (prefers-reduced-motion: reduce) {
     #disc { animation: none; }
     #queue, #side, #corner, #seekbar, #controls, #handle, #side-btn svg { transition: none; }
-    #songs.enter, body.idle #card { animation: none; }
+    #songs.enter, body.idle #card, #screen.video { animation: none; }
   }
   /* narrow: the bar on the right slides in over the player */
   @media (max-width: 720px) {
@@ -320,7 +329,7 @@
         <button class="tool" id="queue-shut" type="button" title="Close"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
       <div class="list" id="qlist"></div>
     </div>
-    <div id="screen"></div>
+    <div id="screen"><div class="shield"></div><div id="vhint">Press Esc to exit full screen</div></div>
     <div id="tidebox"><div class="bar"><span>If a check shows here, do it and the song plays. Or play from the other sources.</span>
       <button class="btn plain" id="tide-skip" type="button">Other sources</button></div></div>
   </div>
@@ -587,6 +596,32 @@ const runsText = t => !t ? "" : t.simpleText || t.content || (t.runs || []).map(
 function ytClock(txt) {
   const p = String(txt || "").split(":").map(Number);
   return !txt || p.some(isNaN) ? 0 : p.reduce((a, b) => a * 60 + b, 0);
+}
+/* YouTube's music search, the one its music website asks: songs only, with their album art */
+async function ytMusicSearch(q, max) {
+  const res = await netFetch("https://music.youtube.com/youtubei/v1/search?prettyPrint=false", {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, YT_HEADERS),
+    body: JSON.stringify({ context: { client: { clientName: "WEB_REMIX", clientVersion: "1.20250101.01.00", hl: "en", gl: "US" } },
+                           query: q, params: "EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D" })
+  });
+  if (!res.ok) throw new Error(NAME.yt + " answered " + res.status + ".");
+  const out = [];
+  const walk = o => {
+    if (out.length >= (max || 20) || !o || typeof o !== "object") return;
+    if (Array.isArray(o)) { for (const v of o) walk(v); return; }
+    const m = o.musicResponsiveListItemRenderer;
+    if (!m) { for (const k in o) walk(o[k]); return; }
+    const cols = (m.flexColumns || []).map(c => runsText((c.musicResponsiveListItemFlexColumnRenderer || {}).text));
+    const id = m.playlistItemData && m.playlistItemData.videoId;
+    if (!id) return;
+    const meta = String(cols[1] || "").split(" • ");
+    const pics = ((((m.thumbnail || {}).musicThumbnailRenderer || {}).thumbnail || {}).thumbnails) || [];
+    const pic = pics.length ? pics[pics.length - 1].url.replace(/=w\d+-h\d+/, "=w300-h300") : "";
+    out.push({ id, title: cols[0] || "", author: meta[0] || "", secs: ytClock(meta[meta.length - 1]), thumb: pic });
+  };
+  walk(await res.json());
+  return out;
 }
 /* YouTube's own search, the one its website asks, videos only (CHALK OS) */
 async function ytSearch(q, max) {
@@ -869,7 +904,7 @@ function ytPlayer(firstVid) {
     f.title = "Player";
     f.allow = "autoplay; encrypted-media";
     f.referrerPolicy = "strict-origin-when-cross-origin";
-    f.src = "https://www.youtube.com/embed/" + firstVid + "?enablejsapi=1&autoplay=1&playsinline=1&rel=0&origin=" + encodeURIComponent(location.origin);
+    f.src = "https://www.youtube.com/embed/" + firstVid + "?enablejsapi=1&autoplay=1&playsinline=1&rel=0&controls=0&iv_load_policy=3&disablekb=1&fs=0&origin=" + encodeURIComponent(location.origin);
     $("screen").appendChild(f);
     yt = new YT.Player(f, {
       events: {
@@ -991,6 +1026,14 @@ function songRow(s, opts) {
   pick.append(pic, n, el("span", "d", s.secs ? fmt(s.secs) : ""));
   pick.onclick = opts.play;
   r.appendChild(pick);
+  if (s.kind === "yt" && opts.play) {
+    const v = el("button", "mini vid");
+    v.type = "button";
+    v.title = "Watch the video";
+    v.innerHTML = '<svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M7 6.3v3.4L9.8 8z"/></svg>';
+    v.onclick = e => { e.stopPropagation(); watchVideo(s, opts.play); };
+    r.appendChild(v);
+  }
   const plus = el("button", "mini", "+");
   plus.type = "button";
   plus.title = "Play next, or add to a playlist";
@@ -1428,7 +1471,9 @@ async function find(q) {
   const how = S.source || "auto";
   const where = how === "auto" ? ["yt", "sc", "au"] : how === "ytt" ? ["yt"] : [how];
   const each = where.length > 1 ? 8 : 20;
-  const ask = w => w === "yt" ? ytSearch(q, each).then(h => h.map(x => ytSong(x.id, x.title, x.author, x.secs)))
+  const ytFind = () => S.musicOnly === false ? ytSearch(q, each)
+    : ytMusicSearch(q, each).then(h => h.length ? h : ytSearch(q, each), () => ytSearch(q, each));
+  const ask = w => w === "yt" ? ytFind().then(h => h.map(x => Object.assign(ytSong(x.id, x.title, x.author, x.secs), x.thumb ? { thumb: x.thumb } : {})))
                   : w === "sc" ? scSearch(q, each) : audiusSearch(q, each);
   const got = await Promise.allSettled(where.map(ask));
   if (tok !== findTok) return;
@@ -1466,6 +1511,10 @@ function settings(first) {
     box.appendChild(l);
   });
   if (!first) {
+    const mo = el("label", "opt"), mi = el("input");
+    mi.type = "checkbox"; mi.name = "musiconly"; mi.checked = S.musicOnly !== false;
+    mo.append(mi, el("span", null, "Songs only when searching " + NAME.yt));
+    box.append(el("div", "lab", "Search"), mo);
     box.append(el("div", "lab", "Cover"));
     [["spin", "Round, turning while a song plays"], ["still", "Round, still"], ["square", "Square, still"]].forEach(([v, name]) => {
       const l = el("label", "opt"), i = el("input");
@@ -1482,6 +1531,7 @@ function settings(first) {
   $("app").appendChild(veil);
   const finish = () => {
     S.source = box.elements.source.value;
+    if (box.elements.musiconly) S.musicOnly = box.elements.musiconly.checked;
     if (box.elements.cover) { S.cover = box.elements.cover.value; delete S.spin; }
     S.setup = true;
     save(); paintToggles(); veil.remove();
@@ -1491,6 +1541,22 @@ function settings(first) {
   box.onkeydown = e => { if (e.key === "Escape") finish(); };
   setTimeout(() => ok.focus({ preventScroll: true }), 30);
 }
+/* plays the song if it isn't on, then shows its video over everything */
+async function watchVideo(s, start) {
+  const cur = song(at);
+  if (!cur || cur.id !== s.id) start();
+  for (let k = 0; k < 40 && !(using === "yt" && yt && yt.getPlayerState); k++) await new Promise(ok => setTimeout(ok, 250));
+  if (using !== "yt" || !yt) return toast("The video only shows when " + NAME.yt + " plays here directly.", 4500);
+  const sc = $("screen");
+  sc.classList.add("video");
+  $("vhint").style.animation = "none"; void $("vhint").offsetWidth; $("vhint").style.animation = "";
+  if (sc.requestFullscreen) sc.requestFullscreen().catch(() => {});   // if not allowed, it still fills this page
+}
+function endVideo() {
+  $("screen").classList.remove("video");
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) $("screen").classList.remove("video"); });
 function openQueue(on) {
   const want = on == null ? !document.body.classList.contains("queued") : !!on;
   document.body.classList.toggle("queued", want);
@@ -1593,7 +1659,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === "ArrowDown") { e.preventDefault(); setVol(S.vol - 5); }
   else if (e.key === "m" || e.key === "M") muteToggle();
   else if (e.key === "/") { e.preventDefault(); $("q").focus({ preventScroll: true }); }
-  else if (e.key === "Escape") { openQueue(false); closeSide(); closeMenu(); }
+  else if (e.key === "Escape") { endVideo(); openQueue(false); closeSide(); closeMenu(); }
 });
 if ("mediaSession" in navigator) {
   const h = (k, f) => { try { navigator.mediaSession.setActionHandler(k, f); } catch (e) {} };
