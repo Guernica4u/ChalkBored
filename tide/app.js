@@ -611,6 +611,19 @@ window.addEventListener('message', e => {
   if (d.tide === 'go' && typeof d.url === 'string' && /^https?:\/\//i.test(d.url)) open(active, d.url);
   else if (d.tide === 'back') $('back').click();
   else if (d.tide === 'reload') $('reload').click();
+  else if (d.tide === 'stop' && active && active.frame) {   // leave the site, so its page and media are let go
+    active.frame.element.remove();
+    Object.assign(active, { frame: null, url: '', loading: false, painted: false });
+    renderTabs();
+  }
+  else if (d.tide === 'fetch' && typeof d.url === 'string' && /^https:\/\//i.test(d.url)) {
+    // one GET through Tide's server for the page around it (Chalk TV's lists and posters)
+    const reply = (m, t) => { try { e.source.postMessage(Object.assign({ tide: 'fetched', id: d.id }, m), e.origin, t); } catch (x) {} };
+    engine.then(async c => { const t = c.transport; if (!t.session) await (t.tideInit = t.tideInit || t.init()); return t.request(new URL(d.url), 'GET', null, [], undefined); }).then(async r => {
+      const body = await new Response(r.body).arrayBuffer();
+      reply({ status: r.status, type: new Headers(r.headers).get('content-type') || '', body }, [body]);
+    }).catch(err => reply({ status: 0, error: String(err && err.message || err) }));
+  }
 });
 
 /* ---- start ---- */

@@ -6,573 +6,353 @@
 <meta name="referrer" content="no-referrer">
 <title>Chalk TV</title>
 <link rel="icon" href="favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* the same three looks as Notebook, picked from Notebook's settings */
+  /* Basic Mono, like Notebook */
   :root {
-    --paper: #fbfbf7;
-    --paper-2: #f3f3ec;
-    --card: #ffffff;
-    --ink: #1f2d44;
-    --pencil: #66708a;
-    --rule-line: #dde6f2;
-    --margin-line: #ecb3ad;
-    --edge: #d9dde4;
-    --accent: #2c5fb8;
-    --accent-ink: #ffffff;
-    --highlight: #ffe680;
-    --danger: #c0473a;
-    --shadow: 0 1px 2px rgba(31, 45, 68, 0.08), 0 4px 14px rgba(31, 45, 68, 0.06);
-    --rule: 28px;
-    --radius: 10px;
-    --hand: 'Kalam', 'Segoe Print', 'Comic Sans MS', cursive;
+    --paper: #0b0b0b; --paper-2: #151515; --card: #1b1b1b; --ink: #f2f2f2; --pencil: #9a9a9a;
+    --edge: #2e2e2e; --accent: #f2f2f2; --accent-ink: #0b0b0b; --r: 4px;
     --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
-    color-scheme: light;
-  }
-  /* Basic: soft and dark, in Night (blue-grey, below) or Mono */
-  body[data-theme="basic"] {
-    --paper: #16181d;
-    --paper-2: #1f232a;
-    --card: #1c1f26;
-    --ink: #d9d5cc;
-    --pencil: #8b909a;
-    --rule-line: transparent;
-    --margin-line: transparent;
-    --edge: #2b3039;
-    --accent: #8fb3d9;
-    --accent-ink: #16181d;
-    --highlight: #2f4157;
-    --danger: #d98b7f;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.18);
-    --hand: var(--body);
     color-scheme: dark;
   }
-  body[data-theme="basic"] .mono { background: transparent !important; color: var(--accent); border: 1px solid var(--edge); }
-
-  /* Mono: the same Basic layout in plain black and white */
-  body[data-basic="mono"] {
-    --paper: #0b0b0b; --paper-2: #171717; --card: #121212; --ink: #f2f2f2; --pencil: #9a9a9a;
-    --edge: #2e2e2e; --accent: #f2f2f2; --accent-ink: #0b0b0b; --highlight: #3a3a3a; --danger: #e6e6e6;
-  }
-
-  /* Space: soft see-through panels over a dim starry sky (matches Notebook) */
-  body[data-theme="space"] {
-    --paper: #0b0f1c;
-    --paper-2: rgba(46, 54, 80, 0.92);
-    --card: rgba(24, 30, 48, 0.92);
-    --ink: #e6e9f2;
-    --pencil: #a4adc4;
-    --rule-line: rgba(200, 212, 255, 0.08);
-    --margin-line: transparent;
-    --edge: rgba(200, 212, 255, 0.15);
-    --accent: #dbe3f6;
-    --accent-ink: #0e1328;
-    --highlight: rgba(200, 212, 255, 0.16);
-    --danger: #f2a3a3;
-    --shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --radius: 16px;
-    --hand: var(--body);
-    color-scheme: dark;
-  }
-  /* on its own the page draws the sky; inside Notebook, Notebook's sky shows through */
-  html:not(.in-notebook) body[data-theme="space"] { background: url("look/stars.svg"), radial-gradient(130% 100% at 50% 0%, #1a2140 0%, #0e1328 55%, #090c18 100%) #0b0f1c; }
-  /* the frame is dark; saying "light" here would make the browser paint a solid sheet over that sky */
-  html.in-notebook { color-scheme: dark; }
-  html.in-notebook body[data-theme="space"] { background: transparent; }
-  body[data-theme="space"] #stage { background: transparent; }
-  body[data-theme="space"] #bar { background: rgba(24, 30, 48, 0.85); }
-  body[data-theme="space"] .veil { background: rgba(6, 9, 18, 0.88); }
-  body[data-theme="space"] .mono { background: rgba(200, 212, 255, 0.12) !important; }
-  body[data-theme="space"] .btn { background: var(--accent); color: var(--accent-ink); }
-
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  html, body { height: 100%; margin: 0; overflow: hidden; }
-  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.45 var(--body); overflow: hidden; }
   button, input { font: inherit; color: inherit; }
   button { cursor: pointer; }
-  #app { display: flex; flex-direction: column; height: 100%; }
 
-  /* ---- the bar along the top ---- */
-  #bar {
-    display: flex; align-items: center; gap: 4px; padding: 6px 8px;
-    background: var(--paper-2); border-bottom: 1px solid var(--edge);
-  }
-  #brand { flex: none; margin: 0 10px 0 4px; font: 700 1.25rem/1 var(--hand); white-space: nowrap; }
-  #brand span { color: var(--accent); }
-  #site-name {
-    flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-    color: var(--pencil); font-size: 0.9rem;
-  }
-  .tool {
-    flex: none; height: 34px; min-width: 34px; padding: 0 10px; border: none; border-radius: var(--radius);
-    background: transparent; color: var(--pencil); font-size: 0.88rem;
-  }
-  .tool.icon { padding: 0; font-size: 17px; line-height: 1; }
-  .tool:hover { background: var(--card); color: var(--ink); }
+  /* ---- the top bar ---- */
+  #top { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border-bottom: 1px solid var(--edge); background: var(--paper-2); }
+  #brand { font-weight: 700; font-size: 1.15rem; white-space: nowrap; background: none; border: 0; padding: 0; }
+  #search { flex: 1; max-width: 460px; display: flex; margin-left: auto; }
+  #q { flex: 1; min-width: 0; height: 34px; padding: 0 12px; background: var(--paper); border: 1px solid var(--edge); border-radius: var(--r); outline: 0; }
+  #q:focus { border-color: var(--pencil); }
 
-  /* the bar stays out of the way: it slides in when the mouse comes to the top edge,
-     or (on touch screens) when the small tab at the top is tapped */
-  #app { position: relative; }
-  #bar {
-    position: absolute; top: 0; left: 0; right: 0; z-index: 20; box-shadow: var(--shadow);
-    transform: translateY(-100%); transition: transform 0.18s ease;
-  }
-  #app.bar-on #bar, #bar:focus-within { transform: none; }
-  #hot { position: absolute; top: 0; left: 0; right: 0; height: 8px; z-index: 19; }
-  #bar-tab {
-    display: none; position: absolute; top: 0; left: 50%; z-index: 19; transform: translateX(-50%);
-    height: 20px; padding: 0 16px; border: 1px solid var(--edge); border-top: none;
-    border-radius: 0 0 var(--radius) var(--radius); background: var(--paper-2); color: var(--pencil); font-size: 12px;
-  }
-  @media (hover: none), (pointer: coarse) { #bar-tab { display: block; } #hot { display: none; } }
-  #stage { position: relative; flex: 1; min-height: 0; background: var(--paper); }
-  #stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
+  /* ---- browsing ---- */
+  #browse { position: absolute; top: 52px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 8px 0 32px; }
+  .row h2 { margin: 18px 16px 8px; font-size: 1rem; font-weight: 700; }
+  .strip { display: flex; gap: 10px; overflow-x: auto; padding: 2px 16px 6px; scrollbar-width: thin; }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px 10px; padding: 2px 16px; }
+  .card { flex: none; display: flex; flex-direction: column; align-self: flex-start; width: 132px; padding: 0; border: 0; background: none; text-align: left; }
+  .poster { display: block; width: 132px; height: 190px; object-fit: cover; border-radius: var(--r); background: var(--card); border: 1px solid var(--edge); }
+  .card:hover .poster, .card:focus-visible .poster { border-color: var(--ink); }
+  .card:focus-visible { outline: none; }
+  .card .t { display: block; margin-top: 6px; font-size: 0.85rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .card .y { display: block; color: var(--pencil); font-size: 0.78rem; }
+  .bar { height: 3px; margin-top: 4px; background: var(--edge); border-radius: 2px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--ink); }
+  .msg { margin: 16px; color: var(--pencil); }
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--r); border: 1px solid var(--edge); background: var(--card); }
+  .btn:hover { border-color: var(--pencil); }
+  .btn.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
 
-  /* ---- boxes that sit over everything: the key, and picking a site ---- */
-  .veil {
-    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
-    padding: 16px; overflow-y: auto; background: var(--paper);
-  }
-  .box {
-    width: 100%; max-width: 420px; padding: 30px; text-align: center;
-    background: var(--card); border: 1px solid var(--edge); border-radius: var(--radius); box-shadow: var(--shadow);
-  }
-  .box.wide { max-width: 560px; text-align: left; }
-  .box h2 { margin: 0; font: 700 2rem/1.1 var(--hand); }
-  .box h2 span { color: var(--accent); }
-  .box > p { margin: 6px 0 16px; color: var(--pencil); }
-  .field {
-    display: block; width: 100%; height: 42px; padding: 0 14px;
-    background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius);
-  }
-  .field:focus { outline: none; border-color: var(--accent); }
-  .btn {
-    height: 42px; padding: 0 20px; border: none; border-radius: var(--radius);
-    background: var(--accent); color: var(--accent-ink); font-weight: 700;
-  }
-  .btn:disabled { opacity: 0.6; cursor: default; }
-  #key-input { margin-bottom: 12px; }
-  #submit-btn { width: 100%; }
-  .or { margin: 14px 0 10px; color: var(--pencil); font-size: 0.85rem; }
-  #public-btn { width: 100%; background: transparent; color: var(--ink); border: 1px solid var(--edge); }
-  #status { margin-top: 12px; min-height: 20px; font-size: 0.88rem; color: var(--danger); }
-  .small { margin-top: 8px; font-size: 0.8rem; color: var(--pencil); }
+  /* ---- one title ---- */
+  #details { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.75); }
+  #details .box { display: flex; gap: 20px; width: min(760px, 100%); max-height: 100%; overflow-y: auto; padding: 20px; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); }
+  #details .poster { flex: none; width: 170px; height: 245px; }
+  #details h3 { margin: 0; font-size: 1.3rem; }
+  #d-year { color: var(--pencil); margin: 2px 0 10px; }
+  #d-text { margin: 0 0 14px; color: #cfcfcf; font-size: 0.9rem; max-height: 9em; overflow-y: auto; }
+  #d-actions { display: flex; gap: 8px; }
+  #d-eps { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; max-height: 220px; overflow-y: auto; }
+  #d-eps button { text-align: left; padding: 7px 10px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); font-size: 0.88rem; }
+  #d-eps button:hover { border-color: var(--pencil); }
+  @media (max-width: 560px) { #details .box { flex-direction: column; } #details .poster { width: 120px; height: 172px; } }
 
-  .options { display: grid; gap: 10px; margin-bottom: 18px; }
-  .option {
-    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left;
-    background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--radius);
-  }
-  .option:hover:not(:disabled) { border-color: var(--accent); }
-  .option:disabled { opacity: 0.55; cursor: default; }
-  .option .num {
-    flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%;
-    background: var(--accent); color: var(--accent-ink); font-weight: 700;
-  }
-  .option b { display: block; }
-  .option small { display: block; color: var(--pencil); font-size: 0.8rem; word-break: break-all; }
-  .own { display: flex; gap: 8px; }
-  .own .field { flex: 1; min-width: 0; }
-  .label { margin: 0 0 8px; font: 700 1.05rem/1.2 var(--hand); }
-  #pick-msg { min-height: 20px; margin: 8px 0 0; font-size: 0.85rem; color: var(--danger); }
-  #pick-cancel, .link { margin-top: 14px; background: none; border: none; padding: 0; color: var(--pencil); text-decoration: underline; }
-  .link + .link, #pick-cancel + .link { margin-left: 16px; }
-  #servers { z-index: 1002; }                       /* over the site picker */
-  .veil > .box { margin: auto; }                    /* a tall box scrolls from its top */
-  #server-list { gap: 6px; margin-bottom: 8px; }
-  #server-list .option { padding: 7px 12px; }
-  #server-list .num { width: 28px; height: 28px; font-size: 0.85rem; }
-  .option .num.pin { background: var(--ink); color: var(--paper); }
-  .option .ms { margin-left: auto; flex: none; color: var(--pencil); font-size: 0.85rem; white-space: nowrap; }
-  .option.now { border-color: var(--accent); }
-  /* a small spinner while a server is being tested */
-  .ms.busy::after {
-    content: ""; display: inline-block; width: 12px; height: 12px; vertical-align: -2px;
-    border: 2px solid var(--edge); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  #toast {
-    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 1001;
-    max-width: calc(100% - 32px); padding: 10px 14px; border-radius: var(--radius);
-    background: var(--ink); color: var(--paper); font-size: 0.85rem;
-    opacity: 0; transition: opacity 0.4s; pointer-events: none;
-  }
-  #toast.show { opacity: 1; }
-  @media (max-width: 560px) { #brand { display: none; } .tool.words { padding: 0 6px; font-size: 0.8rem; } }
+  /* ---- the player: Tide plays the video, our bar sits above it ---- */
+  #player { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #000; }
+  #p-bar { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 10px; background: var(--paper-2); border-bottom: 1px solid var(--edge); }
+  #p-title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--pencil); }
+  #p-stage { position: relative; flex: 1; }
+  /* Tide stays in the page the whole time (lists and posters come through it), out of sight until a video plays */
+  #tide { position: fixed; width: 1px; height: 1px; left: -10px; top: 0; border: 0; opacity: 0; pointer-events: none; }
+  body.playing #tide { left: 0; top: 44px; width: 100%; height: calc(100% - 44px); opacity: 1; pointer-events: auto; z-index: 21; background: #000; }
+  #p-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--pencil); }
 </style>
 </head>
-<body data-theme="basic" data-basic="mono">
-<div id="app">
-  <div id="bar">
-    <div id="brand">Chalk <span>TV</span></div>
-    <button class="tool icon" id="back" type="button" title="Back" aria-label="Back">&#8249;</button>
-    <button class="tool icon" id="reload" type="button" title="Reload" aria-label="Reload">&#8635;</button>
-    <div id="site-name"></div>
-    <button class="tool words" id="change" type="button">Change site</button>
-    <button class="tool words" id="change-server" type="button">Change server</button>
-    <button class="tool icon" id="full" type="button" title="Full screen" aria-label="Full screen">&#9974;</button>
+<body>
+<div id="top">
+  <button id="brand" type="button" title="Home">Chalk TV</button>
+  <form id="search" role="search"><input id="q" type="search" placeholder="Search films and shows" autocomplete="off" spellcheck="false" aria-label="Search"></form>
+</div>
+<main id="browse"></main>
+
+<div id="details" hidden>
+  <div class="box" role="dialog" aria-labelledby="d-title">
+    <img class="poster" id="d-poster" alt="">
+    <div style="flex:1;min-width:0">
+      <h3 id="d-title"></h3>
+      <div id="d-year"></div>
+      <p id="d-text"></p>
+      <div id="d-actions"><button class="btn main" id="d-play" type="button">Play</button><button class="btn" id="d-close" type="button">Close</button></div>
+      <div id="d-eps"></div>
+    </div>
   </div>
-  <div id="hot"></div>
-  <button id="bar-tab" type="button" aria-label="Show the bar">&#9662;</button>
-  <main id="stage"></main>
 </div>
 
+<div id="player" hidden>
+  <div id="p-bar"><button class="btn" id="p-back" type="button">&#8249; Back</button><div id="p-title"></div></div>
+  <div id="p-stage"><div id="p-wait">Loading…</div></div>
+</div>
 
-<!-- what Chalk TV shows -->
-<div class="veil" id="picker" hidden>
-  <div class="box wide">
-    <h2>Pick a site for <span>Chalk TV</span></h2>
-    <p>Chalk TV shows one site. Choose one of these, or use your own. You can change it later with Change site.</p>
-    <div class="options" id="options"></div>
-    <p class="label">Or your own</p>
-    <form class="own" id="own-form">
-      <input class="field" id="own-url" type="text" placeholder="example.com" autocomplete="off" spellcheck="false" aria-label="Your own site">
-      <button class="btn" type="submit">Use it</button>
-    </form>
-    <p id="pick-msg"></p>
-    <button id="pick-cancel" type="button" hidden>Keep the current site</button>
-    <button class="link" id="pick-server" type="button">Change server</button>
-  </div>
-</div>
-<!-- Change server: every public server, fastest first -->
-<div class="veil" id="servers" hidden>
-  <div class="box wide">
-    <h2>Pick a <span>server</span></h2>
-    <p>Lower ms is faster.</p>
-    <div class="options" id="server-list"></div>
-    <button class="link" id="ping-again" type="button">Test again</button>
-    <button class="link" id="servers-cancel" type="button">Keep the current server</button>
-  </div>
-</div>
-<div id="toast"></div>
 <script>
-// ============================================================
-// PASTE YOUR SITES HERE
-// Sites in the Change site picker. Chalk TV boots straight to Movy.
-// Put a name and an address in each one. A choice with no
-// address shows as "not set up yet" and can't be picked.
-// ============================================================
-const TV_SITES = [
-  { name: "Movy", url: "movy.sx" },
-  { name: "CNO", url: "https://beta.cno.to/" },
-  { name: "CineJoy", url: "Cinejoy.pk/" }
-];
-const BOOT_SITE = TV_SITES.find((s) => s && s.url === "movy.sx") || TV_SITES[0];
-
-// ============================================================
-// Do not edit below this line
-// ============================================================
-
-/* Chalk TV shows one site through the public Tide (github.com/Guernica4u/Tide) in its TV mode - no tabs. */
-/* ChalkBored's own copy of Tide, like Chalk Browser: filters (Cisco Umbrella) block tide.guernica4u.workers.dev */
-const TIDE_PAGE = new URL("tide/", location.href).href;
-const SITE_STORE = "chalk-tv.site";
-const SETTINGS_STORE = "vault-settings";          /* Notebook's settings */
-const MODE_STORE = "chalk-tv.mode";               /* "key" or "public" */
-const RELAY_STORE = "chalk-tv.relay";             /* a public server, or none for Tide's fastest */
-/* the same public servers as Tide's WISP_POOL_DEFAULTS (Tide only takes these) */
-const PUBLIC_RELAYS = [
-  "wss://fern.best/wisp/",
-  "wss://lichology.com/wisp/",
-  "wss://wisp.mercurywork.shop/",
-  "wss://wisp.terbiumon.top/wisp/",
-  "wss://gointospace.app/wisp/",
-  "wss://definitelyscience.com/wisp/",
-  "wss://anura.pro/",
-  "wss://motor-cycle-part.org/wisp/"
-];
-const DEFAULT_RELAY = "wss://fern.best/wisp/";
-
+/* Chalk TV: free films and shows from the Internet Archive (archive.org), public domain or
+   shared by their owners. Everything, lists, posters and video, comes through Tide (tide/). */
 const $ = id => document.getElementById(id);
-const stage = $("stage");
-const toastEl = $("toast");
+const IA = "https://archive.org";
+const SOURCES = "(collection:feature_films OR collection:SciFi_Horror OR collection:silent_films OR collection:animationandcartoons OR collection:classic_tv)";
+const ROWS = [
+  ["Popular films", "collection:feature_films"],
+  ["Comedy", "collection:feature_films AND subject:comedy"],
+  ["Film noir", 'collection:feature_films AND subject:"film noir"'],
+  ["Sci-fi and horror", "collection:SciFi_Horror"],
+  ["Silent films", "collection:silent_films"],
+  ["Cartoons", "collection:animationandcartoons"],
+  ["Classic TV", "collection:classic_tv"]
+];
+const CONTINUE = "chalk-tv.continue";
+const ADULT = ["sex", "sexy", "nude", "nudist", "naked", "erotic", "stripper", "striptease", "lust", "burlesque", "porn"];
+const ADULT_RE = /\b(sex|sexy|nude|nudist|naked|erotic|stripper|striptease|lust|burlesque|porn)/i;   // same words as ADULT
+for (const k of ["chalk-tv.site", "chalk-tv.mode", "chalk-tv.relay"]) try { localStorage.removeItem(k); } catch (e) {}   // the old Chalk TV's
 
-/* ---- the look follows Notebook, live ---- */
-const THEME_NAMES = { basic: 1 };   /* anything else, Terminal included, shows as Basic Night */
-const BASIC_COLORS = { mono: 1 };
-/* inside Notebook's Chalk TV tab the page lets Notebook's own sky show through */
-try { if (parent !== window && /notebook/.test(parent.location.pathname)) document.documentElement.classList.add("in-notebook"); } catch (e) {}
-function applyLook() {
-  let nb = {};
-  try { nb = JSON.parse(localStorage.getItem(SETTINGS_STORE) || "null") || {}; } catch (e) {}
-  let theme = nb.theme === "glass" ? "space" : nb.theme;   // Glass is called Space now
-  let basic = BASIC_COLORS[nb.basic] ? nb.basic : "mono";   // Basic Mono is the default, like Notebook
-  if (nb.plain || theme === "night") { theme = "basic"; basic = "mono"; }   // Night is a Basic color now
-  if (!THEME_NAMES[theme]) { theme = "basic"; basic = "mono"; }   // a saved old theme (Terminal) shows as Night
-  document.body.dataset.theme = theme;
-  if (theme === "basic") document.body.dataset.basic = basic;
-  else delete document.body.dataset.basic;
-  /* Tide wears the same look: "space", or the Basic color ("night" or "mono") */
-  tideLook = "mono";
-}
-var tideLook = "mono";
-applyLook();
-window.addEventListener("storage", e => {
-  if (e.key !== SETTINGS_STORE && e.key !== null) return;
-  applyLook();
-  tide({ tide: "look", look: tideLook });
+/* ---- Tide, out of sight ---- */
+const TIDE_PAGE = new URL("tide/", location.href).href;
+const tideFrame = document.createElement("iframe");
+tideFrame.id = "tide";
+tideFrame.title = "Video";
+tideFrame.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture";
+tideFrame.allowFullscreen = true;
+tideFrame.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify({ ui: "tv", fresh: true }));
+document.body.appendChild(tideFrame);
+let ready, readyNow;
+ready = new Promise(ok => { readyNow = ok; });
+let seq = 0;
+const waiting = new Map();
+const tide = msg => tideFrame.contentWindow.postMessage(msg, location.origin);
+addEventListener("message", e => {
+  if (e.source !== tideFrame.contentWindow || e.origin !== location.origin || !e.data) return;
+  if (e.data.tide === "ready") readyNow();
+  if (e.data.tide === "fetched" && waiting.has(e.data.id)) { waiting.get(e.data.id)(e.data); waiting.delete(e.data.id); }
 });
-
-
-/* ---- the site ---- */
-function siteUrl(raw) {
-  raw = String(raw || "").trim();
-  if (!raw || /\s/.test(raw)) return null;   /* Chrome would take "not a site" as an address */
-  if (!/^[a-z][a-z0-9+.-]*:/i.test(raw)) raw = "https://" + raw;
-  try {
-    const u = new URL(raw);
-    return /^https?:$/.test(u.protocol) && /[.:]|^localhost$/.test(u.hostname) ? u.href : null;
-  } catch (e) { return null; }
+/* one GET through Tide; resolves with { status, type, body } */
+function get(url) {
+  return ready.then(() => new Promise((ok, fail) => {
+    const id = ++seq;
+    const timer = setTimeout(() => { waiting.delete(id); fail(new Error("timed out")); }, 25000);
+    waiting.set(id, r => { clearTimeout(timer); r.status === 200 ? ok(r) : fail(new Error(r.error || "status " + r.status)); });
+    tide({ tide: "fetch", id, url });
+  }));
 }
-function hostOf(url) {
-  try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url; }
-}
-/* Chalk TV forgets everything on refresh: no last site, and Tide starts fresh
-   (sites' cookies and storage wiped, no history). Only the server choice stays. */
-try { localStorage.removeItem(SITE_STORE); } catch (e) {}
-let currentSite = null;
+const getJson = url => get(url).then(r => JSON.parse(new TextDecoder().decode(r.body)));
 
-
-/* ---- Tide, in its TV mode (just the site, no tabs) ---- */
-let tideFrame = null;
-let tideReady = false;                            /* Tide says {tide:"ready"} once it can take "go" */
-let pendingUrl = "";
-/* Tide starts as soon as the server is picked, so it's warmed up while you pick a site */
-function openTide(site) {
-  tideReady = false;
-  pendingUrl = "";
-  const f = document.createElement("iframe");
-  f.title = "Chalk TV";
-  f.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture";
-  f.allowFullscreen = true;
-  /* a site can't take over the whole tab, open real tabs or download */
-  f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-presentation allow-orientation-lock");
-  const cfg = { ui: "tv", fresh: true, look: tideLook };
-  if (site) cfg.open = site.url;
-  if (relay) cfg.relay = relay;
-  f.src = TIDE_PAGE + "#tide=" + encodeURIComponent(JSON.stringify(cfg));
-  stage.replaceChildren(f);
-  tideFrame = f;
+/* ---- the Archive ---- */
+function find(q, rows) {
+  // only items with a video Chalk TV can play, and nothing with an adult title (it's a school site)
+  const p = new URLSearchParams({ q: q + ' AND mediatype:movies AND format:(MPEG4 OR "h.264") AND NOT title:(' + ADULT.join(" OR ") + ")", rows: String(rows), output: "json" });
+  ["identifier", "title", "year"].forEach(f => p.append("fl[]", f));
+  p.append("sort[]", "downloads desc");
+  return getJson(IA + "/advancedsearch.php?" + p).then(j => j.response.docs.filter(d => d.title && !ADULT_RE.test(d.title)));
 }
-function tide(message) {
-  const origin = new URL(TIDE_PAGE).origin;
-  if (tideFrame && tideFrame.contentWindow) tideFrame.contentWindow.postMessage(message, origin);
-}
-window.addEventListener("message", e => {
-  if (!tideFrame || e.source !== tideFrame.contentWindow || !e.data || e.data.tide !== "ready") return;
-  if (e.origin !== new URL(TIDE_PAGE).origin) return;
-  tideReady = true;
-  if (pendingUrl) { tide({ tide: "go", url: pendingUrl }); pendingUrl = ""; }
-});
-function toast(text) {
-  toastEl.textContent = text;
-  toastEl.classList.add("show");
-  setTimeout(() => toastEl.classList.remove("show"), 8000);
+/* an item's videos: one per film or episode, the smaller 512kb copy when there is one */
+function videosOf(meta) {
+  const best = new Map();
+  for (const f of meta.files || []) {
+    if (!/\.mp4$/i.test(f.name)) continue;
+    const base = f.name.replace(/(_512kb)?\.mp4$/i, "");
+    if (!best.has(base) || /_512kb\.mp4$/i.test(f.name)) best.set(base, f);
+  }
+  return [...best.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })).map(([base, f]) => ({
+    label: f.title || base.split("/").pop().replace(/[_]+/g, " "),
+    url: IA + "/download/" + encodeURIComponent(meta.metadata.identifier) + "/" + f.name.split("/").map(encodeURIComponent).join("/")
+  }));
 }
 
-
-/* ---- picking a site ---- */
-let mode = "";                                    /* "key" or "public", once started */
-let relay = DEFAULT_RELAY;
-try {
-  const savedRelay = localStorage.getItem(RELAY_STORE);
-  if (savedRelay && PUBLIC_RELAYS.includes(savedRelay)) relay = savedRelay;
-} catch (e) {}
-function setMode(m) {
-  mode = m;
-  try { localStorage.setItem(MODE_STORE, m); } catch (e) {}
+/* ---- posters: fetched as they scroll into view, a few at a time ---- */
+const posters = new Map();   // identifier -> blob URL
+const queue = [];
+let busy = 0;
+const seen = new IntersectionObserver(list => list.forEach(e => {
+  if (!e.isIntersecting) return;
+  seen.unobserve(e.target);
+  queue.push(e.target);
+  pump();
+}), { root: null, rootMargin: "300px" });
+function pump() {
+  while (busy < 4 && queue.length) {
+    const img = queue.shift(), id = img.dataset.id;
+    if (posters.has(id)) { img.src = posters.get(id); continue; }
+    busy++;
+    get(IA + "/services/img/" + encodeURIComponent(id))
+      .then(r => { const u = URL.createObjectURL(new Blob([r.body], { type: r.type })); posters.set(id, u); document.querySelectorAll('img[data-id="' + CSS.escape(id) + '"]').forEach(i => { i.src = u; }); })
+      .catch(() => {})
+      .finally(() => { busy--; pump(); });
+  }
 }
-function setRelay(r) {
-  relay = r;
-  try { if (r) localStorage.setItem(RELAY_STORE, r); else localStorage.removeItem(RELAY_STORE); } catch (e) {}
-}
-
-function show(site) {
-  $("picker").hidden = true;
-  $("site-name").textContent = site.name;
-  document.title = "Chalk TV";
-  currentSite = site;
-  barOn(2500);                                    /* a short peek, so it's clear where the bar went */
-  if (!tideFrame) openTide(site);
-  else if (tideReady) tide({ tide: "go", url: site.url });
-  else pendingUrl = site.url;
-}
-const choose = show;
-/* the server is picked: ask for a site, and start Tide only once one is chosen
-   (a Chromebook shouldn't boot a whole browser engine before it knows what to show) */
-function start() {
-  $("servers").hidden = true;
-  if (currentSite) return openTide(currentSite);
-  /* the site list first: opening a streaming site straight away made Chalk TV ~580 MB at once,
-     enough for a Chromebook to kill the tab. BOOT_SITE is ready under the cursor instead. */
-  openPicker(false);
-}
-function openPicker(canCancel) {
-  const list = $("options");
-  list.innerHTML = "";
-  TV_SITES.forEach((s, i) => {
-    const url = siteUrl(s && s.url);
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "option";
-    b.innerHTML = '<span class="num"></span><span><b></b><small></small></span>';
-    b.querySelector(".num").textContent = String(i + 1);
-    b.querySelector("b").textContent = (s && s.name) || (url ? hostOf(url) : "Option " + (i + 1));
-    b.querySelector("small").textContent = url ? hostOf(url) : "Not set up yet";
-    b.disabled = !url;
-    if (url) b.onclick = () => choose({ name: (s.name || hostOf(url)), url });
-    if (url && url === siteUrl(BOOT_SITE && BOOT_SITE.url)) { b.classList.add("now"); setTimeout(() => b.focus(), 0); }
-    list.appendChild(b);
-  });
-  $("pick-msg").textContent = "";
-  $("own-url").value = "";
-  $("pick-cancel").hidden = !canCancel;
-  $("picker").hidden = false;
-}
-$("own-form").onsubmit = e => {
-  e.preventDefault();
-  const url = siteUrl($("own-url").value);
-  if (!url) { $("pick-msg").textContent = "That doesn't look like a web address."; return; }
-  choose({ name: hostOf(url), url });
-};
-$("pick-cancel").onclick = () => { $("picker").hidden = true; };
-
-/* ---- the bar ---- */
-$("back").onclick = () => tide({ tide: "back" });
-$("reload").onclick = () => tide({ tide: "reload" });
-$("change").onclick = () => { if (mode) openPicker(!!currentSite); };
-/* hidden until the mouse reaches the top edge; on touch screens the tab shows it for a while */
-const app = $("app");
-let barTimer = 0;
-function barOn(ms) {
-  app.classList.add("bar-on");
-  clearTimeout(barTimer);
-  if (ms) barTimer = setTimeout(barOff, ms);
-}
-function barOff() { if (!$("bar").matches(":hover")) app.classList.remove("bar-on"); }
-$("hot").addEventListener("mouseenter", () => barOn(0));
-$("bar").addEventListener("mouseenter", () => barOn(0));
-$("hot").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
-$("bar").addEventListener("mouseleave", () => { clearTimeout(barTimer); barTimer = setTimeout(barOff, 700); });
-$("bar-tab").onclick = () => { if (app.classList.contains("bar-on")) app.classList.remove("bar-on"); else barOn(5000); };
-/* ---- Change server: every public server, fastest first ---- */
-/* how long a server takes to answer, in ms (null: no answer) */
-function ping(url) {
-  return new Promise(resolve => {
-    const t0 = performance.now();
-    let ws, done = false;
-    const finish = v => { if (done) return; done = true; clearTimeout(timer); try { ws.close(); } catch (e) {} resolve(v); };
-    const timer = setTimeout(() => finish(null), 4000);
-    try { ws = new WebSocket(url); } catch (e) { return finish(null); }
-    ws.onopen = () => finish(Math.round(performance.now() - t0));
-    ws.onerror = ws.onclose = () => finish(null);
-  });
-}
-async function averagePing(url, tries) {
-  const got = [];
-  for (let i = 0; i < tries; i++) { const v = await ping(url); if (v != null) got.push(v); }
-  return got.length ? Math.round(got.reduce((a, b) => a + b, 0) / got.length) : null;
-}
-/* A server can answer the ping and still fail every site (error 35 in Tide), so it must also
-   reach a real one: a stream to example.com's https port has to get an answer back. */
-function reachesSite(url, ms = 6000) {
-  return new Promise(done => {
-    let ws, timer;
-    const finish = ok => { clearTimeout(timer); try { ws.close(); } catch (e) {} done(ok); };
-    try { ws = new WebSocket(url); } catch (e) { return done(false); }
-    ws.binaryType = "arraybuffer";
-    timer = setTimeout(() => finish(false), ms);
-    ws.onerror = ws.onclose = () => finish(false);
-    ws.onopen = () => {
-      const enc = new TextEncoder(), host = enc.encode("example.com"), req = enc.encode("GET / HTTP/1.0\r\nHost: example.com\r\n\r\n");
-      const open = new Uint8Array(8 + host.length), data = new Uint8Array(5 + req.length);
-      open.set([1, 1, 0, 0, 0, 1, 443 & 255, 443 >> 8]); open.set(host, 8);   /* tide CONNECT: stream 1, TCP, port 443 */
-      data.set([2, 1, 0, 0, 0]); data.set(req, 5);                             /* DATA on stream 1 */
-      ws.send(open); ws.send(data);
-    };
-    ws.onmessage = e => {
-      const p = new Uint8Array(e.data);
-      if (p[1] === 1 && p[0] === 2) finish(true);                              /* the site answered */
-      else if (p[1] === 1 && p[0] === 4) finish(false);                        /* the server closed the stream */
-    };
-  });
-}
-let serverRun = 0;
-function serverRow(pin, name, note, isNow, onPick) {
+function card(item, extra) {
   const b = document.createElement("button");
   b.type = "button";
-  b.className = "option" + (isNow ? " now" : "");
-  b.innerHTML = '<span class="num"></span><span><b></b><small></small></span><span class="ms"></span>';
-  b.querySelector(".num").textContent = pin;
-  if (pin === "★") b.querySelector(".num").classList.add("pin");
-  b.querySelector("b").textContent = name;
-  b.querySelector("small").textContent = isNow ? note + " · in use" : note;
-  b.onclick = onPick;
-  $("server-list").appendChild(b);
-  return b.querySelector(".ms");
+  b.className = "card";
+  b.innerHTML = '<img class="poster" alt=""><span class="t"></span><span class="y"></span>';
+  const img = b.querySelector("img");
+  img.dataset.id = item.identifier;
+  if (posters.has(item.identifier)) img.src = posters.get(item.identifier); else seen.observe(img);
+  b.querySelector(".t").textContent = item.title;
+  b.querySelector(".y").textContent = extra ? extra.note : (item.year || "");
+  if (extra) { const bar = document.createElement("div"); bar.className = "bar"; bar.innerHTML = "<i></i>"; bar.firstChild.style.width = extra.pct + "%"; b.appendChild(bar); }
+  b.onclick = extra ? extra.click : () => details(item);
+  return b;
 }
-function openServers() {
-  $("server-list").innerHTML = "";
-  const tests = [];
-  serverRow("A", "Fastest public server", "Tide tests them all when it starts", mode === "public" && !relay,
-    () => usePublic(""));
-  const publicRows = PUBLIC_RELAYS.map((r, i) => {
-    const ms = serverRow(String(i + 1), hostOf(r), "Public server", mode === "public" && relay === r, () => usePublic(r));
-    tests.push([ms, r]);
-    return ms;
-  });
-  /* the speed test: each server 3 times, then the public ones ranked by their average */
-  const run = ++serverRun;
-  Promise.all(tests.map(async ([el, url]) => {
-    el.textContent = "";
-    el.classList.add("busy");
-    el.avg = await averagePing(url, 3);
-    const down = el.avg != null && !(await reachesSite(url));
-    if (down) el.avg = null;                          /* sorted last, like a server that doesn't answer */
-    if (run !== serverRun) return;
-    el.classList.remove("busy");
-    el.textContent = down ? "not working" : el.avg == null ? "no answer" : "avg " + el.avg + " ms";
-  })).then(() => {
-    if (run !== serverRun) return;
-    const list = $("server-list");
-    publicRows.slice().sort((a, b) => (a.avg ?? 1e9) - (b.avg ?? 1e9)).forEach((ms, i) => {
-      const row = ms.parentNode;
-      row.querySelector(".num").textContent = String(i + 1);
-      list.appendChild(row);
-    });
-  });
-  $("servers-cancel").hidden = !mode;
-  $("servers").hidden = false;
+function row(title, cls = "strip") {
+  const s = document.createElement("section");
+  s.className = "row";
+  s.innerHTML = '<h2></h2><div class="' + cls + '"></div>';
+  s.querySelector("h2").textContent = title;
+  $("browse").appendChild(s);
+  return s.lastChild;
 }
-$("change-server").onclick = openServers;
-$("pick-server").onclick = openServers;
-$("ping-again").onclick = openServers;
-$("servers-cancel").onclick = () => { $("servers").hidden = true; };
-$("full").onclick = () => {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {});
+
+/* ---- Continue watching ---- */
+const loadContinue = () => { try { const v = JSON.parse(localStorage.getItem(CONTINUE)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+function saveSpot(spot) {
+  let list = loadContinue().filter(s => s.id !== spot.id);
+  if (!(spot.d && spot.t > spot.d - 90)) list.unshift(spot);   // nearly finished drops off
+  try { localStorage.setItem(CONTINUE, JSON.stringify(list.slice(0, 12))); } catch (e) {}
+}
+
+function showContinue() {
+  const box = $("continue");
+  if (!box) return;
+  box.replaceChildren();
+  const spots = loadContinue();
+  if (!spots.length) return;
+  const s = row("Continue watching");
+  box.appendChild(s.parentNode);
+  for (const sp of spots) {
+    const left = sp.d ? Math.max(1, Math.round((sp.d - sp.t) / 60)) + " min left" : "";
+    s.appendChild(card({ identifier: sp.id, title: sp.title }, { note: (sp.label && sp.label !== sp.title ? sp.label + " · " : "") + left, pct: sp.d ? Math.round(100 * sp.t / sp.d) : 0, click: () => play(sp, sp.t) }));
+  }
+}
+
+/* ---- pages ---- */
+let homeRun = 0;
+function home() {
+  const run = ++homeRun;
+  $("browse").replaceChildren();
+  $("q").value = "";
+  $("browse").appendChild(Object.assign(document.createElement("div"), { id: "continue" }));
+  showContinue();
+  const status = Object.assign(document.createElement("p"), { className: "msg", textContent: "Loading…" });
+  $("browse").appendChild(status);
+  let shown = 0;
+  ROWS.reduce((p, [title, q]) => p.then(() => run === homeRun && find(q, 24).then(items => {
+    if (run !== homeRun || !items.length) return;
+    shown++;
+    status.remove();
+    const strip = row(title);
+    items.forEach(i => strip.appendChild(card(i)));
+  }).catch(() => {})), Promise.resolve()).then(() => {
+    if (run === homeRun && !shown) failed(status, home);
+  });
+}
+function failed(el, retry) {
+  el.textContent = "Chalk TV couldn't reach the Archive. ";
+  const b = Object.assign(document.createElement("button"), { className: "btn", type: "button", textContent: "Try again" });
+  b.onclick = retry;
+  el.appendChild(b);
+}
+$("search").onsubmit = e => {
+  e.preventDefault();
+  const words = $("q").value.replace(/[^\p{L}\p{N}\s'-]/gu, " ").trim();
+  if (!words) return home();
+  const run = ++homeRun;
+  $("browse").replaceChildren();
+  const grid = row('Results for "' + words + '"', "grid");
+  const status = Object.assign(document.createElement("p"), { className: "msg", textContent: "Searching…" });
+  grid.before(status);
+  const go = () => find("title:(" + words + ") AND " + SOURCES, 60).then(items => {
+    if (run !== homeRun) return;
+    status.textContent = items.length ? "" : "Nothing found.";
+    items.forEach(i => grid.appendChild(card(i)));
+  }).catch(() => { if (run === homeRun) failed(status, go); });
+  go();
 };
+$("brand").onclick = home;
 
+/* ---- one title ---- */
+let current = null;
+function details(item) {
+  current = { item, videos: [] };
+  $("d-title").textContent = item.title;
+  $("d-year").textContent = item.year || "";
+  $("d-text").textContent = "Loading…";
+  $("d-eps").replaceChildren();
+  $("d-play").disabled = true;
+  $("d-poster").src = posters.get(item.identifier) || "";
+  $("details").hidden = false;
+  $("d-play").focus();
+  getJson(IA + "/metadata/" + encodeURIComponent(item.identifier)).then(meta => {
+    if (!current || current.item !== item) return;
+    const raw = (meta.metadata && meta.metadata.description) || "";
+    const text = new DOMParser().parseFromString(Array.isArray(raw) ? raw.join(" ") : raw, "text/html").body.textContent.trim();
+    $("d-text").textContent = text.length > 700 ? text.slice(0, 700) + "…" : text;
+    current.videos = videosOf(meta);
+    if (!current.videos.length) { $("d-text").textContent = "This one has no video Chalk TV can play."; return; }
+    if (current.videos.length === 1) current.videos[0].label = item.title;
+    const spot = loadContinue().find(s => s.id === item.identifier);
+    $("d-play").disabled = false;
+    $("d-play").textContent = spot ? "Resume" : "Play";
+    $("d-play").onclick = () => spot ? play(spot, spot.t) : play(spotFor(item, current.videos[0]), 0);
+    if (current.videos.length > 1) current.videos.forEach(v => {
+      const b = Object.assign(document.createElement("button"), { type: "button", textContent: v.label });
+      b.onclick = () => play(spotFor(item, v), 0);
+      $("d-eps").appendChild(b);
+    });
+  }).catch(() => { $("d-text").textContent = "Couldn't load this one. Close and try again."; });
+}
+const spotFor = (item, v) => ({ id: item.identifier, title: item.title, label: v.label, url: v.url, t: 0, d: 0 });
+$("d-close").onclick = () => { $("details").hidden = true; current = null; };
+$("details").onclick = e => { if (e.target === $("details")) $("d-close").onclick(); };
 
-/* a public server (none: Tide picks the fastest) */
-function usePublic(r) {
-  setMode("public");
-  setRelay(r);
-  start();
+/* ---- playing ---- */
+let playing = null, seekTo = 0, ticker = 0;
+function video() {   // the <video> in the page Tide opened (same site, so it can be reached)
+  try { const f = tideFrame.contentDocument.querySelector("#view iframe"); return f && f.contentDocument && f.contentDocument.querySelector("video"); } catch (e) { return null; }
 }
-/* fern.best is the boot server; if it stops answering, use motor-cycle-part.org */
-const FALLBACK_RELAY = "wss://motor-cycle-part.org/wisp/";
-async function bootRelay(preferred) {
-  if (preferred !== DEFAULT_RELAY) return preferred;
-  if (await reachesSite(preferred)) return preferred;
-  if (await reachesSite(FALLBACK_RELAY)) return FALLBACK_RELAY;
-  return preferred;
+function play(spot, at) {
+  $("details").hidden = true;
+  playing = Object.assign({}, spot);
+  seekTo = at || 0;
+  $("p-title").textContent = spot.label && spot.label !== spot.title ? spot.title + " · " + spot.label : spot.title;
+  $("player").hidden = false;
+  document.body.classList.add("playing");
+  ready.then(() => tide({ tide: "go", url: spot.url }));
+  clearInterval(ticker);
+  ticker = setInterval(() => {
+    const v = video();
+    if (!v || !playing) return;
+    if (!v.dataset.fit) { v.dataset.fit = "1"; v.style.cssText = "position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000"; }   // fill the player, not the film's own small size
+    if (seekTo && v.readyState >= 1) { v.currentTime = seekTo; seekTo = 0; }
+    if (!seekTo && v.currentTime > 5) { playing.t = Math.floor(v.currentTime); playing.d = Math.floor(v.duration) || 0; saveSpot(playing); }
+  }, 1500);
 }
-bootRelay(relay).then((r) => usePublic(r));
+function stopPlaying() {
+  clearInterval(ticker);
+  const v = video();
+  if (v && playing && v.currentTime > 5) { playing.t = Math.floor(v.currentTime); playing.d = Math.floor(v.duration) || 0; saveSpot(playing); }
+  playing = null;
+  tide({ tide: "stop" });   // the video and its buffers go
+  document.body.classList.remove("playing");
+  $("player").hidden = true;
+  showContinue();
+}
+$("p-back").onclick = stopPlaying;
+addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("player").hidden) stopPlaying(); else if (!$("details").hidden) $("d-close").onclick();
+});
+
+home();
 </script>
 </body>
 </html>
