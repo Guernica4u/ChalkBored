@@ -8,7 +8,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChalkBored</title>
+<title>Study Hall</title>
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -426,15 +426,15 @@
 
   /* favorite star, sits on the card's corner */
   .fav {
-    position: absolute; top: 0.3rem; right: 0.45rem; z-index: 2;
-    padding: 0.1rem; background: none; border: 0; color: var(--pencil);
-    font-size: 1.35rem; line-height: 1; cursor: pointer;
-    text-shadow: 0 0 3px var(--card), 0 0 6px var(--card);
-    opacity: 0.8; transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+    position: absolute; top: 0.35rem; right: 0.35rem; z-index: 2;
+    display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+    background: rgba(0, 0, 0, 0.5); border: 0; border-radius: var(--r); color: #f2f2f2; cursor: pointer;
+    opacity: 0.85; transition: opacity 0.15s ease, background-color 0.15s ease;
   }
-  .card-wrap:hover .fav, .fav:focus-visible { opacity: 1; }
-  .fav:hover { transform: scale(1.15); color: var(--accent); }
-  .fav.on { opacity: 1; color: var(--accent); }
+  .fav svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .fav.on svg { fill: currentColor; }
+  .card-wrap:hover .fav, .fav:focus-visible, .fav.on { opacity: 1; }
+  .fav:hover { background: rgba(0, 0, 0, 0.75); }
 
   /* how-to-open menu */
   .open-menu {
@@ -694,7 +694,8 @@
   .tab-preview img { flex: none; }
   .tab-preview span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .setup-cloak .choice { display: grid; grid-template-columns: 1fr 1fr; }
-  .setup-cloak .choice button:last-child { grid-column: 1 / -1; }
+  .setup-cloak .choice button { display: flex; align-items: center; gap: 0.5rem; text-align: left; }
+  .setup-cloak .choice img { flex: none; width: 16px; height: 16px; }
   /* the Games page's one-time question */
   .way { display: flex; flex-direction: column; gap: 0.1rem; width: 100%; padding: 0.6rem 0.75rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); text-align: left; cursor: pointer; }
   .way span { font-size: 0.82rem; color: var(--pencil); }
@@ -1224,7 +1225,7 @@
       classroom: { label: 'Google Classroom', title: 'Home - Classroom', icon: CLASSROOM_ICON },
       docs:      { label: 'Google Docs', title: 'Untitled document - Google Docs', icon: DOCS_ICON },
       drive:     { label: 'Google Drive', title: 'Home - Google Drive', icon: DRIVE_ICON },
-      google:    { label: 'Google', title: 'Google', icon: 'https://www.google.com/favicon.ico' },
+      google:    { label: 'Google', title: 'Google', icon: 'https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_32dp.png' },
       off:       null,
     };
     const OPEN_MODES = [
@@ -1954,7 +1955,7 @@
           const star = document.createElement('button');
           star.type = 'button';
           star.className = 'fav' + (on ? ' on' : '');
-          star.textContent = on ? '★' : '☆';
+          star.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.3l2.88 5.54 6.16 1.02-4.38 4.45.92 6.18L12 17.7l-5.58 2.79.92-6.18-4.38-4.45 6.16-1.02z"/></svg>';
           star.title = on ? 'Remove from favorites' : 'Add to favorites';
           star.setAttribute('aria-label', (on ? 'Unfavorite ' : 'Favorite ') + (coded(item) ? 'this' : item.name));
           star.setAttribute('aria-pressed', String(on));
@@ -2133,7 +2134,7 @@
         musicFrame.className = 'frame blend';
         musicFrame.title = 'Chalk Music';
         musicFrame.src = 'listening.html';
-        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture; fullscreen');
+        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
         $('panel-music').appendChild(musicFrame);
       }
       if (name === 'tv' && !tvFrame) {
@@ -2372,7 +2373,10 @@
         const b = document.createElement('button');
         b.type = 'button';
         b.dataset.disguise = key;
-        b.textContent = d.label;
+        const ic = new Image(16, 16);
+        ic.alt = '';
+        ic.src = d.icon;
+        b.append(ic, d.label);
         b.addEventListener('click', () => {
           settings.disguise = key;
           settings.cloakMode = key;
@@ -2687,7 +2691,5 @@
     });
   </script>
   <script src="home.js"></script>
-  <script src="listening/notebook.js"></script>
-  <script src="notify.js"></script>
 </body>
 </html>
