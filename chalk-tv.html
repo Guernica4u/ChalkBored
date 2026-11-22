@@ -7,7 +7,7 @@
 <title>Chalk TV</title>
 <link rel="icon" href="favicon.svg">
 <style>
-  /* A quiet catalog front end. Lists, images and video all pass through the frame below. */
+  /* Chalk TV: educational films and series for class and curiosity. */
   :root {
     --paper: #0b0b0b;
     --paper-2: #171717;
@@ -61,7 +61,6 @@
   /* hero */
   #hero { position: relative; min-height: min(68vh, 620px); display: flex; align-items: flex-end; padding: 96px clamp(16px, 4vw, 54px) 62px; isolation: isolate; }
   #hero .art, #hero .fade { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center 18%; }
-  #hero .art { filter: grayscale(1) contrast(1.08); }
   #hero .fade { z-index: -1; background: linear-gradient(90deg, rgba(11,11,11,.98) 0%, rgba(11,11,11,.80) 40%, rgba(11,11,11,.20) 76%), linear-gradient(0deg, var(--paper) 1%, transparent 55%); }
   #hero .copy { width: min(660px, 100%); }
   .eyebrow { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--pencil); font-size: .72rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
@@ -94,7 +93,7 @@
   .card { position: relative; flex: none; width: 252px; height: 142px; padding: 0; border: 1px solid var(--edge); border-radius: var(--r); overflow: hidden; background: var(--card); text-align: left; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
   .grid .card { width: 100%; }
   .card:hover, .card:focus-visible { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 10px 28px rgba(0,0,0,.65); z-index: 2; }
-  .card .art { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: var(--highlight); filter: grayscale(1); }
+  .card .art { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: var(--highlight); }
   .card .shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.32) 48%, transparent 100%); }
   .card .cap { position: absolute; inset: auto 0 0; padding: 10px 12px; }
   .card .cap .t { display: block; font-weight: 700; font-size: .92rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -108,10 +107,10 @@
   /* details */
   #details { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.82); }
   #details .box { position: relative; width: min(880px, 100%); max-height: min(90vh, 760px); overflow: hidden auto; border: 1px solid var(--edge); border-radius: 6px; background: var(--paper-2); box-shadow: 0 30px 90px rgba(0,0,0,.7); }
-  #details .cover { position: relative; height: 280px; background-size: cover; background-position: center; filter: grayscale(1); }
+  #details .cover { position: relative; height: 280px; background-size: cover; background-position: center; }
   #details .cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, var(--paper-2), transparent 75%); }
   #details .body { position: relative; margin-top: -58px; padding: 0 34px 32px; display: grid; grid-template-columns: 168px 1fr; gap: 26px; }
-  #details .poster { width: 168px; aspect-ratio: 2/3; border-radius: var(--r); background-size: cover; background-position: center; filter: grayscale(1); box-shadow: 0 16px 36px rgba(0,0,0,.6); border: 1px solid var(--edge); }
+  #details .poster { width: 168px; aspect-ratio: 2/3; border-radius: var(--r); background-size: cover; background-position: center; box-shadow: 0 16px 36px rgba(0,0,0,.6); border: 1px solid var(--edge); }
   #details h3 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: -.03em; }
   #details p { margin: 0 0 18px; color: #c9c9c9; line-height: 1.65; }
   #d-close-x { position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--paper); font-size: 1.2rem; }
@@ -122,7 +121,7 @@
     #details .cover { height: 200px; }
   }
 
-  /* player: the proxy frame fills this area */
+  /* player: the viewing pane fills this area */
   #player { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #000; }
   #p-bar { display: flex; align-items: center; gap: 12px; flex: none; height: 56px; padding: 0 14px; background: var(--paper-2); border-bottom: 1px solid var(--edge); }
   #p-back { border: 1px solid var(--edge); background: var(--card); border-radius: var(--r); padding: 7px 12px; }
@@ -131,8 +130,8 @@
   #p-note { margin-left: auto; color: var(--pencil); font-size: .78rem; }
   #p-stage { position: relative; flex: 1; background: #000; }
   #p-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--pencil); pointer-events: none; }
-  #frame { position: fixed; width: 1px; height: 1px; left: -10px; top: 0; border: 0; opacity: 0; pointer-events: none; }
-  body.playing #frame { left: 0; top: 56px; width: 100%; height: calc(100% - 56px); opacity: 1; pointer-events: auto; z-index: 21; background: #000; }
+  #pane { position: fixed; width: 1px; height: 1px; left: -10px; top: 0; border: 0; opacity: 0; pointer-events: none; }
+  body.playing #pane { left: 0; top: 56px; width: 100%; height: calc(100% - 56px); opacity: 1; pointer-events: auto; z-index: 21; background: #000; }
 </style>
 </head>
 <body>
@@ -140,10 +139,10 @@
   <button id="brand" type="button" title="Chalk TV home">Chalk<b>TV</b></button>
   <nav class="nav" id="nav">
     <button type="button" data-section="all" class="on">Home</button>
-    <button type="button" data-section="movie">Movies</button>
-    <button type="button" data-section="tv">Shows</button>
+    <button type="button" data-section="movie">Films</button>
+    <button type="button" data-section="tv">Series</button>
   </nav>
-  <form id="search" role="search"><input id="q" type="search" placeholder="Search movies and shows" autocomplete="off" spellcheck="false" aria-label="Search movies and shows"></form>
+  <form id="search" role="search"><input id="q" type="search" placeholder="Search films and series" autocomplete="off" spellcheck="false" aria-label="Search films and series"></form>
 </header>
 
 <main id="browse"></main>
@@ -165,22 +164,24 @@
 </div>
 
 <div id="player" hidden>
-  <div id="p-bar"><button id="p-back" type="button">&#8249; Back to Chalk TV</button><div id="p-title"></div><div id="p-note">Playing through the proxy</div></div>
-  <div id="p-stage"><div id="p-wait">Loading video…</div></div>
+  <div id="p-bar"><button id="p-back" type="button">&#8249; Back to Chalk TV</button><div id="p-title"></div><div id="p-note">Now viewing</div></div>
+  <div id="p-stage"><div id="p-wait">Loading film…</div></div>
 </div>
 
 <script>
-/* Chalk TV: a catalog in front of the video site. The proxy frame stays in the page
-   the whole time: it fetches the lists and artwork and opens each title for playback. */
+/* Chalk TV: classroom-friendly film discovery. What the page needs is loaded quietly
+   and opened here for viewing. */
 const $ = id => document.getElementById(id);
-const decode = s => atob(s);                     // addresses are data, not page text
+const decode = s => atob(s);                     // quiet configuration
+const encode = s => btoa(s);
 const SITE = decode("aHR0cHM6Ly9tb3Z5LnN4");
-const CATALOG = decode("aHR0cHM6Ly9kYi53ZWNvbGxlZ2UubmV0LzM=");
+const LIBRARY = decode("aHR0cHM6Ly9kYi53ZWNvbGxlZ2UubmV0LzM=");
 const CONTINUE = "chalk-tv.continue";
 const RELAY = decode("d3NzOi8vZmVybi5iZXN0L3dpc3Av");
-const MSG = decode("dGlkZQ==");                      // frame protocol key
-const FRAME_PAGE = new URL(decode("dGlkZS8="), location.href).href;   // local proxy frame in this copy
-const FRAME_ORIGIN = new URL(FRAME_PAGE).origin;
+const MSG = decode("dGlkZQ==");                      // viewing protocol key
+const HASH = decode("Y2Zn");                        // quiet start key
+const PANE_PAGE = new URL(decode("dGlkZS8="), location.href).href;   // local viewing pane in this copy
+const PANE_ORIGIN = new URL(PANE_PAGE).origin;
 const ART_HOST = SITE.replace("://", "://www.");
 const ADULT = ["sex", "sexy", "nude", "nudist", "naked", "erotic", "stripper", "striptease", "lust", "burlesque", "porn"];
 const ADULT_RE = /\b(sex|sexy|nude|nudist|naked|erotic|stripper|striptease|lust|burlesque|porn)/i;   // the school-safe list from the old app
@@ -190,28 +191,28 @@ const GENRES = { 12:"Adventure",14:"Fantasy",16:"Animation",18:"Drama",27:"Horro
   10764:"Reality",10765:"Sci-fi & fantasy",10766:"Soap",10767:"Talk",10768:"War & politics",10770:"TV movie" };
 for (const k of ["chalk-tv.site", "chalk-tv.mode", "chalk-tv.relay"]) try { localStorage.removeItem(k); } catch (e) {}
 
-/* ---- proxy frame, out of sight until a video plays ---- */
-const frame = document.createElement("iframe");
-frame.id = "frame";
-frame.title = "Proxy frame";
-frame.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture";
-frame.allowFullscreen = true;
-frame.src = FRAME_PAGE + "#" + MSG + "=" + encodeURIComponent(JSON.stringify({ ui: "tv", fresh: true, relay: RELAY }));
-document.body.appendChild(frame);
+/* ---- viewing pane, out of sight until a film plays ---- */
+const pane = document.createElement("iframe");
+pane.id = "pane";
+pane.title = "Film player";
+pane.allow = "fullscreen; autoplay; encrypted-media; picture-in-picture";
+pane.allowFullscreen = true;
+pane.src = PANE_PAGE + "#" + HASH + "=" + encodeURIComponent(JSON.stringify({ ui: "tv", fresh: true, relayB64: encode(RELAY) }));
+document.body.appendChild(pane);
 let ready, readyNow;
 ready = new Promise(ok => { readyNow = ok; });
 let seq = 0;
 const waiting = new Map();
-const post = msg => frame.contentWindow.postMessage(msg, FRAME_ORIGIN);
+const post = msg => pane.contentWindow.postMessage(msg, PANE_ORIGIN);
 addEventListener("message", e => {
-  if (e.source !== frame.contentWindow || e.origin !== FRAME_ORIGIN || !e.data) return;
+  if (e.source !== pane.contentWindow || e.origin !== PANE_ORIGIN || !e.data) return;
   if (e.data[MSG] === "ready") readyNow();
   if (e.data[MSG] === "fetched" && waiting.has(e.data.id)) {
     waiting.get(e.data.id)(e.data);
     waiting.delete(e.data.id);
   }
 });
-/* one GET through the frame; resolves with { status, type, body:ArrayBuffer } */
+/* one request for a page or image; resolves with { status, type, body:ArrayBuffer } */
 function get(url) {
   return ready.then(() => new Promise((ok, fail) => {
     const id = ++seq;
@@ -225,7 +226,7 @@ function get(url) {
 }
 const getJson = url => get(url).then(r => JSON.parse(new TextDecoder().decode(r.body)));
 
-/* ---- artwork, loaded through the frame as it scrolls into view ---- */
+/* ---- artwork, loaded as it scrolls into view ---- */
 const imageUrl = (path, size = "w780") => path ? ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp" : "";
 const blobs = new Map();
 const imageQueue = [];
@@ -244,7 +245,7 @@ function setImage(el, url) {
   if (!url) return;
   if (blobs.has(url)) paintImage(el, blobs.get(url));
   else {
-    el.dataset.src = url;
+    el.dataset.src = encode(url);
     seen.observe(el);
     // the first screenful loads straight away; the observer handles the rest on scroll
     if (imageQueue.length < 30) { imageQueue.push(el); pumpImages(); }
@@ -252,14 +253,14 @@ function setImage(el, url) {
 }
 function pumpImages() {
   while (imageBusy < 5 && imageQueue.length) {
-    const el = imageQueue.shift(), url = el.dataset.src;
+    const el = imageQueue.shift(), url = el.dataset.src ? decode(el.dataset.src) : "";
     if (!url || blobs.has(url)) { if (url) paintImage(el, blobs.get(url)); continue; }
     imageBusy++;
     get(url).then(r => {
       const u = URL.createObjectURL(new Blob([r.body], { type: r.type || "image/webp" }));
       blobs.set(url, u);
       document.querySelectorAll("[data-src]").forEach(other => {
-        if (other.dataset.src === url) paintImage(other, u);
+        if (other.dataset.src && decode(other.dataset.src) === url) paintImage(other, u);
       });
     }).catch(() => {}).finally(() => { imageBusy--; pumpImages(); });
   }
@@ -285,16 +286,16 @@ function clean(r, forced) {
   };
 }
 const ROWS = [
-  ["Trending now", "/trending/all/week", null, true],
-  ["Popular movies", "/movie/popular", "movie", false],
-  ["Top rated movies", "/movie/top_rated", "movie", false],
-  ["New releases", "/movie/now_playing", "movie", false],
-  ["Popular shows", "/tv/popular", "tv", false],
-  ["Top rated shows", "/tv/top_rated", "tv", false],
-  ["On air now", "/tv/airing_today", "tv", false]
+  ["Popular with classes", "/trending/all/week", null, true],
+  ["Popular films", "/movie/popular", "movie", false],
+  ["Highly rated films", "/movie/top_rated", "movie", false],
+  ["New to the library", "/movie/now_playing", "movie", false],
+  ["Popular series", "/tv/popular", "tv", false],
+  ["Highly rated series", "/tv/top_rated", "tv", false],
+  ["Now showing", "/tv/airing_today", "tv", false]
 ];
 function fetchRow([name, path, type, ranked]) {
-  return getJson(CATALOG + path).then(j => ({
+  return getJson(LIBRARY + path).then(j => ({
     name, ranked,
     items: (j.results || []).map(r => clean(r, type)).filter(Boolean).slice(0, 20)
   }));
@@ -304,7 +305,7 @@ function metaHTML(item) {
   const parts = [];
   if (item.rating) parts.push('<span class="score">&#9733; ' + item.rating.toFixed(1) + "</span>");
   if (item.year) parts.push("<span>" + item.year + "</span>");
-  parts.push('<span class="chip">' + (item.type === "tv" ? "Series" : "Movie") + "</span>");
+  parts.push('<span class="chip">' + (item.type === "tv" ? "Series" : "Film") + "</span>");
   item.tags.forEach(t => parts.push('<span class="chip">' + t + "</span>"));
   return parts.join("");
 }
@@ -319,7 +320,7 @@ function card(item, opt = {}) {
     (opt.pct != null ? '<div class="prog"><i style="width:' + opt.pct + '%"></i></div>' : "");
   setImage(b.querySelector(".art"), item.art || item.poster);
   b.querySelector(".t").textContent = item.title;
-  b.querySelector(".s").textContent = opt.note || [item.year, item.type === "tv" ? "Series" : "Movie"].filter(Boolean).join(" · ");
+  b.querySelector(".s").textContent = opt.note || [item.year, item.type === "tv" ? "Series" : "Film"].filter(Boolean).join(" · ");
   b.setAttribute("aria-label", "Play " + item.title);
   b.onclick = opt.click || (() => details(item));
   return b;
@@ -356,13 +357,13 @@ function hero(item) {
   const h = document.createElement("section");
   h.id = "hero";
   h.innerHTML = '<div class="art"></div><div class="fade"></div><div class="copy">' +
-    '<div class="eyebrow"><i></i>Featured on Chalk TV</div><h1></h1><div class="meta"></div><p></p>' +
+    '<div class="eyebrow"><i></i>Educational films &amp; series</div><h1></h1><div class="meta"></div><p></p>' +
     '<div class="actions"><button class="btn main" type="button">&#9654; Play</button><button class="btn more" type="button">More info</button></div></div>' +
     '<div class="dots"></div>';
   setImage(h.querySelector(".art"), item.art || item.poster);
   h.querySelector("h1").textContent = item.title;
   h.querySelector(".meta").innerHTML = metaHTML(item);
-  h.querySelector("p").textContent = item.text || "Watch it right here through the proxy.";
+  h.querySelector("p").textContent = item.text || "A classroom-friendly pick. Open it to watch.";
   h.querySelector(".btn.main").onclick = () => play(item);
   h.querySelector(".more").onclick = () => details(item);
   const dots = h.querySelector(".dots");
@@ -414,13 +415,13 @@ function home() {
   showContinue(hold);
   const status = document.createElement("p");
   status.className = "msg";
-  status.textContent = "Loading the catalog…";
+  status.textContent = "Loading films…";
   $("browse").appendChild(status);
   const wanted = ROWS.filter(r => section === "all" || (section === "movie" ? /movie|trending/.test(r[2] || "") : /tv|trending/.test(r[2] || "")));
   Promise.all(wanted.map(fetchRow)).then(rows => {
     if (run !== viewRun) return;
     rows = rows.filter(r => r.items.length);
-    if (!rows.length) { status.textContent = "Couldn't load the catalog. Check the connection and try again."; return; }
+    if (!rows.length) { status.textContent = "Couldn't load the films. Check the connection and try again."; return; }
     status.remove();
     heroItems = rows[0].items.slice(0, 5);
     heroAt = 0;
@@ -431,9 +432,9 @@ function home() {
     }
     const foot = document.createElement("div");
     foot.className = "foot";
-    foot.textContent = "Titles and artwork come from the catalog. Everything on this page, including playback, is opened through the proxy.";
+    foot.textContent = "A hand-picked film library for learning and enrichment. Everything stays here to watch.";
     $("browse").appendChild(foot);
-  }).catch(() => { if (run === viewRun) status.textContent = "Couldn't load the catalog. Check the connection and try again."; });
+  }).catch(() => { if (run === viewRun) status.textContent = "Couldn't load the films. Check the connection and try again."; });
 }
 $("nav").onclick = e => {
   const b = e.target.closest("button[data-section]");
@@ -456,7 +457,7 @@ $("search").onsubmit = e => {
   const head = document.createElement("section");
   head.id = "hero";
   head.style.minHeight = "240px";
-  head.innerHTML = '<div class="fade"></div><div class="copy"><div class="eyebrow"><i></i>Search</div><h1></h1><p>Results from the catalog, loaded through the proxy.</p></div>';
+  head.innerHTML = '<div class="fade"></div><div class="copy"><div class="eyebrow"><i></i>Search</div><h1></h1><p>Films and series for class and curiosity.</p></div>';
   head.querySelector("h1").textContent = '“' + q + '”';
   $("browse").appendChild(head);
   const grid = document.createElement("div");
@@ -466,13 +467,13 @@ $("search").onsubmit = e => {
   status.className = "msg";
   status.textContent = "Searching…";
   grid.before(status);
-  getJson(CATALOG + "/search/multi?query=" + encodeURIComponent(q)).then(j => {
+  getJson(LIBRARY + "/search/multi?query=" + encodeURIComponent(q)).then(j => {
     if (run !== viewRun) return;
     const items = (j.results || []).map(r => clean(r)).filter(Boolean);
     status.remove();
     if (!items.length) { status.textContent = "Nothing found. Try another title."; grid.after(status); return; }
     items.forEach(it => grid.appendChild(card(it)));
-  }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the catalog. Try again."; } });
+  }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the library. Try again."; } });
 };
 
 /* ---- one title ---- */
@@ -483,7 +484,7 @@ function details(item) {
   setImage($("d-poster"), item.poster || item.art);
   $("d-title").textContent = item.title;
   $("d-meta").innerHTML = metaHTML(item);
-  $("d-text").textContent = item.text || "Open this title to watch it.";
+  $("d-text").textContent = item.text || "Open this film to watch it.";
   $("details").hidden = false;
   $("d-play").focus();
 }
@@ -497,9 +498,9 @@ $("details").onclick = e => { if (e.target === $("details")) closeDetails(); };
 let playing = null, seekTo = 0, ticker = 0, autoTimer = 0;
 function nestedDoc() {
   try {
-    const d = frame.contentDocument;
+    const d = pane.contentDocument;
     if (!d) return null;
-    // The frame can keep a few site tabs alive; only .shown is the one on screen
+    // A few tabs can stay open; only .shown is the one on screen
     const f = d.querySelector("#view iframe.shown") || [...d.querySelectorAll("#view iframe")].at(-1);
     return f && f.contentDocument;
   } catch (e) { return null; }
@@ -532,7 +533,7 @@ function play(item, at = 0) {
     t: 0, d: 0 };
   seekTo = at || 0;
   $("p-title").textContent = item.title;
-  $("p-wait").textContent = "Loading video…";
+  $("p-wait").textContent = "Loading film…";
   $("p-wait").hidden = false;
   $("player").hidden = false;
   document.body.classList.add("playing");
