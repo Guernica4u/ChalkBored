@@ -214,12 +214,22 @@ function closeTab(t) {
   if (i < 0) return;
   if (t.url) closed.push(t.url);
   if (t.frame) t.frame.element.remove();
+  const el = t.el, after = el && el.nextSibling;
   tabs.splice(i, 1);
-  if (!tabs.length) { newTab(); return; }
-  if (active === t) showTab(tabs[Math.min(i, tabs.length - 1)]);
+  if (!tabs.length) newTab();
+  else if (active === t) showTab(tabs[Math.min(i, tabs.length - 1)]);
   else renderTabs();
   saveTabs();
+  // the closed tab stays in its old place just long enough to shrink away
+  if (el && !calm.matches) {
+    const box = $('tabs');
+    box.insertBefore(el, after && after.parentNode === box ? after : null);
+    el.classList.add('closing');
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 400);   // in case the animation never runs
+  }
 }
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
 function showTab(t) {
   if (active && active !== t && active.frame) {
     active.frame.element.classList.remove('shown');
@@ -241,7 +251,8 @@ function renderTabs() {
   for (const t of tabs) {
     if (!t.el) {
       t.el = document.createElement('div');
-      t.el.className = 'tab';
+      t.el.className = 'tab new';
+      t.el.addEventListener('animationend', () => t.el.classList.remove('new'), { once: true });
       t.el.setAttribute('role', 'tab');
       t.el.innerHTML = '<span class="icon"></span><span class="title"></span><span class="close" title="Close tab" role="button" aria-label="Close tab"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>';
       t.el.addEventListener('click', e => { if (e.target.closest('.close')) closeTab(t); else showTab(t); });
@@ -500,11 +511,12 @@ function toggleMark() {
 $('star').onclick = toggleMark;
 function renderMarks() {
   $('marks').replaceChildren(...marks.slice(0, 12).map(m => {
-    const b = document.createElement('button');
-    b.textContent = (hostOf(m.url)[0] || '?').toUpperCase();
-    b.title = m.title || hostOf(m.url);
-    b.setAttribute('aria-label', b.title);
-    b.style.background = 'hsl(' + hue(hostOf(m.url)) + ' 45% 30%)';
+    const b = document.createElement('button'), host = hostOf(m.url);
+    b.innerHTML = '<span class="tile"></span><span class="name"></span>';
+    b.querySelector('.tile').textContent = (host[0] || '?').toUpperCase();
+    b.querySelector('.tile').style.background = 'hsl(' + hue(host) + ' 45% 30%)';
+    b.querySelector('.name').textContent = host;
+    b.title = m.title || host;
     b.onclick = () => open(active, m.url);
     return b;
   }));
