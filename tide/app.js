@@ -26,7 +26,7 @@ const ENGINES = {
    earlier visit comes back · relay: one of SERVERS for this visit */
 const CFG = (() => {
   const c = { open: null, tv: false, fresh: false, relay: null };
-  const m = /[#&]tide=([^&]*)/.exec(location.hash);
+  const m = /[#&](?:tide|cfg)=([^&]*)/.exec(location.hash);
   if (!m) return c;
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   let j; try { j = JSON.parse(decodeURIComponent(m[1])); } catch (e) { return c; }
@@ -35,6 +35,9 @@ const CFG = (() => {
   c.tv = j.ui === 'tv';
   c.fresh = j.fresh === true;
   if (SERVERS.includes(j.relay)) c.relay = j.relay;
+  if (typeof j.relayB64 === 'string') {
+    try { const r = atob(j.relayB64); if (SERVERS.includes(r)) c.relay = r; } catch (e) {}
+  }
   return c;
 })();
 if (CFG.tv) html.classList.add('tv');
