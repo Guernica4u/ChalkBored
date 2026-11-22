@@ -1,6 +1,7 @@
 // The activity list and card pictures shared by every Study Hall page.
 // Kept in its own file so the pages stay small. Edit it with game-tools/add15.py.
-// ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card ----
+// ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card.
+// `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark ----
 const LIST = {
   lessons: [
     { name: '.BTD?'                           , path: 'LESSONS/Balloon-Math-1/index.html' },
@@ -17,7 +18,7 @@ const LIST = {
     { name: '.Slop3;2?'                       , path: 'LESSONS/Hill-Physics-2/index.html' },
     { name: '.Subw5y;Surf3rs?'                , path: 'LESSONS/Rail-Runner/index.html' },
     { name: '.Esc5p3;Ro5d?'                   , path: 'LESSONS/Learn-Car-Maintenance/index.html' },
-    { name: '.Supr3m3;Du3list?',              path: 'LESSONS/Duel-Physics/index.html' },
+    { name: '.Supr3m3;Du3list?',              path: 'LESSONS/Duel-Physics/index.html', ours: true },
     { name: '.E5gl3rcr5ft?',                  path: 'LESSONS/forgecraft-launcher/index.html' },
     { name: '.R3tro;Bowl?'                    , path: 'LESSONS/rb-main/index.html' },
     { name: '.Footb5ll;Bros?'                 , path: 'LESSONS/football/index.html' },
