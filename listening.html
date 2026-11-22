@@ -161,20 +161,18 @@
   #controls svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   #controls #play svg { fill: currentColor; stroke: none; }
   #controls { position: relative; padding-bottom: 8px; }
-  #volrow { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; width: 150px; color: var(--pencil); }
-  #controls #volrow button { width: 30px; height: 30px; border: 0; background: none; color: var(--pencil); }
-  #controls #volrow button:hover { color: var(--ink); }
+  #sidefoot { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--edge); color: var(--pencil); }
+  #sidefoot #vol { flex: 1; min-width: 0; }
+  #sidefoot #mute { flex: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: none; color: var(--pencil); }
+  #sidefoot #mute:hover { color: var(--ink); }
+  #sidefoot #mute svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  #watch:disabled { opacity: 0.4; cursor: default; }
   body.muted #mute-waves { display: none; }
-  @media (max-width: 640px) {
-    #controls { flex-wrap: wrap; }
-    #volrow { position: static; transform: none; flex-basis: 100%; justify-content: center; width: auto; }
-    #volrow input { max-width: 220px; }
-  }
 
   /* a wide arrow along the bottom; it slides up the list of what plays next */
-  #handle { display: flex; justify-content: center; width: 100%; padding: 4px 0 8px; border: 0; background: transparent; color: var(--pencil); }
-  #handle:hover { color: var(--ink); }
-  #handle svg { width: 60px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s ease; }
+  #handle { display: flex; justify-content: center; width: 100%; padding: 6px 0 3px; border: 0; background: transparent; color: var(--pencil); opacity: 0.75; }
+  #handle:hover { color: var(--ink); opacity: 1; }
+  #handle svg { width: 84px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s ease; }
   body.queued #handle svg { transform: rotate(180deg); }
   #handle { transition: opacity 0.4s ease; }
   body.handle-off:not(.queued) #handle { opacity: 0; }
@@ -265,6 +263,7 @@
   .sets .opt:hover { background: var(--paper-2); }
   .sets .opt input { width: auto; height: auto; margin: 3px 0 0; accent-color: var(--accent); }
   .sets .opt small { display: block; color: var(--pencil); font-size: 0.8rem; }
+  .sets .fine { margin: 8px 0 0; font-size: 0.8rem; }
   .btn.plain { background: none; color: var(--ink); border-color: var(--edge); font-weight: 400; }
   #toast {
     position: absolute; left: 50%; bottom: 40px; z-index: 30; transform: translateX(-50%); max-width: 90%;
@@ -319,10 +318,9 @@
       <button id="play" type="button" title="Play or pause (Space)"><svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></button>
       <button id="next" type="button" title="Next (Right arrow)"><svg viewBox="0 0 16 16"><path d="M12 3v10M3 3l7 5-7 5z"/></svg></button>
       <button id="repeat" type="button" title="Repeat"></button>
-      <div id="volrow"><button id="mute" type="button" title="Mute (M)"><svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z"/><path id="mute-waves" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4"/></svg></button><input id="vol" type="range" min="0" max="100" value="90" title="Volume (Up and Down arrows, M to mute)" aria-label="Volume"></div>
     </div>
 
-    <button id="handle" type="button" title="Up next" aria-label="Up next"><svg viewBox="0 0 60 18"><path d="M4 14 30 4l26 10"/></svg></button>
+    <button id="handle" type="button" title="Up next" aria-label="Up next"><svg viewBox="0 0 84 10"><path d="M3 8 42 2.5 81 8"/></svg></button>
 
     <div id="queue">
       <div class="head"><span class="t" id="queue-t">Up next</span>
@@ -338,13 +336,16 @@
     <form id="search" autocomplete="off">
       <label><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
         <input id="q" type="search" placeholder="Search songs or paste a link" aria-label="Search songs"></label>
-      <button class="tool" id="add-btn" type="button" title="Add a song or playlist from a link">+</button>
+      <button class="tool" id="add-btn" type="button" title="Add songs or a playlist">+</button>
       <button class="tool" id="opts" type="button" title="Settings"><svg viewBox="0 0 16 16"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.5"/><circle cx="5" cy="11.5" r="1.5"/></svg></button>
     </form>
     <div class="sec"><span class="t">Playlists</span><button id="list-new" type="button">+ New</button></div>
     <div id="pls"></div>
     <div class="sec" id="songs-head"><span class="t" id="songs-t">All songs</span><button class="x" id="search-clear" type="button" hidden>Clear</button></div>
     <div class="list" id="songs"></div>
+    <div id="sidefoot"><button id="mute" type="button" title="Mute (M)"><svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z"/><path id="mute-waves" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4"/></svg></button><input id="vol" type="range" min="0" max="100" value="90" title="Volume (Up and Down arrows, M to mute)" aria-label="Volume">
+      <button class="tool" id="watch" type="button" title="Watch the video" disabled><svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M7 6.3v3.4L9.8 8z"/></svg><span>Video</span></button>
+    </div>
   </aside>
 
   <div id="menu" hidden></div>
@@ -1087,7 +1088,7 @@ function drawPlaylists() {
     box.appendChild(r);
   };
   row("all", "All songs", listIds("all").length);
-  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, l.from === "spotify" ? NAME.sp : l.from === "youtube" ? NAME.yt : ""));
+  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, ({ spotify: NAME.sp, youtube: NAME.yt, soundcloud: NAME.sc, audius: NAME.au })[l.from] || ""));
 }
 let shownList = null;
 function drawSongs() {
@@ -1233,6 +1234,7 @@ function setArt(url, title) {
 function dressUp(s) {
   $("title").textContent = s.title;
   $("sub").textContent = s.author || (s.kind === "file" ? "a link" : "");
+  $("watch").disabled = s.kind !== "yt";
   setArt(s.thumb, s.title);
   if ("mediaSession" in navigator) {
     try {
@@ -1361,22 +1363,118 @@ function takeSong(s, andPlay) {
   build();
   if (andPlay) playFromList(S.list, s.id);
 }
-async function addLink() {
-  const raw = await ask("Add a link",
-    "Paste a link to a song or a playlist: a " + NAME.yt + " video or playlist, a " + NAME.sp + " playlist, album or song, or a link straight to a sound file.",
-    "", "Add");
-  if (raw) await takeLink(raw);
+/* the + box: a link, and where its songs should play from */
+function addLink() {
+  const veil = el("div", "veil"), box = el("form", "box sets");
+  const input = el("input");
+  input.placeholder = "Paste a link";
+  input.autocomplete = "off";
+  box.append(el("h2", null, "Add songs"),
+    el("p", null, "A song or a playlist from " + NAME.yt + ", " + NAME.sp + ", " + NAME.sc + " or " + NAME.au + ", or a link straight to a sound file. A playlist becomes a Chalk Music playlist."),
+    input, el("div", "lab", "Play the songs from"));
+  [["same", "Where the link is from", NAME.sp + " playlists play from " + NAME.yt],
+   ["yt", NAME.yt, ""], ["sc", NAME.sc, ""], ["au", NAME.au, ""]].forEach(([v, name, note], k) => {
+    const l = el("label", "opt"), i = el("input"), t = el("span", null, name);
+    i.type = "radio"; i.name = "to"; i.value = v; i.checked = k === 0;
+    if (note) t.appendChild(el("small", null, note));
+    l.append(i, t);
+    box.appendChild(l);
+  });
+  box.appendChild(el("p", "fine", "Each song is looked up there by its name and artist."));
+  const no = el("button", "btn plain", "Cancel"), yes = el("button", "btn", "Add"), btns = el("div", "btns");
+  no.type = "button"; yes.type = "submit";
+  btns.append(no, yes);
+  box.appendChild(btns);
+  veil.appendChild(box);
+  $("app").appendChild(veil);
+  const close = () => veil.remove();
+  no.onclick = close;
+  veil.onclick = e => { if (e.target === veil) close(); };
+  box.onkeydown = e => { if (e.key === "Escape") close(); };
+  box.onsubmit = e => {
+    e.preventDefault();
+    const raw = input.value.trim(), to = box.elements.to.value;
+    if (!raw) return input.focus();
+    close();
+    takeLink(raw, to);
+  };
+  setTimeout(() => input.focus({ preventScroll: true }), 30);
 }
-async function takeLink(raw) {
+/* the same song on the source picked, from its name, artist and length */
+async function findOn(to, t) {
+  if (to === "yt") return findOnYouTube(t);
+  const hits = to === "sc" ? await scSearch((String(t.artist).split(",")[0] + " " + t.title).trim(), 10)
+                           : await audiusSearch((String(t.artist).split(",")[0] + " " + t.title).trim(), 10);
+  let best = null, top = -Infinity;
+  hits.forEach((v, i) => { const sc = ytScore(v, t, i); if (sc > top) { top = sc; best = v; } });
+  return best && top >= 3 ? best : null;
+}
+const asTrack = s => ({ title: s.title, artist: s.author || "", ms: (s.secs || 0) * 1000 });
+/* a playlist from SoundCloud or Audius, by its link: its name and songs */
+async function scLink(url) {
+  const res = await scGet(SC_API + "/resolve?url=" + encodeURIComponent(url));
+  if (!res.ok) throw new Error(NAME.sc + " answered " + res.status + ". A private playlist can't be read.");
+  const j = await res.json();
+  if (j.kind === "track") return { name: j.title, songs: [scSong(j)].filter(Boolean) };
+  let tracks = j.tracks || [];
+  /* a long playlist only comes with the first few songs whole; the rest are asked for by number */
+  const missing = tracks.filter(t => !t.title).map(t => t.id);
+  for (let k = 0; k < missing.length; k += 50) {
+    const more = await (await scGet(SC_API + "/tracks?ids=" + missing.slice(k, k + 50).join(","))).json();
+    (more || []).forEach(m => { const at = tracks.findIndex(t => t.id === m.id); if (at >= 0) tracks[at] = m; });
+  }
+  return { name: j.title || NAME.sc + " playlist", list: true, songs: tracks.map(scSong).filter(Boolean),
+           tracks: tracks.filter(t => t.title).map(t => ({ title: t.title, artist: (t.user && t.user.username) || "", ms: t.duration || 0 })) };
+}
+async function auLink(url) {
+  const res = await audiusGet(AUDIUS + "/resolve?app_name=chalkbored&url=" + encodeURIComponent(url));
+  if (!res.ok) throw new Error(NAME.au + " answered " + res.status + ".");
+  const d = (await res.json()).data;
+  if (!Array.isArray(d)) return { name: d.title, songs: [audiusSong(d)] };
+  const pl = d[0];
+  const tr = await (await audiusGet(AUDIUS + "/playlists/" + pl.id + "/tracks?app_name=chalkbored")).json();
+  const songs = (tr.data || []).filter(t => t.is_streamable !== false).map(audiusSong);
+  return { name: pl.playlist_name || NAME.au + " playlist", list: true, songs, tracks: songs.map(asTrack) };
+}
+async function takeLink(raw, to) {
+  to = to || "same";
   const yl = parseYouTube(raw), sp = spotifyTarget(raw);
+  let host = "";
+  try { host = new URL(raw).hostname.replace(/^(www|m)\./, ""); } catch (e) {}
   try {
-    if (yl && yl.list) return await importYouTubeList(yl.list);
+    if (yl && yl.list) {
+      if (to === "same" || to === "yt") return await importYouTubeList(yl.list);
+      toast("Reading the playlist…", 20000);
+      const p = await ytPlaylist(yl.list);
+      return await importTracks(p.name, "youtube", p.tracks.map(t => ({ title: t.title, artist: t.author, ms: t.secs * 1000 })), to, true);
+    }
     if (yl && yl.id) {
       toast("Adding…");
       const info = await ytInfo(yl.id);
-      return takeSong(ytSong(yl.id, info && info.title, info && info.author), true);
+      const s = ytSong(yl.id, info && info.title, info && info.author);
+      if (to === "same" || to === "yt") return takeSong(s, true);
+      return await importTracks(s.title, "youtube", [asTrack(s)], to, false);
     }
-    if (sp) return await importSpotify(raw);
+    if (sp) {
+      toast("Reading the playlist from " + NAME.sp + "…", 30000);
+      const p = await spotifyTracks(raw);
+      return await importTracks(p.name, "spotify", p.tracks, to === "same" ? "yt" : to, p.type !== "track");
+    }
+    if (host === "soundcloud.com" || host === "on.soundcloud.com" || host === "audius.co") {
+      const sc = host !== "audius.co";
+      toast("Reading the link…", 30000);
+      const p = sc ? await scLink(raw) : await auLink(raw);
+      const mine = sc ? "sc" : "au";
+      if (to === "same" || to === mine) {
+        if (!p.songs.length) return toast("That link has no songs that play here.", 4500);
+        if (!p.list) return takeSong(p.songs[0], true);
+        const l = newListNamed(p.name, sc ? "soundcloud" : "audius");
+        p.songs.forEach(x => { keepSong(x); l.ids.push(x.id); });
+        S.list = l.id; save(); endSearch(); build();
+        return toast(l.name + ": " + p.songs.length + " songs.", 4500);
+      }
+      return await importTracks(p.name, sc ? "soundcloud" : "audius", p.tracks || p.songs.map(asTrack), to, !!p.list);
+    }
     let u = null;
     try { u = new URL(raw); } catch (e) {}
     if (u && /^https?:$/.test(u.protocol) && AUDIO_EXT.test(u.pathname)) {
@@ -1408,14 +1506,13 @@ async function importYouTubeList(listId) {
   build();
   toast(l.name + ": " + p.tracks.length + " songs.", 4500);
 }
-async function importSpotify(url) {
-  toast("Reading the playlist from " + NAME.sp + "…", 30000);
-  const sp = await spotifyTracks(url);
-  const n = sp.tracks.length;
-  if (!n) return toast("That " + sp.type + " has no songs in it.", 4500);
-  const l = sp.type === "track" ? null : newListNamed(sp.name, "spotify");
+async function importTracks(name, from, tracks, to, asList) {
+  const sp = { tracks };
+  const n = tracks.length;
+  if (!n) return toast("That has no songs in it.", 4500);
+  const l = asList ? newListNamed(name, from) : null;
   if (l) { S.list = l.id; save(); endSearch(); build(); }
-  toast("Finding " + n + (n === 1 ? " song" : " songs") + "…", 60000);
+  toast("Finding " + n + (n === 1 ? " song" : " songs") + " on " + NAME[to] + "…", 60000);
   const found = new Array(n), missed = [];
   let next = 0, done = 0;
   const flush = () => {
@@ -1428,7 +1525,7 @@ async function importSpotify(url) {
     while (next < n) {
       const i = next++, t = sp.tracks[i];
       let hit = null;
-      try { hit = await findOnYouTube(t); } catch (e) {}
+      try { hit = await findOn(to, t); } catch (e) {}
       if (hit) found[i] = hit; else missed.push(t.title);
       done++;
       if (done % 5 === 0 || done === n) { flush(); toast("Found " + found.filter(Boolean).length + " of " + n + "…", 60000); }
@@ -1617,6 +1714,7 @@ function setVol(v) {
 $("vol").oninput = () => setVol(Number($("vol").value));
 const muteToggle = () => { if (S.vol) { unmuted = S.vol; setVol(0); } else setVol(unmuted || 90); };
 $("mute").onclick = muteToggle;
+$("watch").onclick = () => { const s = song(at); if (s) watchVideo(s, () => play(at)); };
 audio.onplay = audio.onpause = playingChanged;
 audio.onplaying = () => { fails = 0; };   /* "play" comes even when the link then fails */
 audio.onended = () => { if (using === "file") ended(); };
