@@ -2014,7 +2014,7 @@ begin
   if p_device is null then return; end if;
   if auth.uid() is not null then
     select * into me from profiles where id = auth.uid();
-    if (v_doing = 'play' and me.share_play is not true) or (v_doing = 'listen' and me.share_listen is not true) then v_doing := null; end if;
+    if (v_doing = 'play' and me.share_play is false) or (v_doing = 'listen' and me.share_listen is false) then v_doing := null; end if;   -- never chose (null) counts as on
   end if;
   v_item := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
   insert into online_now (device, seen_at, doing, item, user_id) values (p_device, now(), v_doing, v_item, auth.uid())
@@ -2125,6 +2125,27 @@ grant execute on function public.save_sharing(boolean, boolean, boolean) to auth
 revoke execute on function public.friends_now() from public, anon;
 grant execute on function public.friends_now() to authenticated;
 
+-- ================================================================ Sharing is public and on by default (2026-11-22)
+-- What you play and listen to shows on your profile for everyone signed in.
+-- share_play / share_listen: null means never chose, which counts as on.
+-- Anyone who said no (false) stays off.
+
+-- Anyone's profile line: online or not, and what they play or listen to (if they share it)
+create or replace function public.person_now(p_user uuid)
+returns table (online boolean, doing text, item text)
+language sql stable security definer set search_path = public, extensions as $$
+  select p.share_online and (coalesce(s.seen, false) or exists (select 1 from chat_online c where c.user_id = p.id and c.seen_at > now() - interval '90 seconds')),
+         case when p.share_online then s.doing end, case when p.share_online then s.item end
+    from profiles p
+    left join lateral (select o.doing, o.item, true as seen from online_now o
+                        where o.user_id = p.id and o.seen_at > now() - interval '90 seconds'
+                        order by o.seen_at desc limit 1) s on true
+   where auth.uid() is not null and p.id = p_user and (not p.banned or is_site_mod());
+$$;
+
+revoke execute on function public.person_now(uuid) from public, anon;
+grant execute on function public.person_now(uuid) to authenticated;
+
 -- ================================================================ Last step
 -- Keep this at the very end. Signed-out visitors can only reach the vote on
 -- Home (latest_poll), the old Requests poll, the online count and Home's
@@ -2133,3 +2154,4 @@ revoke execute on all functions in schema public from public, anon;
 grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
   public.i_am_here(uuid), public.online_count(), public.latest_poll(),
   public.here_now(uuid, text, text), public.online_stats() to anon, authenticated;
+

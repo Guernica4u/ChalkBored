@@ -140,6 +140,7 @@
   .hn-check { display: flex; align-items: center; gap: .55rem; margin-top: .45rem; font-size: .9rem; cursor: pointer; }
   .hn-prof-note { margin: .9rem 0 0; font-size: .8rem; }
   .hn-prof-err { min-height: 1.2em; margin: .6rem 0 0; font-size: .85rem; }
+  .hn-prof-go { margin: 0 18px 18px; }
   .hn-pick { position: relative; display: inline-flex; align-items: center; }
   .hn-pick select { appearance: none; -webkit-appearance: none; padding: 0 1.2rem 0 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
   .hn-pick select:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
@@ -542,7 +543,7 @@
 
   // ---- online now: counts, the most played, and asking before sharing ----
   // Nothing about what you play or hear leaves this browser until you press Sure.
-  const SHARE = 'cb-share-activity';   // 'yes' | 'no' | missing (not asked yet)
+  const SHARE = 'cb-share-activity';   // 'no' turns it off; 'yes' or missing (never chose) is on
   const PROFILE_COLS = 'id, username, avatar, bio, banner, status, fav_game, accent';
   const me = { user: null, profile: null };   // profile also has the three share_ switches
   let meLoading = null;
@@ -568,13 +569,10 @@
     })();
     return meLoading;
   }
-  // signed in, the profile's switches decide; signed out, the Sure / No answer in this browser
-  const sharing = (kind) => (me.profile ? me.profile['share_' + kind] === true : read(SHARE, '') === 'yes');
-  function shareChoice() {
-    if (!me.profile) return read(SHARE, '');
-    if (me.profile.share_play === null && me.profile.share_listen === null) return '';
-    return me.profile.share_play || me.profile.share_listen ? 'yes' : 'no';
-  }
+  // on unless turned off. Signed in, the profile's switches decide (null = never chose = on);
+  // signed out, this browser's answer
+  const sharing = (kind) => (me.profile ? me.profile['share_' + kind] !== false : read(SHARE, '') !== 'no');
+  const shareChoice = () => (sharing('play') || sharing('listen') ? 'yes' : 'no');
   async function setSharing(play, listen, online) {
     write(SHARE, play || listen ? 'yes' : 'no');
     if (me.profile) {
@@ -623,18 +621,10 @@
     function paintAsk() {
       const choice = shareChoice();
       ask.replaceChildren();
-      if (choice === 'yes' || choice === 'no') {
-        const change = el('button', 'hn-link', choice === 'yes' ? 'Stop sharing' : 'Share what I play');
-        change.type = 'button';
-        change.addEventListener('click', () => setSharing(choice !== 'yes', choice !== 'yes'));
-        ask.append(change);
-        return;
-      }
-      const yes = tiny('Sure');
-      const no = tiny('No I have W opsec', true);
-      yes.addEventListener('click', () => setSharing(true, true));
-      no.addEventListener('click', () => setSharing(false, false));
-      ask.append(el('span', '', 'Share what you play? No names.'), yes, no);
+      const change = el('button', 'hn-link', choice === 'yes' ? 'Turn off' : 'Share what I play');
+      change.type = 'button';
+      change.addEventListener('click', () => setSharing(choice !== 'yes', choice !== 'yes'));
+      ask.append(el('span', '', choice === 'yes' ? 'What you play is public.' : 'Not sharing what you play.'), change);
     }
     async function load() {
       try {
@@ -718,15 +708,21 @@
     try {
       await loadMe(true);
       own = !id || (me.user && id === me.user.id);
+      const db = await loadOnline();
       if (own) p = me.profile;
-      else {
-        const db = await loadOnline();
-        ({ data: p } = await db.from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle());
-      }
+      else ({ data: p } = await db.from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle());
+      // what they're doing is public (unless they turned it off), so it shows for anyone
+      if (p && !live) { const { data } = await db.rpc('person_now', { p_user: p.id }); live = data && data[0]; }
     } catch (e) {}
     if (veil !== profVeil) return;
     if (!p) {
       card.replaceChildren(closeButton(), el('p', 'hn-muted hn-prof-wait', own ? 'Sign in to Chalk Chat to make a profile.' : 'That profile isn’t available.'));
+      if (own && typeof showPanel === 'function') {
+        const go = el('button', 'hn-btn hn-prof-go', 'Open Chalk Chat');
+        go.type = 'button';
+        go.addEventListener('click', () => { closeProfile(); showPanel('chat'); });
+        card.append(go);
+      }
       card.querySelector('button').focus();
       return;
     }
@@ -745,16 +741,16 @@
     banner.style.background = BANNERS[p.banner != null && p.banner !== '' ? Number(p.banner) : hashOf(p.id) % BANNERS.length];
     const pic = friendPic(p.id, p.avatar);
     pic.classList.add('big');
-    if (!live) pic.querySelector('i').remove();
+    if (!live || own) pic.querySelector('i').remove();
     const accent = p.accent != null && p.accent !== '' ? PFP_COLORS[Number(p.accent)] : null;
     if (accent) pic.style.boxShadow = '0 0 0 3px ' + accent;
     const body = el('div', 'hn-prof-body');
     const name = el('h2', 'hn-prof-name', p.username);
     name.id = 'hn-prof-name';
     card.setAttribute('aria-labelledby', name.id);
-    card.classList.toggle('on', !!(live && live.online));
+    card.classList.toggle('on', !!(live && live.online && !own));
     body.append(pic, name);
-    if (live) body.append(friendLine(live));
+    if (live && !(own && !live.doing)) body.append(friendLine(live));
     else if (own) body.append(el('p', 'hn-prof-line', 'Your profile'));
     if (p.status) body.append(el('p', 'hn-prof-status', p.status));
     if (p.bio) body.append(el('p', 'hn-prof-bio', p.bio));
@@ -777,7 +773,7 @@
       edit.addEventListener('click', () => paintEdit(card, p));
       actions.append(edit);
     }
-    if (live && live.doing === 'play' && byPath(live.item)) {
+    if (!own && live && live.doing === 'play' && byPath(live.item)) {
       const go = el('button', own ? 'hn-tiny ghost' : 'hn-btn', 'Play too');
       go.type = 'button';
       go.addEventListener('click', () => { closeProfile(); launch(byPath(live.item)); });
@@ -855,17 +851,18 @@
     sws.append(swatch('', null, 'No accent'), ...PFP_COLORS.map((c, i) => swatch(String(i), c, 'Colour ' + (i + 1))));
     // what friends see
     const share = el('fieldset', 'hn-share');
-    share.append(el('legend', '', 'What friends can see'));
+    share.append(el('legend', '', 'What everyone can see'));
     const check = (key, text) => {
       const l = el('label', 'hn-check');
       const c = el('input');
       c.type = 'checkbox';
       c.name = key;
-      c.checked = me.profile && me.profile['share_' + key] === true;
+      c.checked = sharing(key) && !(key === 'online' && me.profile && me.profile.share_online === false);
       l.append(c, document.createTextNode(text));
       return l;
     };
-    share.append(check('online', 'When I’m online'), check('play', 'What I’m playing'), check('listen', 'What I’m listening to'));
+    share.append(check('online', 'When I’m online'), check('play', 'What I’m playing'), check('listen', 'What I’m listening to'),
+      el('p', 'hn-muted hn-prof-note', 'These are public: anyone signed in can see them on your profile. Untick one to turn it off.'));
     const note = el('p', 'hn-muted hn-prof-note', 'Your picture, bio and banner are changed in Chalk Chat.');
     const err = el('p', 'hn-prof-err');
     err.setAttribute('role', 'status');
@@ -1150,15 +1147,14 @@
   // same choice as the question beside the ChalkBored title on Home
   function sharePicker() {
     const box = el('div', 'home-look-pick');
-    const now = read(SHARE, '');
-    [['yes', 'Sure', 'You count toward numbers on Home like \u201c3 playing\u201d. Your name is never shown.'], ['no', 'No I have W opsec', 'Nothing about what you play leaves this browser.']].forEach(([choice, title, about]) => {
+    const now = shareChoice();
+    [['yes', 'Share it', 'Anyone signed in can see what you play and listen to on your profile, and you count toward numbers on Home like \u201c3 playing\u201d.'], ['no', 'No I have W opsec', 'Nothing about what you play or listen to leaves this browser.']].forEach(([choice, title, about]) => {
       const b = el('button', 'way');
       b.type = 'button';
       b.setAttribute('aria-pressed', String(now === choice));
       b.append(el('b', '', title), el('span', '', about));
       b.addEventListener('click', () => {
-        write(SHARE, choice);
-        window.dispatchEvent(new Event('chalk-share'));
+        setSharing(choice === 'yes', choice === 'yes');
         box.querySelectorAll('.way').forEach((w) => w.setAttribute('aria-pressed', String(w === b)));
       });
       box.append(b);
@@ -1179,7 +1175,7 @@
   }
   SETUP_STEPS.splice(SETUP_STEPS.length - 1, 0,
     { step: 'Home', title: 'Pick your Home', text: 'You can switch any time in Settings.', body: lookPicker },
-    { step: 'Sharing', title: 'Share what you play?', text: 'Home shows how many people are playing each game. You can change this any time beside the title on Home.', body: sharePicker },
+    { step: 'Sharing', title: 'Sharing what you play', text: 'It\u2019s on unless you turn it off. What you play and listen to is public. You can change it any time beside the title on Home or in your profile.', body: sharePicker },
     { step: 'Account', title: 'Make an account?', text: 'An account lets you chat, vote and add friends. It needs no email, phone number or anything else, just a name and a password.', body: accountPicker });
   if (!$('setup').hidden) renderSetup();
 
