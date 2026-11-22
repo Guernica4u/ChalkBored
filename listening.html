@@ -202,6 +202,8 @@
   .row:hover { background: var(--card); }
   #queue .row:hover { background: var(--paper-2); }
   .row.on { background: var(--highlight); }
+  .row.dragging { opacity: 0.45; }
+  .row.drop { box-shadow: 0 -2px 0 var(--accent) inset; }
   .row .pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; }
   .row .g { flex: none; width: 18px; text-align: center; color: var(--pencil); font-size: 0.75rem; }
   .row .pic { flex: none; width: 40px; height: 30px; border-radius: 5px; background: var(--paper-2) center/cover; }
@@ -963,7 +965,7 @@ function songRow(s, opts) {
   r.appendChild(pick);
   const plus = el("button", "mini", "+");
   plus.type = "button";
-  plus.title = "Add to a playlist";
+  plus.title = "Play next, or add to a playlist";
   plus.onclick = e => { e.stopPropagation(); addToMenu(plus, s); };
   r.appendChild(plus);
   if (opts.remove) {
@@ -973,8 +975,20 @@ function songRow(s, opts) {
     x.onclick = e => { e.stopPropagation(); opts.remove(); };
     r.appendChild(x);
   }
+  if (opts.move) dragRow(r, opts.pos, opts.move);
   return r;
 }
+/* drag a row onto another to move it there */
+let dragFrom = -1;
+function dragRow(r, pos, move) {
+  r.draggable = true;
+  r.ondragstart = e => { dragFrom = pos; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(pos)); r.classList.add("dragging"); };
+  r.ondragend = () => { dragFrom = -1; r.classList.remove("dragging"); };
+  r.ondragover = e => { if (dragFrom < 0) return; e.preventDefault(); r.classList.add("drop"); };
+  r.ondragleave = () => r.classList.remove("drop");
+  r.ondrop = e => { e.preventDefault(); r.classList.remove("drop"); if (dragFrom >= 0 && dragFrom !== pos) move(dragFrom, pos); };
+}
+const moved = (a, from, to) => { const b = a.slice(), [x] = b.splice(from, 1); b.splice(to, 0, x); return b; };
 
 /* ---- the bar on the right: playlists, then the songs in the one picked ---- */
 function drawPlaylists() {
@@ -1020,7 +1034,8 @@ function drawSongs() {
     box.appendChild(songRow(s, {
       num: k + 1, on: id === now, play: () => playFromList(S.list, id),
       remove: () => removeFrom(S.list, id),
-      removeTitle: S.list === "all" ? "Remove from your songs" : "Remove from this playlist"
+      removeTitle: S.list === "all" ? "Remove from your songs" : "Remove from this playlist",
+      pos: k, move: (from, to) => moveInList(S.list, ids, from, to)
     }));
   });
 }
@@ -1030,9 +1045,23 @@ function drawQueue() {
   $("queue-t").textContent = "Up next · " + listName(playingList);
   if (!tracks.length) { q.appendChild(el("div", "none", "Nothing to play yet.")); return; }
   const k0 = Math.max(0, order.indexOf(at));
-  order.slice(k0).concat(S.repeat === "all" ? order.slice(0, k0) : []).forEach((i, k) => {
-    q.appendChild(songRow(song(i), { num: k + 1, on: i === at, play: () => play(i) }));
+  const rest = S.repeat === "all" ? [] : order.slice(0, k0);
+  const shown = order.slice(k0).concat(S.repeat === "all" ? order.slice(0, k0) : []);
+  shown.forEach((i, k) => {
+    q.appendChild(songRow(song(i), {
+      num: k + 1, on: i === at, play: () => play(i),
+      remove: i === at ? null : () => { order = order.filter(x => x !== i); drawQueue(); },
+      removeTitle: "Take out of Up next",
+      pos: k, move: (from, to) => { order = rest.concat(moved(shown, from, to)); drawQueue(); }
+    }));
   });
+}
+function moveInList(listId, ids, from, to) {
+  const next = moved(ids, from, to);
+  if (listId === "all") S.order = next.concat(S.order.filter(x => !S.songs[x]));
+  else listById(listId).ids = next;
+  save();
+  build();
 }
 function playFromList(listId, id) {
   fails = 0;
@@ -1066,11 +1095,23 @@ function listMenu(anchor, id) {
     } }
   ]);
 }
+/* the song plays after the one playing now */
+function playNext(s) {
+  keepSong(s);
+  save();
+  let i = tracks.indexOf(s.id);
+  if (i < 0) { tracks.push(s.id); i = tracks.length - 1; }
+  else if (i === at) return;
+  order = order.filter(x => x !== i);
+  order.splice(at < 0 ? 0 : order.indexOf(at) + 1, 0, i);
+  drawQueue();
+  toast("Plays next");
+}
 function addToMenu(anchor, s) {
-  const items = S.lists.map(l => ({ label: (l.ids.includes(s.id) ? "✓ " : "") + l.name, run: () => {
+  const items = [{ label: "Play next", run: () => playNext(s) }, "-"].concat(S.lists.map(l => ({ label: (l.ids.includes(s.id) ? "✓ " : "") + l.name, run: () => {
     keepSong(s); addToList(l.id, s.id); save(); build(); toast("Added to " + l.name);
-  } }));
-  if (items.length) items.push("-");
+  } })));
+  if (S.lists.length) items.push("-");
   items.push({ label: "New playlist…", run: async () => {
     const name = await ask("New playlist", "What should it be called?", "", "Make it");
     if (!name) return;
