@@ -1408,7 +1408,7 @@
     // opening ChalkBored in a cloaked tab is a switch on the homepage's page picker now
 
     function launch(item, mode) {
-      openTab(item.remote ? LESSON_HOST + item.path : item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
+      openTab(item.path.startsWith('LESSONS/') ? LESSON_HOST + item.path : item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
 
     // the little guy: walks the floor, climbs the rail, ragdolls when thrown
