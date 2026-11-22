@@ -967,6 +967,7 @@
   .pf-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .pf-name-row b { font-size: 1.05rem; }
   .pf-tag { font-size: 0.5rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm); padding: 1px 6px; }
+  .pf-now { margin: 6px 0 0; font-size: 0.72rem; color: var(--muted); }
   .pf-about { margin: 10px 0 0; font-size: 0.8rem; line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
   .pf-about.none { color: var(--muted); font-style: italic; }
   .pf-sec { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
@@ -1340,6 +1341,7 @@
         <b id="pf-name">—</b>
         <span class="pf-tag" id="pf-tag" hidden></span>
       </div>
+      <p class="pf-now" id="pf-now" hidden></p>
       <p class="pf-about none" id="pf-about"></p>
       <div class="pf-sec">
         <h4>Friends in common</h4>
@@ -4814,16 +4816,33 @@ async function openPersonCard(p) {
   card.style.setProperty('--pop-x', Math.max(8, Math.min(lastClick.x + 12, window.innerWidth - fit.width - 8)) + 'px');
   card.style.setProperty('--pop-y', Math.max(8, Math.min(lastClick.y - 40, window.innerHeight - fit.height - 8)) + 'px');
   loadMutuals(p);
+  loadPersonNow(p);
 
-  const cols = 'username, is_mod, banned, avatar, bio, banner';
+  const cols = 'username, is_mod, banned, avatar, bio, banner, status';
   const { data } = await db.from('profiles').select(cols).eq('id', p.id).maybeSingle();
   if (state.pfWho !== p || !data) return;
   Object.assign(p, data);
+  loadPersonNow(p);
   $('pf-name').textContent = p.username;
   avatarStyle($('pf-avatar'), p.id, p.username, p.avatar);
   $('pf-banner').style.background = bannerFor(p.banner, p.id);
   paintPersonAbout(p);
   paintPersonActions(p);
+}
+
+// what they're doing is public unless they turned it off; game folders are code names, not real titles
+async function loadPersonNow(p) {
+  const line = $('pf-now');
+  line.hidden = true;
+  const { data } = await db.rpc('person_now', { p_user: p.id });
+  if (state.pfWho !== p) return;
+  const now = data && data[0];
+  const game = now && now.item ? now.item.split('/')[1].replace(/-/g, ' ') : '';
+  const parts = [];
+  if (p.status) parts.push(p.status);
+  if (now) parts.push(now.doing === 'play' ? 'Playing ' + (game || 'a game') : now.doing === 'listen' ? 'Listening to Chalk Music' : now.online ? 'Online' : 'Offline');
+  line.textContent = parts.join(' · ');
+  line.hidden = !parts.length;
 }
 
 async function loadMutuals(p) {
