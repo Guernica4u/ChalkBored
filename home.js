@@ -101,8 +101,8 @@
   .hn-vote:hover { border-color: var(--pencil); }
   .hn-av { position: relative; width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 50%; color: #fff; }
   .hn-av svg { width: 55%; height: 55%; }
-  .hn-av i { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%; background: var(--edge); border: 2px solid var(--card); }
-  .hn-friend.on .hn-av i { background: var(--accent); }
+  .hn-av i { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; background: #6b6b6b; border: 2px solid #0b0b0b; }
+  .hn-friend.on .hn-av i { background: #4cc57e; }
   .hn-star { padding: .1rem .3rem; background: none; border: 0; color: var(--pencil); font: inherit; font-size: 1rem; line-height: 1; cursor: pointer; }
   .hn-star[aria-pressed="true"] { color: var(--ink); }
   .hn-star:hover, .hn-star:focus-visible { color: var(--ink); outline: none; }

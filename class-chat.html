@@ -368,7 +368,7 @@
   .chat-head .topic { padding-left: 12px; border-left: 1px solid var(--line); font-size: 0.66rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chat-head .spacer { margin-left: auto; }
   .presence { display: flex; align-items: center; gap: 5px; font-size: 0.66rem; color: var(--muted); white-space: nowrap; }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2.4s infinite; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   @keyframes pulse { 50% { opacity: 0.4; } }
 
   #messages {
@@ -2935,8 +2935,9 @@ function watchFeed() {
         if (row.user_id === state.me.id) {
           addMessage({ ...row, profiles: { username: state.me.username, avatar: state.me.avatar } });
         } else {
-          const { data } = await db.from('profiles').select('username').eq('id', row.user_id).single();
-          addMessage({ ...row, profiles: data });
+          let who = everyoneById().get(row.user_id);
+          if (!who) ({ data: who } = await db.from('profiles').select('username, avatar').eq('id', row.user_id).single());
+          addMessage({ ...row, profiles: who && { username: who.username, avatar: who.avatar } });
         }
         const added = $('messages').querySelector('[data-id="' + row.id + '"]');
         if (added) added.classList.add('arrive');
@@ -3204,10 +3205,13 @@ function loadEveryone() {
 let beatTimer = null;
 async function heartbeat() {
   await db.rpc('chat_here');
+  if (document.hidden) return;   // the check-in keeps you online; the rest catches up when the tab is seen again
   loadFriends();   // friend requests and answers arrive with the check-in
   const { data } = await db.rpc('online_ids');
-  state.online = new Set(data || []);
-  paintPeople();
+  const next = new Set(data || []);
+  const changed = !sameSet(next, state.online);
+  state.online = next;
+  if (changed) paintPeople();
   watchPresence();
 }
 function watchEveryone() {
@@ -3243,7 +3247,15 @@ function everyoneById() {
   return map;
 }
 
+// many things ask for a repaint at once (sign-in, friends, check-ins): draw once per frame
+let peopleFrame = 0;
+let peopleAll = false;   // "Show everyone" pressed: no cap on long groups
+const PEOPLE_CAP = 100;
 function paintPeople() {
+  if (!peopleFrame) peopleFrame = requestAnimationFrame(() => { peopleFrame = 0; drawPeople(); });
+}
+const sameSet = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
+function drawPeople() {
   const list = $('people-list');
   const open = $('app').classList.contains('people-open');
   $('members-btn').setAttribute('aria-expanded', String(open));
@@ -3326,7 +3338,16 @@ function paintPeople() {
     head.append(left, right);
     list.appendChild(head);
 
-    people.forEach((p) => {
+    const shownPeople = peopleAll ? people : people.slice(0, PEOPLE_CAP);
+    let more = null;
+    if (shownPeople.length < people.length) {
+      more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'mini people-more';
+      more.textContent = 'Show all ' + people.length;
+      more.onclick = () => { peopleAll = true; drawPeople(); };
+    }
+    shownPeople.forEach((p) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'person' + (state.online.has(p.id) ? ' online' : '');
@@ -3363,6 +3384,7 @@ function paintPeople() {
         b.addEventListener(evt, () => { clearTimeout(pressTimer); }));
       list.appendChild(b);
     });
+    if (more) list.appendChild(more);
   };
   if (scope === 'room' && state.room && !state.room.is_global) {
     group('Owner', pool.filter((p) => p.role === 'owner'));
@@ -4533,6 +4555,7 @@ function canEndVoice(key) {
 async function loadVoicePeople() {
   const room = state.room;
   if (!room) return;
+  if (!state.channels.some((c) => c.kind === 'voice')) { if (state.voicePeople.size) { state.voicePeople = new Map(); paintChannels(); } return; }
   const { data } = await db.rpc('voice_room_people', { p_room: room.id });
   if (state.room !== room) return;
   const next = new Map();
@@ -4862,6 +4885,7 @@ async function loadFriends() {
   if (state.friendsLoaded && [...incoming].some((id) => !state.friendIn.has(id))) {
     showToast('You have a new friend request.', () => openUserPage('friends'));
   }
+  const changed = !state.friendsLoaded || !sameSet(accepted, state.friends) || !sameSet(incoming, state.friendIn) || !sameSet(outgoing, state.friendOut);
   state.friendsLoaded = true;
   state.friends = accepted;
   state.friendIn = incoming;
@@ -4873,6 +4897,7 @@ async function loadFriends() {
     btn.dataset.req = incoming.size ? '1' : '0';
     btn.title = incoming.size ? incoming.size + ' friend request' + (incoming.size === 1 ? '' : 's') : '';
   }
+  if (!changed) return;
   paintPeople();
   if (state.pfWho) paintPersonActions(state.pfWho);
 }
