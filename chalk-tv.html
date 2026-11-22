@@ -20,14 +20,14 @@
     --highlight: #3a3a3a;
     --rail: #080808;
     --r: 4px;
-    --body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Aptos', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; overflow: hidden; }
   html { background: var(--paper); }
-  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+  body { background: var(--paper); color: var(--ink); font: 16px/1.55 var(--body); letter-spacing: .002em; -webkit-font-smoothing: antialiased; }
   button, input { font: inherit; color: inherit; }
   button { cursor: pointer; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -36,14 +36,14 @@
   @keyframes settle { from { opacity: 0; transform: translateY(5px) scale(.988); } }
   @keyframes mark { from { opacity: 0; transform: translateY(-3px) scale(.86); } }
   @keyframes veil { from { opacity: 0; } }
-  .nav button, .btn, .row-nav button, #p-back, .dots button {
+  .nav button, #source, .btn, .row-nav button, #p-back, .dots button {
     transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease, width .18s ease;
   }
-  .nav button:active, .btn:active, .row-nav button:active, #p-back:active { transform: translateY(1px); }
+  .nav button:active, #source:active, .btn:active, .row-nav button:active, #p-back:active { transform: translateY(1px); }
   @media (prefers-reduced-motion: reduce) {
     #hero .art, #hero .copy > *, .row, .card, .card .rank, #details, #details .box, #player, #p-bar { animation: none; }
     .strip { scroll-behavior: auto; }
-    .nav button, .btn, .row-nav button, #p-back, .dots button, .card { transition: none; }
+    .nav button, #source, .btn, .row-nav button, #p-back, .dots button, .card { transition: none; }
   }
 
   /* ---- top bar ---- */
@@ -55,6 +55,8 @@
   }
   #brand { border: 0; background: none; padding: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
   #brand b { color: var(--pencil); font-weight: 400; }
+  #source { border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); color: var(--pencil); padding: 5px 10px; font-size: .76rem; font-weight: 600; white-space: nowrap; }
+  #source:hover { color: var(--ink); border-color: var(--accent); background: var(--highlight); }
   .nav { display: flex; gap: 4px; }
   .nav button { border: 1px solid transparent; background: none; padding: 7px 12px; border-radius: var(--r); color: var(--pencil); font-size: .92rem; }
   .nav button:hover { color: var(--ink); background: var(--highlight); }
@@ -83,9 +85,8 @@
   #hero .copy > :nth-child(3) { animation-delay: .10s; }
   #hero .copy > :nth-child(4) { animation-delay: .15s; }
   #hero .copy > :nth-child(5) { animation-delay: .20s; }
-  .eyebrow { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--pencil); font-size: .72rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
-  .eyebrow i { width: 22px; height: 1px; background: var(--accent); display: inline-block; }
-  #hero h1 { margin: 0 0 12px; font-size: clamp(2.1rem, 5.4vw, 4.3rem); line-height: 1.04; letter-spacing: -.035em; font-weight: 700; text-wrap: balance; }
+  .eyebrow { display: flex; align-items: center; margin-bottom: 12px; color: var(--pencil); font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  #hero h1 { margin: 0 0 12px; font-size: clamp(2.1rem, 5.4vw, 4.3rem); line-height: 1.06; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; }
   .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 0 0 16px; color: var(--pencil); font-size: .88rem; }
   .meta .score { color: var(--ink); font-weight: 700; }
   .meta .chip { padding: 2px 8px; border: 1px solid var(--edge); border-radius: var(--r); font-size: .76rem; }
@@ -102,7 +103,7 @@
   /* rows and cards */
   .row { margin-top: 12px; animation: rise .42s ease backwards; animation-delay: calc(var(--r, 0) * 55ms); }
   .row-head { display: flex; align-items: center; gap: 10px; padding: 0 clamp(16px, 4vw, 54px); margin: 12px 0 10px; }
-  .row-head h2 { margin: 0; font-size: clamp(1.05rem, 1.7vw, 1.32rem); letter-spacing: -.02em; font-weight: 700; }
+  .row-head h2 { margin: 0; font-size: clamp(1.05rem, 1.7vw, 1.32rem); letter-spacing: -.01em; font-weight: 700; }
   .row-head .hint { color: var(--pencil); font-size: .78rem; margin-left: 4px; }
   .row-nav { margin-left: auto; display: flex; gap: 6px; }
   .row-nav button { width: 30px; height: 30px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); color: var(--ink); line-height: 1; }
@@ -122,6 +123,8 @@
   .card .prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--highlight); }
   .card .prog i { display: block; height: 100%; background: var(--accent); }
   .msg { margin: 26px clamp(16px, 4vw, 54px); color: var(--pencil); }
+  .result-count { margin: 0 clamp(16px, 4vw, 54px) 8px; color: var(--pencil); font-size: .82rem; }
+  .result-count b { color: var(--ink); font-weight: 700; }
   .foot { padding: 26px clamp(16px, 4vw, 54px) 46px; color: var(--pencil); font-size: .76rem; border-top: 1px solid var(--edge); margin-top: 30px; }
 
   /* details */
@@ -131,7 +134,7 @@
   #details .cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, var(--paper-2), transparent 75%); }
   #details .body { position: relative; margin-top: -58px; padding: 0 34px 32px; display: grid; grid-template-columns: 168px 1fr; gap: 26px; }
   #details .poster { width: 168px; aspect-ratio: 2/3; border-radius: var(--r); background-size: cover; background-position: center; box-shadow: 0 16px 36px rgba(0,0,0,.6); border: 1px solid var(--edge); }
-  #details h3 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: -.03em; }
+  #details h3 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: -.02em; }
   #details p { margin: 0 0 18px; color: #c9c9c9; line-height: 1.65; }
   #d-close-x { position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--paper); font-size: 1.2rem; }
   @media (max-width: 640px) {
@@ -158,10 +161,10 @@
 <body>
 <header id="top">
   <button id="brand" type="button" title="Chalk TV home">Chalk<b>TV</b></button>
+  <button id="source" type="button" aria-label="Change library">Main</button>
   <nav class="nav" id="nav">
     <button type="button" data-section="all" class="on">Home</button>
-    <button type="button" data-section="movie">Films</button>
-    <button type="button" data-section="tv">Series</button>
+    <button type="button" data-section="anime">Anime</button>
   </nav>
   <form id="search" role="search"><input id="q" type="search" placeholder="Search films and series" autocomplete="off" spellcheck="false" aria-label="Search films and series"></form>
 </header>
@@ -197,13 +200,30 @@ const decode = s => atob(s);                     // quiet configuration
 const encode = s => btoa(s);
 const SITE = decode("aHR0cHM6Ly9tb3Z5LnN4");
 const LIBRARY = decode("aHR0cHM6Ly9kYi53ZWNvbGxlZ2UubmV0LzM=");
+const BETA = decode("aHR0cHM6Ly9iZXRhLmNuby50bw==");
+const BETA_IMG = decode("aHR0cHM6Ly9pbWFnZS50bWRiLm9yZy90L3A=");
 const CONTINUE = "chalk-tv.continue";
+const SOURCE_KEY = "chalk-tv.source";
 const RELAY = decode("d3NzOi8vZmVybi5iZXN0L3dpc3Av");
 const MSG = decode("dGlkZQ==");                      // viewing protocol key
 const HASH = decode("Y2Zn");                        // quiet start key
 const PANE_PAGE = new URL(decode("dGlkZS8="), location.href).href;   // local viewing pane in this copy
 const PANE_ORIGIN = new URL(PANE_PAGE).origin;
 const ART_HOST = SITE.replace("://", "://www.");
+const SOURCES = [
+  { name: "Main", site: SITE, api: LIBRARY, art: (path, size) => ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp", anime: false },
+  { name: "Beta", site: BETA, api: BETA + "/tmdb", art: (path, size) => BETA_IMG + "/" + size + path, anime: true }
+];
+let sourceIndex = 0;
+try { sourceIndex = Number(localStorage.getItem(SOURCE_KEY)) === 1 ? 1 : 0; } catch (e) {}
+const source = () => SOURCES[sourceIndex];
+function updateSourceButton() {
+  const b = $("source");
+  b.textContent = source().name;
+  b.title = "Library: " + source().name + " — change";
+  b.setAttribute("aria-label", "Change library, now " + source().name);
+}
+updateSourceButton();
 const ADULT = ["sex", "sexy", "nude", "nudist", "naked", "erotic", "stripper", "striptease", "lust", "burlesque", "porn"];
 const ADULT_RE = /\b(sex|sexy|nude|nudist|naked|erotic|stripper|striptease|lust|burlesque|porn)/i;   // the school-safe list from the old app
 const GENRES = { 12:"Adventure",14:"Fantasy",16:"Animation",18:"Drama",27:"Horror",28:"Action",
@@ -248,7 +268,7 @@ function get(url) {
 const getJson = url => get(url).then(r => JSON.parse(new TextDecoder().decode(r.body)));
 
 /* ---- artwork, loaded as it scrolls into view ---- */
-const imageUrl = (path, size = "w780") => path ? ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp" : "";
+const imageUrl = (path, size = "w780") => path ? source().art(path, size) : "";
 const blobs = new Map();
 const imageQueue = [];
 let imageBusy = 0;
@@ -298,12 +318,13 @@ function clean(r, forced) {
   const front = r.poster_path || r.backdrop_path;
   return {
     key: type + ":" + r.id, id: r.id, type, title,
-    url: SITE + "/" + type + "/" + r.id,
+    url: source().site + "/" + type + "/" + r.id,
     art: imageUrl(back), poster: imageUrl(front, "w342"),
     text: r.overview || "",
     year: date.slice(0, 4) || "",
     rating: Math.round((Number(r.vote_average) || 0) * 10) / 10,
-    tags: (r.genre_ids || []).map(g => GENRES[g]).filter(Boolean).slice(0, 3)
+    tags: (r.genre_ids || []).map(g => GENRES[g]).filter(Boolean).slice(0, 3),
+    source: sourceIndex
   };
 }
 const ROWS = [
@@ -316,9 +337,46 @@ const ROWS = [
   ["Now showing", "/tv/airing_today", "tv", false]
 ];
 function fetchRow([name, path, type, ranked]) {
-  return getJson(LIBRARY + path).then(j => ({
+  return getJson(source().api + path).then(j => ({
     name, ranked,
     items: (j.results || []).map(r => clean(r, type)).filter(Boolean).slice(0, 20)
+  }));
+}
+
+const ANIME_ROWS = [
+  { name: "Popular anime", main: "/trending/all/week", beta: "sort=popular&limit=20&sfw=1", ranked: true },
+  { name: "Highly rated anime", main: "/tv/top_rated", beta: "sort=score&limit=20&sfw=1", ranked: false },
+  { name: "New anime", main: "/tv/airing_today", beta: "year=" + new Date().getFullYear() + "&limit=20&sfw=1", ranked: false },
+  { name: "Anime films", main: "/tv/popular", beta: "format=MOVIE&limit=20&sfw=1", ranked: false }
+];
+const ANIME_ADULT_RE = /hentai|uncensored/i;
+function cleanAnime(a) {
+  const title = a.title || a.native || "";
+  const genres = a.genres || [];
+  if (!title || ADULT_RE.test(title + " " + (a.synopsis || "")) || ANIME_ADULT_RE.test(title + " " + genres.join(" "))) return null;
+  const aid = String(a.anilistId || a.malId || a.id || "");
+  if (!aid) return null;
+  const slug = title.toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
+  const path = slug + "-" + aid;
+  const poster = a.poster ? (/^https?:/i.test(a.poster) ? a.poster : BETA + a.poster) : "";
+  return {
+    key: "anime:" + aid, id: aid, type: "tv", title,
+    url: BETA + "/anime/" + path,
+    art: poster, poster, text: a.synopsis || "",
+    year: a.year ? String(a.year) : "",
+    rating: Math.round((Number(a.score) || 0) * 10) / 10,
+    tags: genres.slice(0, 3),
+    source: sourceIndex, beta: true
+  };
+}
+function fetchAnimeRow(row) {
+  if (source().anime) return getJson(BETA + "/api/anime/browse?" + row.beta).then(j => ({
+    name: row.name, ranked: row.ranked,
+    items: (j.items || []).map(cleanAnime).filter(Boolean).slice(0, 20)
+  }));
+  return getJson(LIBRARY + row.main).then(j => ({
+    name: row.name, ranked: row.ranked,
+    items: (j.results || []).filter(r => (r.genre_ids || []).includes(16)).map(r => clean(r, "tv")).filter(Boolean).slice(0, 20)
   }));
 }
 
@@ -366,9 +424,11 @@ function row(name, items, opt = {}) {
 }
 
 /* ---- continue watching ---- */
-const loadContinue = () => { try { const v = JSON.parse(localStorage.getItem(CONTINUE)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+const allContinue = () => { try { const v = JSON.parse(localStorage.getItem(CONTINUE)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+const loadContinue = () => allContinue().filter(s => (s.source || 0) === sourceIndex);
 function saveSpot(spot) {
-  const list = loadContinue().filter(s => s.key !== spot.key);
+  const which = spot.source == null ? sourceIndex : spot.source;
+  const list = allContinue().filter(s => (s.source || 0) !== which && s.key !== spot.key);
   if (!(spot.d && spot.t > spot.d - 90)) list.unshift(spot);
   try { localStorage.setItem(CONTINUE, JSON.stringify(list.slice(0, 12))); } catch (e) {}
 }
@@ -379,7 +439,7 @@ function hero(item) {
   const h = document.createElement("section");
   h.id = "hero";
   h.innerHTML = '<div class="art"></div><div class="fade"></div><div class="copy">' +
-    '<div class="eyebrow"><i></i>Educational films &amp; series</div><h1></h1><div class="meta"></div><p></p>' +
+    '<div class="eyebrow">Educational films &amp; series</div><h1></h1><div class="meta"></div><p></p>' +
     '<div class="actions"><button class="btn main" type="button">&#9654; Play</button><button class="btn more" type="button">More info</button></div></div>' +
     '<div class="dots"></div>';
   setImage(h.querySelector(".art"), item.art || item.poster);
@@ -410,7 +470,8 @@ function rotateHero() {
 function showContinue(box) {
   const spots = loadContinue();
   if (!spots.length) return;
-  const sec = row("Continue watching", spots.map(s => ({ title: s.title, art: s.art, poster: s.poster, year: s.year, type: s.type })), {
+  const sec = row("Continue watching", spots.map(s => ({ title: s.title, art: s.art, poster: s.poster, year: s.year, type: s.type,
+    url: s.url, playUrl: s.playUrl, beta: s.beta, source: s.source })), {
     note: "", click: s => play(s, 0),
     pct: 0
   });
@@ -435,12 +496,14 @@ function home() {
   hold.id = "continue";
   $("browse").appendChild(hold);
   showContinue(hold);
+  const anime = section === "anime";
   const status = document.createElement("p");
   status.className = "msg";
-  status.textContent = "Loading films…";
+  status.textContent = anime ? "Loading anime…" : "Loading films…";
   $("browse").appendChild(status);
-  const wanted = ROWS.filter(r => section === "all" || (section === "movie" ? /movie|trending/.test(r[2] || "") : /tv|trending/.test(r[2] || "")));
-  Promise.all(wanted.map(fetchRow)).then(rows => {
+  const wanted = anime ? ANIME_ROWS : ROWS;
+  const load = anime ? fetchAnimeRow : fetchRow;
+  Promise.all(wanted.map(load)).then(rows => {
     if (run !== viewRun) return;
     rows = rows.filter(r => r.items.length);
     if (!rows.length) { status.textContent = "Couldn't load the films. Check the connection and try again."; return; }
@@ -463,10 +526,18 @@ function home() {
 $("nav").onclick = e => {
   const b = e.target.closest("button[data-section]");
   if (!b) return;
-  section = b.dataset.section;
+  section = b.dataset.section === "anime" ? "anime" : "all";
   home();
 };
 $("brand").onclick = () => { section = "all"; home(); };
+$("source").onclick = () => {
+  sourceIndex = sourceIndex ? 0 : 1;
+  try { localStorage.setItem(SOURCE_KEY, String(sourceIndex)); } catch (e) {}
+  updateSourceButton();
+  heroItems = [];
+  section = "all";
+  home();
+};
 $("search").onsubmit = e => {
   e.preventDefault();
   const q = $("q").value.replace(/[^\p{L}\p{N}\s'-]/gu, " ").trim();
@@ -474,14 +545,12 @@ $("search").onsubmit = e => {
   const run = ++viewRun;
   clearInterval(heroTimer);
   $("browse").replaceChildren();
-  const hold = document.createElement("div");
-  hold.id = "continue";
-  $("browse").appendChild(hold);
-  showContinue(hold);
   const head = document.createElement("section");
   head.id = "hero";
-  head.style.minHeight = "240px";
-  head.innerHTML = '<div class="fade"></div><div class="copy"><div class="eyebrow"><i></i>Search</div><h1></h1><p>Films and series for class and curiosity.</p></div>';
+  head.style.minHeight = "170px";
+  head.style.alignItems = "center";
+  head.style.padding = "96px clamp(16px, 4vw, 54px) 24px";
+  head.innerHTML = '<div class="fade"></div><div class="copy"><div class="eyebrow">Search</div><h1></h1></div>';
   head.querySelector("h1").textContent = '“' + q + '”';
   $("browse").appendChild(head);
   const grid = document.createElement("div");
@@ -491,11 +560,25 @@ $("search").onsubmit = e => {
   status.className = "msg";
   status.textContent = "Searching…";
   grid.before(status);
-  getJson(LIBRARY + "/search/multi?query=" + encodeURIComponent(q)).then(j => {
+  const extra = source().anime
+    ? getJson(BETA + "/api/anime/browse?q=" + encodeURIComponent(q) + "&limit=20&sfw=1").catch(() => ({ items: [] }))
+    : Promise.resolve({ items: [] });
+  Promise.all([getJson(source().api + "/search/multi?query=" + encodeURIComponent(q)), extra]).then(([j, more]) => {
     if (run !== viewRun) return;
-    const items = (j.results || []).map(r => clean(r)).filter(Boolean);
+    const seen = new Set();
+    const items = [];
+    for (const it of [...(j.results || []).map(r => clean(r)), ...(more.items || []).map(cleanAnime)].filter(Boolean)) {
+      const k = it.title.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      items.push(it);
+    }
     status.remove();
     if (!items.length) { status.textContent = "Nothing found. Try another title."; grid.after(status); return; }
+    const count = document.createElement("div");
+    count.className = "result-count";
+    count.textContent = items.length + (items.length === 1 ? " result" : " results") + " for “" + q + "” · " + source().name;
+    grid.before(count);
     items.forEach((it, i) => grid.appendChild(card(it, { i })));
   }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the library. Try again."; } });
 };
@@ -533,26 +616,39 @@ function video() { const d = nestedDoc(); return d && d.querySelector("video"); 
 function clickPlay() {
   clearInterval(autoTimer);
   let tries = 0;
+  const beta = !!(playing && playing.beta);
   autoTimer = setInterval(() => {
     const d = nestedDoc();
     if (d) {
-      const started = /QUALITY|SERVER/i.test(d.body.innerText) || [...d.querySelectorAll("video")].some(v => v.duration > 600);
-      if (started) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
-      // the trailer buttons are not .mv-btn--primary; this is the button that opens the film.
-      // Next.js paints the HTML before its handlers attach, so keep trying until the player opens.
-      const b = [...d.querySelectorAll("button.mv-btn--primary")].find(x => x.textContent.trim() === "Play");
-      if (b) { b.click(); tries++; return; }
+      if (beta) {
+        const v = d.querySelector("video");
+        if (v && (v.duration > 0 || v.readyState > 0)) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
+        const again = [...d.querySelectorAll("button")].find(x => x.textContent.trim() === "Try Again");
+        if (again && tries < 2) { again.click(); tries++; return; }
+        const go = [...d.querySelectorAll("a,button")].find(x => /^Play( E\d+)?$/i.test(x.textContent.trim()) && (x.tagName !== "A" || /^\/watch\//.test(x.getAttribute("href") || "")));
+        if (go && tries < 3) { go.click(); tries++; return; }
+      } else {
+        const started = (d.body && /QUALITY|SERVER/i.test(d.body.innerText)) || [...d.querySelectorAll("video")].some(v => v.duration > 600);
+        if (started) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
+        // the trailer buttons are not .mv-btn--primary; this is the button that opens the film.
+        // Next.js paints the HTML before its handlers attach, so keep trying until the player opens.
+        const b = [...d.querySelectorAll("button.mv-btn--primary")].find(x => x.textContent.trim() === "Play");
+        if (b) { b.click(); tries++; return; }
+      }
     }
     if (++tries > 80) {
       clearInterval(autoTimer);
-      $("p-wait").textContent = "Press Play to start.";
+      $("p-wait").textContent = beta ? "Press play on the film page." : "Press Play to start.";
     }
   }, 1000);
 }
 function play(item, at = 0) {
   closeDetails();
   clearInterval(heroTimer);
-  playing = { key: item.key || item.type + ":" + item.id, title: item.title, url: item.url,
+  const url = item.playUrl || item.url;
+  const which = item.source == null ? sourceIndex : item.source;
+  playing = { key: item.key || item.type + ":" + item.id, title: item.title, url,
+    playUrl: item.playUrl, beta: !!item.beta || which === 1, source: which,
     art: item.art || item.poster, poster: item.poster, year: item.year, type: item.type,
     t: 0, d: 0 };
   seekTo = at || 0;
@@ -561,7 +657,7 @@ function play(item, at = 0) {
   $("p-wait").hidden = false;
   $("player").hidden = false;
   document.body.classList.add("playing");
-  ready.then(() => post({ [MSG]: "go", url: item.url }));
+  ready.then(() => post({ [MSG]: "go", url }));
   clickPlay();
   clearInterval(ticker);
   ticker = setInterval(() => {
