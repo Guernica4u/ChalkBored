@@ -185,13 +185,9 @@
   .hn-friend:not(.on) .hn-friend-name { color: var(--pencil); font-weight: 400; }
   .hn-online { display: none; }
   body.home-new .hn-online { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; }
-  .hn-online-nums:empty, .hn-online-top:empty { display: none; }
-  .hn-online-top, .hn-ask { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
+  .hn-online-nums:empty { display: none; }
+  .hn-ask { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
   .hn-online > *, .hn-ask > * { white-space: nowrap; }
-  .hn-mini { display: block; width: 26px; height: 26px; padding: 0; overflow: hidden; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); cursor: pointer; }
-  .hn-mini:hover, .hn-mini:focus-visible { border-color: var(--ink); outline: none; }
-  .hn-mini-art, .hn-mini-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .hn-mini-art .hn-initials { display: grid; place-items: center; height: 100%; font-size: .6rem; }
   .hn-tiny { padding: .12rem .5rem; background: var(--ink); border: 1px solid var(--ink); border-radius: var(--r); color: var(--paper); font: inherit; font-size: .8rem; cursor: pointer; }
   .hn-tiny.ghost { background: none; color: var(--ink); border-color: var(--edge); }
   .hn-btn { padding: .4rem .8rem; background: var(--ink); border: 1px solid var(--ink); border-radius: var(--r); color: var(--paper); font: inherit; cursor: pointer; }
@@ -667,9 +663,8 @@
   {
     const strip = el('span', 'hn-online');
     const nums = el('span', 'hn-online-nums');
-    const top = el('span', 'hn-online-top');
     const ask = el('span', 'hn-ask');
-    strip.append(nums, top, ask);
+    strip.append(nums, ask);   // most played has its own widget, not here
     const meta = document.querySelector('#panel-home .hello-meta');
     if (meta) meta.append(strip);
     const tiny = (text, ghost) => { const b = el('button', 'hn-tiny' + (ghost ? ' ghost' : ''), text); b.type = 'button'; return b; };
@@ -688,19 +683,8 @@
         if (error) throw error;
         const st = data && data[0];
         nums.textContent = st.playing + ' playing · ' + st.listening + ' listening';
-        const items = (st.top || []).map((t) => byPath(t.item)).filter(Boolean).slice(0, 3);
-        top.replaceChildren(...(items.length ? [el('span', '', 'Most played')].concat(items.map((item) => {
-          const b = el('button', 'hn-mini');
-          b.type = 'button';
-          b.setAttribute('aria-label', 'Open ' + shown(item));
-          b.title = shown(item);
-          b.append(cover(item, 'hn-mini-art'));
-          b.addEventListener('click', () => launch(item));
-          return b;
-        })) : []));
       } catch (e) {
         nums.textContent = '';
-        top.replaceChildren();
       }
     }
     paintAsk();
