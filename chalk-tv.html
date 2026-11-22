@@ -32,6 +32,20 @@
   button { cursor: pointer; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  @keyframes settle { from { opacity: 0; transform: translateY(5px) scale(.988); } }
+  @keyframes mark { from { opacity: 0; transform: translateY(-3px) scale(.86); } }
+  @keyframes veil { from { opacity: 0; } }
+  .nav button, .btn, .row-nav button, #p-back, .dots button {
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease, width .18s ease;
+  }
+  .nav button:active, .btn:active, .row-nav button:active, #p-back:active { transform: translateY(1px); }
+  @media (prefers-reduced-motion: reduce) {
+    #hero .art, #hero .copy > *, .row, .card, .card .rank, #details, #details .box, #player, #p-bar { animation: none; }
+    .strip { scroll-behavior: auto; }
+    .nav button, .btn, .row-nav button, #p-back, .dots button, .card { transition: none; }
+  }
+
   /* ---- top bar ---- */
   #top {
     position: fixed; inset: 0 0 auto; z-index: 8; height: 64px;
@@ -61,8 +75,14 @@
   /* hero */
   #hero { position: relative; min-height: min(68vh, 620px); display: flex; align-items: flex-end; padding: 96px clamp(16px, 4vw, 54px) 62px; isolation: isolate; }
   #hero .art, #hero .fade { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center 18%; }
+  #hero .art { animation: veil .55s ease backwards; }
   #hero .fade { z-index: -1; background: linear-gradient(90deg, rgba(11,11,11,.98) 0%, rgba(11,11,11,.80) 40%, rgba(11,11,11,.20) 76%), linear-gradient(0deg, var(--paper) 1%, transparent 55%); }
   #hero .copy { width: min(660px, 100%); }
+  #hero .copy > * { animation: rise .46s cubic-bezier(.2,.7,.2,1) backwards; }
+  #hero .copy > :nth-child(2) { animation-delay: .05s; }
+  #hero .copy > :nth-child(3) { animation-delay: .10s; }
+  #hero .copy > :nth-child(4) { animation-delay: .15s; }
+  #hero .copy > :nth-child(5) { animation-delay: .20s; }
   .eyebrow { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--pencil); font-size: .72rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
   .eyebrow i { width: 22px; height: 1px; background: var(--accent); display: inline-block; }
   #hero h1 { margin: 0 0 12px; font-size: clamp(2.1rem, 5.4vw, 4.3rem); line-height: 1.04; letter-spacing: -.035em; font-weight: 700; text-wrap: balance; }
@@ -80,7 +100,7 @@
   .dots button.on { width: 24px; background: var(--accent); }
 
   /* rows and cards */
-  .row { margin-top: 12px; }
+  .row { margin-top: 12px; animation: rise .42s ease backwards; animation-delay: calc(var(--r, 0) * 55ms); }
   .row-head { display: flex; align-items: center; gap: 10px; padding: 0 clamp(16px, 4vw, 54px); margin: 12px 0 10px; }
   .row-head h2 { margin: 0; font-size: clamp(1.05rem, 1.7vw, 1.32rem); letter-spacing: -.02em; font-weight: 700; }
   .row-head .hint { color: var(--pencil); font-size: .78rem; margin-left: 4px; }
@@ -90,7 +110,7 @@
   .strip { display: flex; gap: 12px; overflow-x: auto; padding: 6px clamp(16px, 4vw, 54px) 14px; scroll-behavior: smooth; scrollbar-width: none; }
   .strip::-webkit-scrollbar { display: none; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px 12px; padding: 6px clamp(16px, 4vw, 54px) 20px; }
-  .card { position: relative; flex: none; width: 252px; height: 142px; padding: 0; border: 1px solid var(--edge); border-radius: var(--r); overflow: hidden; background: var(--card); text-align: left; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+  .card { position: relative; flex: none; width: 252px; height: 142px; padding: 0; border: 1px solid var(--edge); border-radius: var(--r); overflow: hidden; background: var(--card); text-align: left; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; animation: rise .36s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: calc(var(--i, 0) * 24ms); }
   .grid .card { width: 100%; }
   .card:hover, .card:focus-visible { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 10px 28px rgba(0,0,0,.65); z-index: 2; }
   .card .art { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: var(--highlight); }
@@ -98,15 +118,15 @@
   .card .cap { position: absolute; inset: auto 0 0; padding: 10px 12px; }
   .card .cap .t { display: block; font-weight: 700; font-size: .92rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card .cap .s { display: block; margin-top: 3px; color: #bdbdbd; font-size: .76rem; }
-  .card .rank { position: absolute; left: -4px; bottom: -18px; font: 700 5.4rem/1 var(--body); letter-spacing: -.09em; color: rgba(242,242,242,.9); text-shadow: 0 2px 12px rgba(0,0,0,.8); -webkit-text-stroke: 2px rgba(0,0,0,.4); }
+  .card .rank { position: absolute; top: 8px; left: 8px; z-index: 2; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border: 1px solid rgba(242,242,242,.78); border-radius: 2px; background: rgba(11,11,11,.74); color: var(--ink); font: 700 .72rem/1 var(--body); font-variant-numeric: tabular-nums; letter-spacing: .02em; text-shadow: 0 1px 3px rgba(0,0,0,.8); box-shadow: 0 2px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(242,242,242,.08); transform: rotate(-1.5deg); animation: mark .26s ease .1s backwards; }
   .card .prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--highlight); }
   .card .prog i { display: block; height: 100%; background: var(--accent); }
   .msg { margin: 26px clamp(16px, 4vw, 54px); color: var(--pencil); }
   .foot { padding: 26px clamp(16px, 4vw, 54px) 46px; color: var(--pencil); font-size: .76rem; border-top: 1px solid var(--edge); margin-top: 30px; }
 
   /* details */
-  #details { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.82); }
-  #details .box { position: relative; width: min(880px, 100%); max-height: min(90vh, 760px); overflow: hidden auto; border: 1px solid var(--edge); border-radius: 6px; background: var(--paper-2); box-shadow: 0 30px 90px rgba(0,0,0,.7); }
+  #details { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.82); animation: veil .18s ease backwards; }
+  #details .box { position: relative; width: min(880px, 100%); max-height: min(90vh, 760px); overflow: hidden auto; border: 1px solid var(--edge); border-radius: 6px; background: var(--paper-2); box-shadow: 0 30px 90px rgba(0,0,0,.7); animation: settle .24s cubic-bezier(.2,.7,.2,1) backwards; }
   #details .cover { position: relative; height: 280px; background-size: cover; background-position: center; }
   #details .cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, var(--paper-2), transparent 75%); }
   #details .body { position: relative; margin-top: -58px; padding: 0 34px 32px; display: grid; grid-template-columns: 168px 1fr; gap: 26px; }
@@ -122,7 +142,8 @@
   }
 
   /* player: the viewing pane fills this area */
-  #player { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #000; }
+  #player { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #000; animation: veil .2s ease backwards; }
+  #p-bar { animation: rise .24s ease backwards; }
   #p-bar { display: flex; align-items: center; gap: 12px; flex: none; height: 56px; padding: 0 14px; background: var(--paper-2); border-bottom: 1px solid var(--edge); }
   #p-back { border: 1px solid var(--edge); background: var(--card); border-radius: var(--r); padding: 7px 12px; }
   #p-back:hover { background: var(--accent); color: var(--accent-ink); }
@@ -314,6 +335,7 @@ function card(item, opt = {}) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "card";
+  b.style.setProperty("--i", opt.i || 0);
   b.innerHTML = '<div class="art"></div><div class="shade"></div>' +
     (opt.rank ? '<span class="rank">' + opt.rank + "</span>" : "") +
     '<div class="cap"><span class="t"></span><span class="s"></span></div>' +
@@ -336,7 +358,7 @@ function row(name, items, opt = {}) {
   sec.querySelector("h2").textContent = name;
   if (opt.hint) sec.querySelector(".hint").textContent = opt.hint;
   const strip = sec.querySelector(".strip");
-  items.forEach((it, i) => strip.appendChild(card(it, { rank: opt.ranked ? i + 1 : 0, note: opt.note, pct: opt.pct, click: opt.click })));
+  items.forEach((it, i) => strip.appendChild(card(it, { rank: opt.ranked ? i + 1 : 0, i, note: opt.note, pct: opt.pct, click: opt.click })));
   const [left, right] = sec.querySelectorAll(".row-nav button");
   left.onclick = () => strip.scrollBy({ left: -strip.clientWidth * .85, behavior: "smooth" });
   right.onclick = () => strip.scrollBy({ left: strip.clientWidth * .85, behavior: "smooth" });
@@ -426,10 +448,12 @@ function home() {
     heroItems = rows[0].items.slice(0, 5);
     heroAt = 0;
     rotateHero();
-    for (const r of rows) {
+    rows.forEach((r, i) => {
       const sec = row(r.name, r.items, { ranked: r.ranked, hint: r.ranked ? "Top 10" : "" });
-      if (sec) $("browse").appendChild(sec);
-    }
+      if (!sec) return;
+      sec.style.setProperty("--r", i);
+      $("browse").appendChild(sec);
+    });
     const foot = document.createElement("div");
     foot.className = "foot";
     foot.textContent = "A hand-picked film library for learning and enrichment. Everything stays here to watch.";
@@ -472,7 +496,7 @@ $("search").onsubmit = e => {
     const items = (j.results || []).map(r => clean(r)).filter(Boolean);
     status.remove();
     if (!items.length) { status.textContent = "Nothing found. Try another title."; grid.after(status); return; }
-    items.forEach(it => grid.appendChild(card(it)));
+    items.forEach((it, i) => grid.appendChild(card(it, { i })));
   }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the library. Try again."; } });
 };
 
