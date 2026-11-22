@@ -647,7 +647,6 @@
   .rail-foot { padding-bottom: 2.1rem; }
   @media (min-width: 761px) {
     body.os.rail-mini .ver-corner { left: 0; width: 64px; text-align: center; }
-    body.os.rail-mini .ver-tag { display: none; }
   }
   @media (max-width: 760px) { body:not(.on-home) .ver-corner { display: none; } }
   .tip {
@@ -882,7 +881,7 @@
 
     </nav>
 
-    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.5</b> <span class="ver-tag">Early Access</span></button>
+    <button class="ver-corner" id="hello-updated" type="button" title="What's new"><b id="updated-ver">v1.5.5</b></button>
 
     <div class="main">
       <header class="topbar">
@@ -988,7 +987,7 @@
       </main>
 
       <footer>
-        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.5 Early Access</button></span>
+        <span>Chalk &middot; Made For Fun &middot; <button class="ver" id="ver" type="button" title="What's new">v1.5.5</button></span>
         <p class="tip" id="tip"></p>
       </footer>
     </div>
@@ -1036,12 +1035,12 @@
   </div>
 
   <!-- version milestone screen, shown once before what's new -->
-  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.5">
+  <div class="milestone" id="milestone" hidden role="dialog" aria-modal="true" aria-label="ChalkBored 1.5.5">
     <div class="milestone-inner">
       <p class="ms-name">ChalkBored</p>
-      <div class="ms-mask"><p class="ms-num">1.5</p></div>
+      <div class="ms-mask"><p class="ms-num">1.5.5</p></div>
       <span class="ms-line" aria-hidden="true"></span>
-      <p class="milestone-msg" id="milestone-msg">A new Home, and classes that talk back.</p>
+      <p class="milestone-msg" id="milestone-msg">New music, profiles and a new Tide.</p>
       <p class="milestone-hint">Click anywhere to see what’s new</p>
     </div>
   </div>
@@ -1050,13 +1049,16 @@
   <div class="modal" id="notes" hidden role="dialog" aria-modal="true" aria-labelledby="notes-title">
     <div class="modal-box">
       <p class="modal-step">What's new</p>
-      <h2 id="notes-title">ChalkBored 1.5</h2>
+      <h2 id="notes-title">ChalkBored 1.5.5</h2>
       <ul>
-        <li><b>A new Home:</b> featured picks, what you opened last, Chalk Music and the class vote, all on one screen. Move sections around with Edit Home screen in Settings, or switch back to the classic Home.</li>
-        <li><b>Classes in Chalk Chat:</b> each class gets its own channels, including voice channels, and you can drag channels into the order you like.</li>
-        <li><b>Polls:</b> votes now happen in Chalk Chat, replacing the old Requests page.</li>
-        <li><b>Announcements and a bell:</b> big news pops up once, and the bell keeps your notifications in one place.</li>
-        <li><b>Setup again:</b> a quick walk-through with a new Home step. Your saved choices stay picked.</li>
+        <li><b>Chalk Music:</b> songs come from more than one place, so music still plays when one is blocked. Watch videos full screen, keep listening from a small player on other tabs, and see pictures for every song.</li>
+        <li><b>Tide:</b> a new look for Chalk Browser, with clearer tabs and a smaller address bar.</li>
+        <li><b>Profiles:</b> click anyone on Home to see their profile. Add a bio, a favorite game and a picture.</li>
+        <li><b>Sharing:</b> what you play and listen to shows on Home and on your profile, unless you turn it off.</li>
+        <li><b>Home:</b> friends with what they're playing, and how many people are online.</li>
+        <li><b>Chalk Chat:</b> loads faster and uses less power.</li>
+        <li><b>Games:</b> the extra game pages are in one folder (old links still work), with new stars and fuller pictures. A small C marks games ChalkBored made or changed.</li>
+        <li><b>Setup again:</b> tab icons, and an account step with no email needed. Your saved choices stay picked.</li>
       </ul>
       <div class="modal-actions"><span class="spacer"></span><button class="btn primary" id="notes-close" type="button">Got it</button></div>
     </div>
@@ -1084,8 +1086,8 @@
     const SETTINGS_STORE = 'vault-settings';
     const SEEN_STORE = 'vault-seen-notes';
     const FAVS_STORE = 'vault-favorites';
-    const VERSION = '1.5';
-    const SETUP_VERSION = '1.5';   // bump this when everyone should see setup again
+    const VERSION = '1.5.5';
+    const SETUP_VERSION = '1.5.5';   // bump this when everyone should see setup again
     const THEMES = ['basic'];
     const BASIC_COLORS = [['mono', 'Mono']];
 
@@ -2513,8 +2515,7 @@
     // what's new for a version you haven't seen, after the milestone screen
     function showNewNotes() {
       try { localStorage.setItem(SEEN_STORE, VERSION); } catch (e) {}
-      if (VERSION === '1.5') showMilestone();
-      else notesEl.hidden = false;
+      showMilestone();
     }
 
     // ---- first load: ask how games should open ----
