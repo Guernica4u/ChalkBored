@@ -7,7 +7,13 @@
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
   const byPath = (p) => LIST.lessons.find((x) => x.path === p);
   // names are drawn as pictures, like everywhere else on the page
-  const nameOf = (item, size) => (coded(item) ? namePicture(shown(item), size) : document.createTextNode(item.name));
+  const nameOf = (item, size) => {
+    const name = coded(item) ? namePicture(shown(item), size) : document.createTextNode(item.name);
+    if (!item.ours) return name;
+    const both = document.createDocumentFragment();
+    both.append(ourMark(), name);   // the C logo goes in front of the name
+    return both;
+  };
   const words = (text, size) => (text ? namePicture(text, size) : document.createTextNode(''));
   const artOf = (item) => (item.img ? { src: item.img } : ART[item.path]);
   function cover(item, cls) {
