@@ -29,5 +29,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/:page(algebra|archive|biology|calendar|chemistry|english|handbook|history|notes|planner|practice|reading|resources|review).html",
+      "destination": "/study-hall/:page.html"
+    }
   ]
 }
