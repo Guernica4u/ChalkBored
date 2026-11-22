@@ -126,7 +126,8 @@ const ENGINE = new URL('engine/', location.href).pathname;
 let ctl = null;
 const loadScript = src => new Promise((ok, fail) => {
   const s = document.createElement('script');
-  s.src = src; s.onload = ok; s.onerror = () => fail(new Error('could not load ' + src));
+  s.src = src; s.async = false;   // download together, run in the order added
+  s.onload = ok; s.onerror = () => fail(new Error('could not load ' + src));
   document.head.appendChild(s);
 });
 /* the registration's worker, once it runs (this page sits outside engine/, so serviceWorker.ready never settles) */
@@ -144,7 +145,7 @@ function workerActive(reg) {
 const engine = (async () => {
   if (!('serviceWorker' in navigator)) throw new Error('no-sw');
   const reg = await navigator.serviceWorker.register(ENGINE + 'sw.js', { scope: ENGINE, updateViaCache: 'none' });
-  const [sw] = await Promise.all([workerActive(reg), loadScript(ENGINE + 'core.js').then(() => loadScript(ENGINE + 'ctl.js')).then(() => loadScript(ENGINE + 'net.js'))]);
+  const [sw] = await Promise.all([workerActive(reg), ...['core.js', 'ctl.js', 'net.js'].map(f => loadScript(ENGINE + f))]);
   wisp = await startServer;
   const c = new $scramjetController.Controller({
     serviceworker: sw,
