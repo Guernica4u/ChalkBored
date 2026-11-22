@@ -1,6 +1,7 @@
 // Announcements from Chalk Chat's Global announcements channel pop up on every
 // Study Hall page, for everyone, account or not. Each one shows once per browser.
-// People signed in to Chalk Chat also get a notifications bell next to the version number.
+// Next to the version number: a profile button for everyone (it opens Chalk Chat), and a
+// notifications bell for people signed in.
 // Runs after the page's own script and uses its loadOnline() (the Supabase client).
 (() => {
   const SEEN = 'chalk-news-seen';
@@ -51,12 +52,12 @@
   .bell-btn { position: relative; }
   .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .35rem; }
   .ver-row .ver-corner { position: static; }
-  .ver-row .bell-btn { width: 28px; height: 28px; }
-  .ver-row .bell-btn svg { width: 16px; height: 16px; }
+  .ver-row .icon-btn { width: 28px; height: 28px; }
+  .ver-row .icon-btn svg { width: 16px; height: 16px; }
   @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
-  .bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .bell-count { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; background: var(--accent, #f2f2f2); color: var(--card, #111);
+  .bell-btn svg, .me-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .bell-count { position: absolute; top: -4px; right: -6px; min-width: 15px; height: 15px; padding: 0 3px; box-shadow: 0 0 0 2px var(--rail, #080808); background: var(--accent, #f2f2f2); color: var(--card, #111);
     border-radius: 2px; font-size: .62rem; font-weight: 700; line-height: 15px; text-align: center; }
   .bell-list { position: fixed; z-index: 8999; width: min(340px, calc(100vw - 24px)); max-height: 60vh; overflow-y: auto; padding: 6px;
     background: var(--card, #131313); color: var(--ink, #f2f2f2); border: 1px solid var(--edge, #2e2e2e); border-radius: var(--r, 3px); box-shadow: var(--shadow, none); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
@@ -72,7 +73,33 @@
   async function bell(db) {
     const { data: { user } } = await db.auth.getUser();
     const ver = document.getElementById('hello-updated');
-    if (!user || !ver) return;
+    if (!ver) return;
+    const row = document.createElement('div');
+    row.className = 'ver-row';
+    ver.parentNode.insertBefore(row, ver);
+    const me = document.createElement('button');
+    me.type = 'button';
+    me.className = 'icon-btn me-btn';
+    me.title = user ? 'Your profile' : 'Make an account';
+    me.setAttribute('aria-label', me.title);
+    me.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>';
+    // opens Chalk Chat; signed in, it opens your profile there once the chat has loaded you
+    me.addEventListener('click', () => {
+      if (typeof showPanel !== 'function') return;
+      showPanel('chat');
+      if (!user) return;
+      const frame = document.querySelector('#panel-chat iframe');
+      let tries = 0;
+      const go = () => {
+        let name = null;
+        try { name = frame.contentDocument.getElementById('me-name'); } catch (e) {}
+        if (name && name.textContent !== '\u2014') name.click();
+        else if (++tries < 50) setTimeout(go, 150);
+      };
+      go();
+    });
+    row.append(ver, me);
+    if (!user) return;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'icon-btn bell-btn';
@@ -83,10 +110,7 @@
     count.className = 'bell-count';
     count.hidden = true;
     btn.appendChild(count);
-    const row = document.createElement('div');
-    row.className = 'ver-row';
-    ver.parentNode.insertBefore(row, ver);
-    row.append(ver, btn);
+    row.insertBefore(btn, me);
     const list = document.createElement('div');
     list.className = 'bell-list';
     list.hidden = true;
