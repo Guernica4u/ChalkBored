@@ -2134,7 +2134,7 @@
         musicFrame.className = 'frame blend';
         musicFrame.title = 'Chalk Music';
         musicFrame.src = 'listening.html';
-        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
+        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture; fullscreen');
         $('panel-music').appendChild(musicFrame);
       }
       if (name === 'tv' && !tvFrame) {
@@ -2691,5 +2691,7 @@
     });
   </script>
   <script src="home.js"></script>
+  <script src="listening/notebook.js"></script>
+  <script src="notify.js"></script>
 </body>
 </html>
