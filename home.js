@@ -378,7 +378,7 @@
         musicFrame.className = 'frame blend';
         musicFrame.title = 'Chalk Music';
         musicFrame.src = 'listening.html';
-        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture');
+        musicFrame.setAttribute('allow', 'autoplay; encrypted-media; display-capture; fullscreen');
         $('panel-music').appendChild(musicFrame);
       }
       return new Promise((resolve) => {
