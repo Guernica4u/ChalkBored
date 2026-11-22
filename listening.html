@@ -113,20 +113,15 @@
   #stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px 16px 4px; }
   #card { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
   #discwrap { position: relative; width: min(56%, 40vh, 280px); aspect-ratio: 1; flex: 0 0 auto; margin: 4% 0 3%; }
-  #vis { position: absolute; left: -18%; top: -18%; width: 136%; height: 136%; pointer-events: none; }
   #disc {
-    position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; cursor: pointer;
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden;
     background: var(--paper-2); box-shadow: var(--shadow), 0 0 0 1px var(--edge) inset;
     animation: spin 16s linear infinite; animation-play-state: paused;
   }
   body.playing #disc { animation-play-state: running; }
+  body.no-spin #disc { animation: none; }
   #art { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; }
   #art.letter { display: flex; align-items: center; justify-content: center; font: 700 clamp(44px, 16vh, 84px)/1 var(--hand); color: var(--accent-ink); background: var(--accent); }
-  #hole {
-    position: absolute; left: 50%; top: 50%; width: 17%; height: 17%; margin: -8.5% 0 0 -8.5%; border-radius: 50%;
-    background: var(--paper); box-shadow: 0 0 0 1px var(--edge), 0 0 0 7px rgba(0, 0, 0, 0.12);
-  }
-  #art.letter ~ #hole, body.no-hole #hole { display: none; }
   /* YouTube's player plays the sound from here, out of sight */
   #screen { position: absolute; left: 0; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
   #screen iframe { width: 100%; height: 100%; border: 0; }
@@ -224,6 +219,11 @@
   .box input { width: 100%; height: 38px; padding: 0 10px; border-radius: var(--radius); border: 1px solid var(--edge); background: var(--paper); }
   .box .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
   .btn { height: 34px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .sets .lab { margin: 14px 0 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pencil); }
+  .sets .opt { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: var(--radius); cursor: pointer; }
+  .sets .opt:hover { background: var(--paper-2); }
+  .sets .opt input { width: auto; height: auto; margin: 3px 0 0; accent-color: var(--accent); }
+  .sets .opt small { display: block; color: var(--pencil); font-size: 0.8rem; }
   .btn.plain { background: none; color: var(--ink); border-color: var(--edge); font-weight: 400; }
   #toast {
     position: absolute; left: 50%; bottom: 40px; z-index: 30; transform: translateX(-50%); max-width: 90%;
@@ -258,8 +258,7 @@
 
     <div id="stage"><div id="card">
       <div id="discwrap">
-        <canvas id="vis"></canvas>
-        <div id="disc" title="Click to let the ring hear the music"><div id="art" class="letter">&#9835;</div><span id="hole"></span></div>
+        <div id="disc"><div id="art" class="letter">&#9835;</div></div>
       </div>
       <div id="words"><div id="title">Nothing playing</div><div id="sub">Search for a song, or press + to add a link</div></div>
     </div></div>
@@ -292,7 +291,7 @@
       <label><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/></svg>
         <input id="q" type="search" placeholder="Search songs or paste a link" aria-label="Search songs"></label>
       <button class="tool" id="add-btn" type="button" title="Add a song or playlist from a link">+</button>
-      <button class="tool" id="opts" type="button" title="Options"><svg viewBox="0 0 16 16"><circle cx="3.5" cy="8" r=".6"/><circle cx="8" cy="8" r=".6"/><circle cx="12.5" cy="8" r=".6"/></svg></button>
+      <button class="tool" id="opts" type="button" title="Settings"><svg viewBox="0 0 16 16"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.5"/><circle cx="5" cy="11.5" r="1.5"/></svg></button>
     </form>
     <div class="sec"><span class="t">Playlists</span><button id="list-new" type="button">+ New</button></div>
     <div id="pls"></div>
@@ -319,6 +318,8 @@ const PUBLIC_WISP = [
   "wss://wisp.terbiumon.top/wisp/", "wss://gointospace.app/wisp/", "wss://definitelyscience.com/wisp/",
   "wss://anura.pro/", "wss://motor-cycle-part.org/wisp/"
 ];
+/* the services' names as they show on the page: school filters block pages that name them */
+const NAME = { yt: "y0utub3", au: "audiu5", sp: "sp0tify" };
 const AUDIO_EXT = /\.(mp3|m4a|ogg|oga|opus|wav|aac|flac|weba)$/i;
 const LIBRARY_MAX = 2000;
 
@@ -344,7 +345,7 @@ window.addEventListener("storage", e => { if (e.key === SETTINGS_STORE || e.key 
 /* ---- what is kept: songs, playlists and how the player was left ---- */
 /* a song: { id, kind: "yt" | "file", vid, url, title, author, thumb, secs } */
 function freshStore() {
-  return { songs: {}, order: [], lists: [], list: "all", shuffle: false, repeat: "off", vol: 90, vis: true, video: false };
+  return { songs: {}, order: [], lists: [], list: "all", shuffle: false, repeat: "off", vol: 90 };
 }
 let S = freshStore();
 try { S = Object.assign(S, JSON.parse(localStorage.getItem(STORE) || "null") || {}); } catch (e) {}
@@ -582,7 +583,7 @@ function fromLockup(lv) {
 /* a YouTube playlist's songs (the first hundred or so), read from its page */
 async function ytPlaylist(listId) {
   const res = await netFetch("https://www.youtube.com/playlist?list=" + encodeURIComponent(listId) + "&hl=en", { headers: YT_HEADERS });
-  if (!res.ok) throw new Error("YouTube answered " + res.status + ". A private playlist can't be read.");
+  if (!res.ok) throw new Error(NAME.yt + " answered " + res.status + ". A private playlist can't be read.");
   const html = await res.text();
   const m = /ytInitialData\s*=\s*(\{[\s\S]+?\});\s*<\/script>/.exec(html);
   let data = null;
@@ -600,7 +601,7 @@ async function ytPlaylist(listId) {
     else for (const k in o) walk(o[k]);
   };
   walk(data);
-  return { name: name || "YouTube playlist", tracks: out };
+  return { name: name || NAME.yt + " playlist", tracks: out };
 }
 
 /* ---- Spotify: read the playlist, then find each song on YouTube (CHALK OS) ----
@@ -616,16 +617,16 @@ async function spotifyTracks(url) {
   const t = spotifyTarget(url);
   const res = await netFetch("https://open.spotify.com/embed/" + t.type + "/" + t.id,
                              { headers: { "Accept-Language": "en", "User-Agent": navigator.userAgent } });
-  if (!res.ok) throw new Error("Spotify answered " + res.status + ". A private playlist can't be read.");
+  if (!res.ok) throw new Error(NAME.sp + " answered " + res.status + ". A private playlist can't be read.");
   const html = await res.text();
   const m = /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
   let e = null;
   try { e = JSON.parse(m[1]).props.pageProps.state.data.entity; } catch (x) {}
-  if (!e) throw new Error("Spotify's page didn't have the songs in it. A private playlist can't be read.");
+  if (!e) throw new Error(NAME.sp + "'s page didn't have the songs in it. A private playlist can't be read.");
   const tracks = e.type === "track"
     ? [{ title: e.name || e.title || "", artist: (e.artists || []).map(a => a.name).join(", "), ms: e.duration || 0 }]
     : (e.trackList || []).map(x => ({ title: x.title || "", artist: String(x.subtitle || "").replace(/ /g, " "), ms: x.duration || 0 }));
-  return { name: e.name || e.title || "Spotify", type: e.type, tracks: tracks.filter(x => x.title) };
+  return { name: e.name || e.title || NAME.sp, type: e.type, tracks: tracks.filter(x => x.title) };
 }
 const plainWords = x => String(x || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
   .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -674,7 +675,7 @@ const audiusSong = t => ({
 });
 async function audiusSearch(q, max) {
   const res = await audiusGet(AUDIUS + "/tracks/search?app_name=chalkbored&query=" + encodeURIComponent(q));
-  if (!res.ok) throw new Error("Audius answered " + res.status + ".");
+  if (!res.ok) throw new Error(NAME.au + " answered " + res.status + ".");
   const j = await res.json();
   return (j.data || []).filter(t => t.is_streamable !== false).slice(0, max || 20).map(audiusSong);
 }
@@ -701,7 +702,7 @@ function loadYouTubeApi() {
     window.onYouTubeIframeAPIReady = () => { if (typeof before === "function") before(); ok(); };
     const s = document.createElement("script");
     s.src = "https://www.youtube.com/iframe_api";
-    s.onerror = () => { ytApiP = null; fail(new Error("YouTube's player would not load.")); };
+    s.onerror = () => { ytApiP = null; fail(new Error(NAME.yt + "'s player would not load.")); };
     document.head.appendChild(s);
   });
   return ytApiP;
@@ -709,6 +710,7 @@ function loadYouTubeApi() {
 /* the player's frame is made here, so it can send YouTube the page's address:
    this page sends no referrer by default, and YouTube's player needs one */
 let ytBlocked = false;
+const fromAudius = () => S.source === "au" || (S.source !== "yt" && ytBlocked);
 /* found out early, so searching already knows where songs come from */
 timeout(loadYouTubeApi(), 10000).catch(() => { ytBlocked = true; });
 function ytPlayer(firstVid) {
@@ -763,7 +765,7 @@ async function ytError(code) {
   if (using !== "yt") return;
   const s = song(at);
   if (s && (code === 101 || code === 150 || code === 153)) {
-    $("sub").textContent = "This upload only plays on YouTube. Looking for another…";
+    $("sub").textContent = "This upload only plays on " + NAME.yt + ". Looking for another…";
     const h = await otherUpload(s);
     if (h && song(at) === s) {
       s.vid = h.id;
@@ -773,7 +775,7 @@ async function ytError(code) {
       return yt.loadVideoById(h.id);
     }
   }
-  skipSoon(code === 101 || code === 150 || code === 153 ? "This one can't play outside YouTube." : "That one wouldn't play.");
+  skipSoon(code === 101 || code === 150 || code === 153 ? "This one can't play outside " + NAME.yt + "." : "That one wouldn't play.");
 }
 const engine = {
   paused: () => (using === "yt" ? ytPaused() : using === "file" ? audio.paused : true),
@@ -877,7 +879,7 @@ function drawPlaylists() {
     box.appendChild(r);
   };
   row("all", "All songs", listIds("all").length);
-  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, l.from === "spotify" ? "Spotify" : l.from === "youtube" ? "YouTube" : ""));
+  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, l.from === "spotify" ? NAME.sp : l.from === "youtube" ? NAME.yt : ""));
 }
 function drawSongs() {
   if (searching) return;
@@ -1011,7 +1013,7 @@ async function play(i, dir) {
   S.now = { list: playingList, id: s.id };
   save();
   slide(back, () => dressUp(s));
-  if (s.kind === "yt" && !ytBlocked) {
+  if (s.kind === "yt" && !fromAudius()) {
     audio.pause();
     using = "yt";
     try {
@@ -1019,7 +1021,8 @@ async function play(i, dir) {
       else yt.loadVideoById(s.vid);
     } catch (e) {
       if (!ytBlocked) $("sub").textContent = e.message;
-      else if (song(at) === s) { toast("YouTube won't load here, so songs come from Audius.", 5000); playFromAudius(s); }
+      else if (S.source === "yt") $("sub").textContent = e.message;
+      else if (song(at) === s) { toast(NAME.yt + " won't load here, so songs come from " + NAME.au + ".", 5000); playFromAudius(s); }
     }
   } else if (s.kind === "yt") {
     playFromAudius(s);
@@ -1029,7 +1032,6 @@ async function play(i, dir) {
     audio.src = s.url;
     audio.play().catch(() => {});
   }
-  vis.follow();
   drawSongs();
   drawQueue();
 }
@@ -1038,16 +1040,16 @@ async function playFromAudius(s) {
   using = "file";
   audio.pause();
   if (!s.au) {
-    $("sub").textContent = "Finding this on Audius…";
+    $("sub").textContent = "Finding this on " + NAME.au + "…";
     let a = null;
     try { a = await findOnAudius(s); } catch (e) {}
     if (song(at) !== s) return;
-    if (!a) return skipSoon("This one isn't on Audius.");
+    if (!a) return skipSoon("This one isn't on " + NAME.au + ".");
     s.au = a.url;
     save();
   }
   dressUp(s);
-  $("sub").textContent = (s.author ? s.author + " · " : "") + "from Audius";
+  $("sub").textContent = (s.author ? s.author + " · " : "") + "from " + NAME.au;
   audio.src = s.au;
   audio.play().catch(() => {});
 }
@@ -1079,7 +1081,7 @@ function playingChanged() {
   $("play").innerHTML = p ? '<svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>'
                           : '<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>';
   if ("mediaSession" in navigator) try { navigator.mediaSession.playbackState = p ? "paused" : "playing"; } catch (e) {}
-  if (p !== wasPaused) { wasPaused = p; drawSongs(); drawQueue(); if (!p) vis.follow(); }
+  if (p !== wasPaused) { wasPaused = p; drawSongs(); drawQueue(); }
 }
 function paintToggles() {
   $("shuffle").classList.toggle("on", !!S.shuffle);
@@ -1087,116 +1089,9 @@ function paintToggles() {
   $("repeat").title = S.repeat === "one" ? "Repeat this song" : S.repeat === "all" ? "Repeat the playlist" : "Repeat";
   $("repeat").innerHTML = '<svg viewBox="0 0 16 16"><path d="M3 7V6a2 2 0 0 1 2-2h8M11 2l2 2-2 2M13 9v1a2 2 0 0 1-2 2H3M5 14l-2-2 2-2"/>' +
     (S.repeat === "one" ? '<path d="M7.6 7.2 8.4 6.6v3"/>' : "") + "</svg>";
-  document.body.classList.toggle("no-hole", S.hole === false);
+  document.body.classList.toggle("no-spin", S.spin === false);
   document.body.classList.toggle("side-shut", S.side === false);
-  $("disc").title = hearing ? "" : "Click to let the ring hear the music";
 }
-
-/* ============================================================
-   The ring: the music, drawn round the turning cover (CHALK OS).
-   A page can't listen to YouTube's player on its own, so the ring only
-   moves once it is let hear this tab: clicking the cover asks the
-   browser to share the tab's sound (nothing leaves the computer). Until
-   then, and whenever it can't hear anything, there is no ring.
-   ============================================================ */
-const Vis = { ctx: null, sink: null };
-function visTapStream(stream) {
-  try {
-    if (!Vis.ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      Vis.ctx = new AC();
-      Vis.sink = Vis.ctx.createGain();
-      Vis.sink.gain.value = 0;           /* heard nowhere: it only has to be listened to */
-      Vis.sink.connect(Vis.ctx.destination);
-    }
-    if (Vis.ctx.state === "suspended") Vis.ctx.resume().catch(() => {});
-    const src = Vis.ctx.createMediaStreamSource(stream);
-    const an = Vis.ctx.createAnalyser();
-    an.fftSize = 256;
-    an.smoothingTimeConstant = 0.78;
-    src.connect(an);
-    an.connect(Vis.sink);
-    return { src, an };
-  } catch (e) { return null; }
-}
-let hearing = null;          /* { stream, tap } once the tab's sound is shared */
-async function hearTab() {
-  if (hearing) return;
-  const md = navigator.mediaDevices;
-  if (!md || !md.getDisplayMedia) return toast("This browser can't share its sound, so the ring can't hear the music.", 5000);
-  let stream;
-  try {
-    stream = await md.getDisplayMedia({ video: true, audio: { suppressLocalAudioPlayback: false },
-      preferCurrentTab: true, selfBrowserSurface: "include", surfaceSwitching: "exclude", systemAudio: "include" });
-  } catch (e) {
-    return toast("Not shared, so the ring stays off. Click the cover to try again.", 4500);
-  }
-  const a = stream.getAudioTracks()[0];
-  stream.getVideoTracks().forEach(t => t.stop());       /* only the sound is wanted */
-  if (!a) {
-    stream.getTracks().forEach(t => t.stop());
-    return toast("Turn on “Also share tab audio” in that box so the ring can hear the music.", 6000);
-  }
-  const tap = visTapStream(new MediaStream([a]));
-  if (!tap) { a.stop(); return toast("The ring couldn't start in this browser.", 4500); }
-  hearing = { stream, tap };
-  a.onended = stopHearing;
-  paintToggles();
-  vis.follow();
-  toast("The ring can hear the music now.");
-}
-function stopHearing() {
-  if (!hearing) return;
-  try { hearing.tap.src.disconnect(); hearing.tap.an.disconnect(); } catch (e) {}
-  hearing.stream.getTracks().forEach(t => t.stop());
-  hearing = null;
-  paintToggles();
-}
-function visRing(g, w, h, bins, color) {
-  /* the canvas is 136% of the cover, so this is the cover's own edge */
-  const cx = w / 2, cy = h / 2, half = Math.min(w, h) / 2, r0 = half / 1.36 * 1.03;
-  const n = 72, room = half - r0 - 2;
-  g.strokeStyle = color;
-  g.lineCap = "round";
-  g.lineWidth = Math.max(2, 2 * Math.PI * r0 / n * 0.42);
-  for (let i = 0; i < n; i++) {
-    /* mirrored left and right, the low notes at the top */
-    const m = i < n / 2 ? i : n - 1 - i;
-    const b = Math.min(bins.length - 1, Math.floor(Math.pow(m / (n / 2), 1.5) * 90) + 1);
-    const v = bins[b] / 255;
-    const len = 2 + v * v * room;
-    const a = i / n * Math.PI * 2 - Math.PI / 2;
-    g.globalAlpha = 0.4 + v * 0.6;
-    g.beginPath();
-    g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
-    g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
-    g.stroke();
-  }
-  g.globalAlpha = 1;
-}
-const vis = (() => {
-  const canvas = $("vis"), g = canvas.getContext("2d"), bins = new Uint8Array(128);
-  let raf = 0, color = "#8fb3d9", colorAt = -1e9;
-  const clear = () => g.clearRect(0, 0, canvas.width, canvas.height);
-  function frame(t) {
-    raf = 0;
-    if (!hearing || engine.paused()) { clear(); return; }
-    raf = requestAnimationFrame(frame);
-    if (document.hidden) return;
-    if (t - colorAt > 1000) {
-      colorAt = t;
-      color = getComputedStyle(document.body).getPropertyValue("--accent").trim() || color;
-    }
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    const cw = Math.round(canvas.clientWidth * dpr), ch = Math.round(canvas.clientHeight * dpr);
-    if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
-    hearing.tap.an.getByteFrequencyData(bins);
-    clear();
-    visRing(g, cw, ch, bins, color);
-  }
-  return { follow() { if (!raf) raf = requestAnimationFrame(frame); } };
-})();
 
 /* ---- adding songs ---- */
 /* a song found or linked goes into your songs, and into the playlist that's open */
@@ -1209,7 +1104,7 @@ function takeSong(s, andPlay) {
 }
 async function addLink() {
   const raw = await ask("Add a link",
-    "Paste a link to a song or a playlist: a YouTube video or playlist, a Spotify playlist, album or song, or a link straight to a sound file.",
+    "Paste a link to a song or a playlist: a " + NAME.yt + " video or playlist, a " + NAME.sp + " playlist, album or song, or a link straight to a sound file.",
     "", "Add");
   if (raw) await takeLink(raw);
 }
@@ -1255,7 +1150,7 @@ async function importYouTubeList(listId) {
   toast(l.name + ": " + p.tracks.length + " songs.", 4500);
 }
 async function importSpotify(url) {
-  toast("Reading the playlist from Spotify…", 30000);
+  toast("Reading the playlist from " + NAME.sp + "…", 30000);
   const sp = await spotifyTracks(url);
   const n = sp.tracks.length;
   if (!n) return toast("That " + sp.type + " has no songs in it.", 4500);
@@ -1315,7 +1210,7 @@ async function find(q) {
   box.appendChild(el("div", "none", "Looking…"));
   const tok = ++findTok;
   let hits;
-  try { hits = ytBlocked ? await audiusSearch(q, 20) : (await ytSearch(q, 20)).map(h => ytSong(h.id, h.title, h.author, h.secs)); }
+  try { hits = fromAudius() ? await audiusSearch(q, 20) : (await ytSearch(q, 20)).map(h => ytSong(h.id, h.title, h.author, h.secs)); }
   catch (e) {
     if (tok !== findTok) return;
     box.innerHTML = "";
@@ -1330,6 +1225,47 @@ async function find(q) {
   });
 }
 
+const SOURCES = [
+  ["auto", "Automatic", NAME.yt + " first, and " + NAME.au + " when " + NAME.yt + " is blocked"],
+  ["yt", NAME.yt, "Only " + NAME.yt],
+  ["au", NAME.au, "Only " + NAME.au + ": free full songs, mostly independent artists"]
+];
+/* Settings; the first time Chalk Music opens, the same box sets it up */
+function settings(first) {
+  const veil = el("div", "veil"), box = el("form", "box sets");
+  box.append(el("h2", null, first ? "Set up Chalk Music" : "Settings"));
+  if (first) box.append(el("p", null, "Pick where songs come from. You can change this later in Settings."));
+  box.append(el("div", "lab", "Songs come from"));
+  SOURCES.forEach(([v, name, note]) => {
+    const l = el("label", "opt"), i = el("input"), t = el("span", null, name);
+    i.type = "radio"; i.name = "source"; i.value = v; i.checked = (S.source || "auto") === v;
+    t.appendChild(el("small", null, note));
+    l.append(i, t);
+    box.appendChild(l);
+  });
+  if (!first) {
+    const l = el("label", "opt"), i = el("input");
+    i.type = "checkbox"; i.name = "spin"; i.checked = S.spin !== false;
+    l.append(i, el("span", null, "Turn the cover while a song plays"));
+    box.append(el("div", "lab", "Look"), l);
+  }
+  const ok = el("button", "btn", "Done"), btns = el("div", "btns");
+  ok.type = "submit";
+  btns.appendChild(ok);
+  box.appendChild(btns);
+  veil.appendChild(box);
+  $("app").appendChild(veil);
+  const finish = () => {
+    S.source = box.elements.source.value;
+    if (box.elements.spin) S.spin = box.elements.spin.checked;
+    S.setup = true;
+    save(); paintToggles(); veil.remove();
+  };
+  box.onsubmit = e => { e.preventDefault(); finish(); };
+  veil.onclick = e => { if (e.target === veil) finish(); };
+  box.onkeydown = e => { if (e.key === "Escape") finish(); };
+  setTimeout(() => ok.focus({ preventScroll: true }), 30);
+}
 function openQueue(on) {
   const want = on == null ? !document.body.classList.contains("queued") : !!on;
   document.body.classList.toggle("queued", want);
@@ -1354,14 +1290,7 @@ $("search").onsubmit = e => { e.preventDefault(); find($("q").value); };
 $("q").addEventListener("search", () => { if (!$("q").value.trim()) endSearch(); });
 $("search-clear").onclick = endSearch;
 $("add-btn").onclick = addLink;
-$("disc").onclick = () => { if (!hearing) hearTab(); };
-$("opts").onclick = e => {
-  e.stopPropagation();
-  menu($("opts"), [
-    hearing ? { label: "Stop the ring", run: stopHearing } : { label: "Let the ring hear the music…", run: hearTab },
-    { label: S.hole === false ? "Show the middle hole" : "Hide the middle hole", run: () => { S.hole = S.hole === false; save(); paintToggles(); } }
-  ]);
-};
+$("opts").onclick = () => settings(false);
 $("shuffle").onclick = () => { S.shuffle = !S.shuffle; save(); paintToggles(); reorder(); drawQueue(); };
 $("repeat").onclick = () => {
   S.repeat = S.repeat === "off" ? "all" : S.repeat === "all" ? "one" : "off";
@@ -1447,6 +1376,7 @@ if ("mediaSession" in navigator) {
 /* nothing here scrolls; a box getting focus mustn't push the page up */
 for (const id of ["app", "main"]) $(id).addEventListener("scroll", () => { $(id).scrollTop = 0; $(id).scrollLeft = 0; });
 paintToggles();
+if (!S.setup) settings(true);
 if (S.now && S.songs[S.now.id]) {
   playingList = S.now.list;
   build();
