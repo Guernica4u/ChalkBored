@@ -272,6 +272,22 @@
   }
 
   /* the cover turns the other way round from a record */
+  /* ---- tests: lyrics, the ring, sound ---- */
+  #vis { position: absolute; left: -18%; top: -18%; width: 136%; height: 136%; pointer-events: none; }
+  #stage { position: relative; }
+  #lyrics { display: none; position: absolute; inset: 44px 16px 8px; overflow: auto; text-align: center; scrollbar-width: none; }
+  #lyrics::-webkit-scrollbar { display: none; }
+  body.lyrics #card { display: none; }
+  body.lyrics #lyrics { display: block; }
+  #lyrics p { margin: 0; padding: 7px 8px; font-size: 1.15rem; font-weight: 700; line-height: 1.35; color: var(--pencil); opacity: 0.55; transition: opacity 0.25s ease, color 0.25s ease; }
+  #lyrics p.now { color: var(--ink); opacity: 1; }
+  #lyrics.plain p { opacity: 1; color: var(--ink); font-weight: 400; font-size: 1rem; padding: 3px 8px; }
+  #lyrics .none { padding-top: 30%; }
+  #lyr-btn.on { color: var(--accent); border-color: var(--accent); }
+  .sets { max-height: calc(100vh - 32px); overflow: auto; }
+  .sets .slide { display: flex; align-items: center; gap: 10px; padding: 4px 8px; font-size: 0.9rem; }
+  .sets .slide span { width: 64px; }
+  .sets .slide input { flex: 1; height: auto; padding: 0; border: 0; accent-color: var(--accent); }
   @keyframes list-in { from { opacity: 0; transform: translateY(6px); } }
   #songs.enter { animation: list-in 0.18s ease-out; }
   @keyframes spin { from { transform: rotate(0); } to { transform: rotate(-360deg); } }
@@ -279,6 +295,7 @@
     #disc { animation: none; }
     #queue, #side, #corner, #seekbar, #controls, #handle, #side-btn svg { transition: none; }
     #songs.enter, body.idle #card, #screen.video { animation: none; }
+    #lyrics p { transition: none; }
   }
   /* narrow: the bar on the right slides in over the player */
   @media (max-width: 720px) {
@@ -298,15 +315,17 @@
 <div id="app">
   <div id="main">
     <div id="corner">
+      <button class="tool" id="lyr-btn" type="button" title="Lyrics" hidden><svg viewBox="0 0 16 16"><path d="M3 4h10M3 7h10M3 10h6M3 13h4"/></svg></button>
       <button class="tool" id="side-btn" type="button" title="Show or hide songs and playlists"><svg viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
     </div>
 
     <div id="stage"><div id="card">
       <div id="discwrap">
+        <canvas id="vis"></canvas>
         <div id="disc"><div id="art" class="letter">&#9835;</div></div>
       </div>
       <div id="words"><div id="title">Nothing playing</div><div id="sub">Search for a song, or press + to add a link</div></div>
-    </div></div>
+    </div><div id="lyrics"></div></div>
 
     <div id="seekbar">
       <input id="seek" type="range" min="0" max="1000" value="0" title="Seek (Shift and an arrow: 10 seconds)" aria-label="Seek">
@@ -814,11 +833,12 @@ function dropHls() { if (hls) { hls.destroy(); hls = null; } }
 /* plays a stream that comes in pieces (an .m3u8) in the page's <audio> */
 async function playPieces(url) {
   dropHls();
-  if (audio.canPlayType("application/vnd.apple.mpegurl")) { audio.src = url; return audio.play().catch(() => {}); }
+  if (audio.canPlayType("application/vnd.apple.mpegurl")) { setSrc(url); return audio.play().catch(() => {}); }
   await loadHls();
   hls = new Hls();
   hls.on(Hls.Events.ERROR, (e, d) => { if (d.fatal && using === "file") skipSoon("That one wouldn't play."); });
   hls.loadSource(url);
+  hearAudio();
   hls.attachMedia(audio);
   audio.play().catch(() => {});
 }
@@ -1257,7 +1277,7 @@ async function play(i, dir) {
   else if (s.kind === "sc") playSc(s);
   else {
     using = "file";
-    audio.src = s.url;
+    setSrc(s.url);
     audio.play().catch(() => {});
   }
   drawSongs();
@@ -1302,7 +1322,7 @@ async function playElsewhere(s, where) {
   dressUp(s);
   $("sub").textContent = (s.author ? s.author + " · " : "") + "from " + NAME[alt.kind === "sc" ? "sc" : "au"];
   if (alt.kind === "sc") return playSc(alt, s);
-  audio.src = alt.url;
+  setSrc(alt.url);
   audio.play().catch(() => {});
 }
 async function playSc(t, shown) {
@@ -1351,6 +1371,7 @@ function paintToggles() {
     (S.repeat === "one" ? '<path d="M7.6 7.2 8.4 6.6v3"/>' : "") + "</svg>";
   document.body.classList.toggle("no-spin", coverLook() !== "spin");
   document.body.classList.toggle("square", coverLook() === "square");
+  $("lyr-btn").hidden = !S.tLyrics;
   document.body.classList.toggle("side-shut", S.side === false);
 }
 
@@ -1620,6 +1641,37 @@ function settings(first) {
       box.appendChild(l);
     });
   }
+  if (!first) {
+    box.append(el("div", "lab", "Tests"), el("p", "fine", "Still being tried out. The ring and sound only work on " + NAME.sc + ", " + NAME.au + " and sound file songs."));
+    const check = (name, text, on) => {
+      const l = el("label", "opt"), i = el("input");
+      i.type = "checkbox"; i.name = name; i.checked = !!on;
+      l.append(i, el("span", null, text));
+      box.appendChild(l);
+      return i;
+    };
+    check("tlyrics", "Lyrics, in time with the song", S.tLyrics);
+    check("tvis", "A ring round the cover that follows the sound", S.tVis);
+    const fx = check("tfx", "Sound: bass, treble, slowed and reverb", S.tFx);
+    const knobs = el("div");
+    const slide = (name, text, min, max, val) => {
+      const l = el("label", "slide"), i = el("input");
+      i.type = "range"; i.min = min; i.max = max; i.value = val; i.name = name;
+      i.oninput = () => { S[name] = Number(i.value); applyFx(); };
+      l.append(el("span", null, text), i);
+      knobs.appendChild(l);
+    };
+    slide("fxBass", "Bass", -6, 12, S.fxBass || 0);
+    slide("fxTreble", "Treble", -6, 12, S.fxTreble || 0);
+    const sl = el("label", "opt"), si = el("input");
+    si.type = "checkbox"; si.checked = !!S.fxSlow;
+    si.onchange = () => { S.fxSlow = si.checked; applyFx(); };
+    sl.append(si, el("span", null, "Slowed and reverb"));
+    knobs.appendChild(sl);
+    knobs.hidden = !fx.checked;
+    fx.onchange = () => { knobs.hidden = !fx.checked; S.tFx = fx.checked; applyFx(); };
+    box.appendChild(knobs);
+  }
   const ok = el("button", "btn", "Done"), btns = el("div", "btns");
   ok.type = "submit";
   btns.appendChild(ok);
@@ -1630,6 +1682,11 @@ function settings(first) {
     S.source = box.elements.source.value;
     if (box.elements.musiconly) S.musicOnly = box.elements.musiconly.checked;
     if (box.elements.cover) { S.cover = box.elements.cover.value; delete S.spin; }
+    if (box.elements.tlyrics) {
+      S.tLyrics = box.elements.tlyrics.checked; S.tVis = box.elements.tvis.checked; S.tFx = box.elements.tfx.checked;
+      if (!S.tLyrics) document.body.classList.remove("lyrics");
+      applyFx(); vis.follow();
+    }
     S.setup = true;
     save(); paintToggles(); veil.remove();
   };
@@ -1654,6 +1711,149 @@ function endVideo() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) $("screen").classList.remove("video"); });
+/* ============================================================
+   Tests, each off until turned on in Settings.
+   Sound: songs that play in the page's own <audio> (not YouTube's player)
+   go through Web Audio, so the ring can follow them and the sound can be
+   changed. Their servers have to allow it, so with these on the page asks
+   them to (crossOrigin).
+   ============================================================ */
+const soundTests = () => !!(S.tVis || S.tFx);
+function setSrc(url) {
+  audio.crossOrigin = soundTests() && !String(url).startsWith("blob:") ? "anonymous" : null;
+  audio.src = url;
+  hearAudio();
+}
+const G = { ctx: null };
+function hearAudio() {
+  if (!soundTests() || G.ctx) { if (G.ctx && G.ctx.state === "suspended") G.ctx.resume().catch(() => {}); return; }
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audio);
+    const bass = ctx.createBiquadFilter(); bass.type = "lowshelf"; bass.frequency.value = 200;
+    const treble = ctx.createBiquadFilter(); treble.type = "highshelf"; treble.frequency.value = 3200;
+    const an = ctx.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.78;
+    const verb = ctx.createConvolver(), wet = ctx.createGain();
+    /* a made-up room: two seconds of fading noise */
+    const len = ctx.sampleRate * 2, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+    verb.buffer = ir;
+    src.connect(bass); bass.connect(treble); treble.connect(an); treble.connect(ctx.destination);
+    treble.connect(verb); verb.connect(wet); wet.connect(ctx.destination);
+    Object.assign(G, { ctx, bass, treble, an, wet });
+    applyFx();
+  } catch (e) {}
+}
+function applyFx() {
+  const on = !!S.tFx;
+  audio.preservesPitch = !(on && S.fxSlow);
+  audio.defaultPlaybackRate = audio.playbackRate = on && S.fxSlow ? 0.85 : 1;
+  if (on) hearAudio();
+  if (!G.ctx) return;
+  G.bass.gain.value = on ? S.fxBass || 0 : 0;
+  G.treble.gain.value = on ? S.fxTreble || 0 : 0;
+  G.wet.gain.value = on && S.fxSlow ? 0.35 : 0;
+}
+
+/* the ring round the cover, from the real sound */
+const vis = (() => {
+  const canvas = $("vis"), g = canvas.getContext("2d"), bins = new Uint8Array(128);
+  let raf = 0, color = "#8fb3d9", colorAt = -1e9;
+  function frame(t) {
+    raf = 0;
+    if (!S.tVis || !G.an || using !== "file" || audio.paused || document.body.classList.contains("lyrics")) { g.clearRect(0, 0, canvas.width, canvas.height); return; }
+    raf = requestAnimationFrame(frame);
+    if (document.hidden) return;
+    if (t - colorAt > 1000) { colorAt = t; color = getComputedStyle(document.body).getPropertyValue("--accent").trim() || color; }
+    const dpr = Math.min(2, devicePixelRatio || 1), w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    G.an.getByteFrequencyData(bins);
+    g.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, half = Math.min(w, h) / 2, r0 = half / 1.36 * 1.03, n = 72, room = half - r0 - 2;
+    g.strokeStyle = color; g.lineCap = "round"; g.lineWidth = Math.max(2, 2 * Math.PI * r0 / n * 0.42);
+    for (let i = 0; i < n; i++) {
+      const m = i < n / 2 ? i : n - 1 - i;   /* mirrored, the low notes at the top */
+      const v = bins[Math.min(bins.length - 1, Math.floor(Math.pow(m / (n / 2), 1.5) * 90) + 1)] / 255;
+      const len = 2 + v * v * room, a = i / n * Math.PI * 2 - Math.PI / 2;
+      g.globalAlpha = 0.4 + v * 0.6;
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+      g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  return { follow() { if (!raf) raf = requestAnimationFrame(frame); } };
+})();
+audio.addEventListener("play", () => vis.follow());
+
+/* lyrics from LRCLIB, a free lyrics library, lit up line by line */
+let lyr = { id: "", lines: [], at: -1 };
+function songWords(s) {
+  const clean = x => String(x || "").replace(/\s*[\(\[][^\)\]]*[\)\]]/g, "").replace(/\b(official|music video|lyrics?|audio|video|hd|4k)\b/gi, "").replace(/\s+/g, " ").trim();
+  const t = clean(s.title), a = clean(s.author).replace(/\s*-\s*topic$/i, "").replace(/vevo$/i, "");
+  const tries = [[t, a]];
+  const dash = t.split(/\s+[-–]\s+/);
+  if (dash.length === 2) tries.unshift([dash[1], dash[0]], [dash[0], dash[1]]);
+  return tries;
+}
+async function lrc(s) {
+  for (const [track, artist] of songWords(s)) {
+    try {
+      const q = new URLSearchParams({ track_name: track, artist_name: artist });
+      const res = await fetch("https://lrclib.net/api/search?" + q);
+      const hits = res.ok ? await res.json() : [];
+      /* the timed words of the version closest in length to this one */
+      const near = h => Math.abs((h.duration || 0) - (s.secs || 0));
+      const best = hits.filter(h => h.syncedLyrics).sort((x, y) => near(x) - near(y))[0] || hits.find(h => h.plainLyrics);
+      if (best) return best;
+    } catch (e) {}
+  }
+  return null;
+}
+async function showLyrics() {
+  const s = song(at), box = $("lyrics");
+  if (!s) { box.innerHTML = '<p class="none">Nothing playing.</p>'; return; }
+  if (lyr.id === s.id) return;
+  lyr = { id: s.id, lines: [], at: -1 };
+  box.className = "";
+  box.innerHTML = '<p class="none">Looking for the words…</p>';
+  const hit = await lrc(s);
+  if (lyr.id !== s.id) return;
+  box.innerHTML = "";
+  if (!hit) { box.innerHTML = '<p class="none">No lyrics found for this one.</p>'; return; }
+  if (hit.syncedLyrics) {
+    hit.syncedLyrics.split("\n").forEach(line => {
+      const m = /^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/.exec(line.trim());
+      if (m) lyr.lines.push({ t: Number(m[1]) * 60 + Number(m[2]), p: box.appendChild(el("p", null, m[3] || "♪")) });
+    });
+  } else {
+    box.className = "plain";
+    hit.plainLyrics.split("\n").forEach(line => box.appendChild(el("p", null, line || " ")));
+  }
+}
+function lyricsTick() {
+  if (!document.body.classList.contains("lyrics")) return;
+  const s = song(at);
+  if (s && lyr.id !== s.id) showLyrics();
+  if (!lyr.lines.length) return;
+  const t = engine.time();
+  let k = -1;
+  while (k + 1 < lyr.lines.length && lyr.lines[k + 1].t <= t + 0.25) k++;
+  if (k === lyr.at) return;
+  if (lyr.at >= 0) lyr.lines[lyr.at].p.classList.remove("now");
+  lyr.at = k;
+  if (k < 0) return;
+  const p = lyr.lines[k].p, box = $("lyrics");
+  p.classList.add("now");
+  box.scrollTo({ top: p.offsetTop - box.clientHeight / 2 + p.offsetHeight / 2, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+$("lyr-btn").onclick = () => {
+  const on = document.body.classList.toggle("lyrics");
+  $("lyr-btn").classList.toggle("on", on);
+  if (on) showLyrics(); else vis.follow();
+};
+
 function openQueue(on) {
   const want = on == null ? !document.body.classList.contains("queued") : !!on;
   document.body.classList.toggle("queued", want);
@@ -1733,7 +1933,7 @@ audio.onerror = async () => {
       }
     } catch (e) {}
   }
-  skipSoon("That link wouldn't play.");
+  skipSoon(audio.crossOrigin ? "That one wouldn't play with the sound tests on." : "That link wouldn't play.");
 };
 /* the clock, and keeping up with YouTube's player, which says less on its own */
 setInterval(() => {
@@ -1743,6 +1943,7 @@ setInterval(() => {
   $("at").textContent = fmt(t);
   $("of").textContent = fmt(d);
   if (using === "tide") tideTick();
+  lyricsTick();
   if (using === "yt" || using === "tide") playingChanged();
 }, 250);
 document.addEventListener("keydown", e => {
