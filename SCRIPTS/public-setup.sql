@@ -944,14 +944,14 @@ end; $$;
 create or replace function public.online_ids()
 returns uuid[] language sql stable security definer set search_path = public, extensions as $$
   select coalesce(array_agg(o.user_id), '{}') from chat_online o join profiles p on p.id = o.user_id
-   where o.seen_at > now() - interval '90 seconds' and not p.banned;
+   where o.seen_at > now() - interval '90 seconds' and not p.banned and (p.share_online or p.id = auth.uid());
 $$;
 
 create or replace function public.online_in_room(p_room uuid)
 returns int language sql stable security definer set search_path = public, extensions as $$
   select case when can_read_room(p_room) then
     (select count(*)::int from chat_online o join room_members m on m.user_id = o.user_id join profiles p on p.id = o.user_id
-      where m.room_id = p_room and o.seen_at > now() - interval '90 seconds' and not p.banned) else 0 end;
+      where m.room_id = p_room and o.seen_at > now() - interval '90 seconds' and not p.banned and (p.share_online or p.id = auth.uid())) else 0 end;
 $$;
 
 -- ---------------------------------------------------------------- row rules
@@ -1938,13 +1938,6 @@ begin
   end loop;
 end $$;
 
--- ================================================================ Last step
--- Keep this at the very end. Signed-out visitors can only reach the vote on
--- Home (latest_poll), the old Requests poll and the online count.
-revoke execute on all functions in schema public from public, anon;
-grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
-  public.i_am_here(uuid), public.online_count(), public.latest_poll() to anon, authenticated;
-
 -- ================================================================ Channel order
 -- The people who run a class drag channels into order (and between
 -- categories); everyone in the class sees the same order.
@@ -2015,9 +2008,15 @@ alter table public.online_now add constraint online_now_item_check check (item i
 create or replace function public.here_now(p_device uuid, p_doing text default null, p_item text default null)
 returns void language plpgsql security definer set search_path = public, extensions as $$
 declare v_doing text := case when p_doing in ('play', 'listen') then p_doing end;
-        v_item text := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
+        v_item text;
+        me profiles;
 begin
   if p_device is null then return; end if;
+  if auth.uid() is not null then
+    select * into me from profiles where id = auth.uid();
+    if (v_doing = 'play' and me.share_play is not true) or (v_doing = 'listen' and me.share_listen is not true) then v_doing := null; end if;
+  end if;
+  v_item := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
   insert into online_now (device, seen_at, doing, item, user_id) values (p_device, now(), v_doing, v_item, auth.uid())
   on conflict (device) do update set seen_at = now(), doing = excluded.doing, item = excluded.item, user_id = excluded.user_id;
   delete from online_now where seen_at < now() - interval '1 hour';
@@ -2054,7 +2053,7 @@ create index if not exists online_now_user_idx on public.online_now (user_id, se
 
 -- Your friends: online or not, and what they share.
 create or replace function public.friends_now()
-returns table (user_id uuid, username text, avatar text, online boolean, doing text, item text)
+returns table (user_id uuid, username text, avatar text, online boolean, doing text, item text, status text, accent text)
 language sql stable security definer set search_path = public, extensions as $$
   with mine as (
     select case when requester = auth.uid() then addressee else requester end as uid
@@ -2065,8 +2064,9 @@ language sql stable security definer set search_path = public, extensions as $$
      order by o.user_id, o.seen_at desc
   )
   select p.id, p.username::text, p.avatar,
-         s.user_id is not null or exists (select 1 from chat_online c where c.user_id = p.id and c.seen_at > now() - interval '90 seconds'),
-         s.doing, s.item
+         p.share_online and (s.user_id is not null or exists (select 1 from chat_online c where c.user_id = p.id and c.seen_at > now() - interval '90 seconds')),
+         case when p.share_online then s.doing end, case when p.share_online then s.item end,
+         p.status, p.accent
     from profiles p join mine m on m.uid = p.id left join seen s on s.user_id = p.id
    where not p.banned
    order by 4 desc, p.username;
@@ -2074,3 +2074,62 @@ $$;
 
 revoke execute on function public.friends_now() from public, anon;
 grant execute on function public.friends_now() to authenticated;
+
+-- ================================================================ More profile, and what you share
+-- A favorite game (one of the site's activities), a short status line and an
+-- accent colour. Three sharing switches: online status (on unless turned off),
+-- what you play and what you listen to (null = not asked yet, so Home asks).
+
+alter table public.profiles add column if not exists status text check (status is null or char_length(status) <= 60);
+alter table public.profiles add column if not exists fav_game text check (fav_game is null or fav_game ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$');
+alter table public.profiles add column if not exists accent text check (accent is null or accent ~ '^[0-9]$');
+alter table public.profiles add column if not exists share_online boolean not null default true;
+alter table public.profiles add column if not exists share_play boolean;
+alter table public.profiles add column if not exists share_listen boolean;
+
+create or replace function public.save_profile_more(p_status text, p_fav_game text, p_accent text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare v_status text := nullif(btrim(coalesce(p_status, '')), ''); v_game text := nullif(btrim(coalesce(p_fav_game, '')), '');
+        v_accent text := nullif(btrim(coalesce(p_accent, '')), '');
+begin
+  if auth.uid() is null then return 'Sign in first.'; end if;
+  if is_banned() then return 'Your account is banned.'; end if;
+  if v_status is not null and char_length(v_status) > 60 then return 'Keep your status under 60 characters.'; end if;
+  if v_status is not null and (has_blocked_word(v_status) or has_link(v_status)) then return 'That status isn''t allowed.'; end if;
+  if v_game is not null and v_game !~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then return 'Pick a game from the list.'; end if;
+  if v_accent is not null and v_accent !~ '^[0-9]$' then return 'Pick one of the colours.'; end if;
+  update profiles set status = v_status, fav_game = v_game, accent = v_accent where id = auth.uid();
+  return null;
+end; $$;
+
+-- null leaves a switch as it is
+create or replace function public.save_sharing(p_online boolean default null, p_play boolean default null, p_listen boolean default null)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null then return; end if;
+  update profiles set share_online = coalesce(p_online, share_online), share_play = coalesce(p_play, share_play),
+         share_listen = coalesce(p_listen, share_listen) where id = auth.uid();
+end; $$;
+
+-- Home's check-in: signed in, your switches decide what is kept, whatever the page sent
+
+-- Your friends: online or not, and what they share. Hidden online status shows as offline.
+drop function if exists public.friends_now();
+
+-- the chat's online lists leave out people who hide it (you always see yourself)
+
+revoke execute on function public.save_profile_more(text, text, text) from public, anon;
+grant execute on function public.save_profile_more(text, text, text) to authenticated;
+revoke execute on function public.save_sharing(boolean, boolean, boolean) from public, anon;
+grant execute on function public.save_sharing(boolean, boolean, boolean) to authenticated;
+revoke execute on function public.friends_now() from public, anon;
+grant execute on function public.friends_now() to authenticated;
+
+-- ================================================================ Last step
+-- Keep this at the very end. Signed-out visitors can only reach the vote on
+-- Home (latest_poll), the old Requests poll, the online count and Home's
+-- check-in and online numbers (here_now, online_stats).
+revoke execute on all functions in schema public from public, anon;
+grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
+  public.i_am_here(uuid), public.online_count(), public.latest_poll(),
+  public.here_now(uuid, text, text), public.online_stats() to anon, authenticated;
