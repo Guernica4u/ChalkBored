@@ -100,6 +100,7 @@
       go();
     });
     row.append(ver, me);
+    window.dispatchEvent(new Event('chalk-me-btn'));   // home.js puts your picture on it
     if (!user) return;
     const btn = document.createElement('button');
     btn.type = 'button';

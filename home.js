@@ -105,42 +105,65 @@
   .hn-friend.on .hn-av i { background: #4cc57e; }
   .hn-friend-main { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; margin: -.2rem; padding: .2rem; background: none; border: 0; border-radius: var(--r); color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .hn-friend-main:hover, .hn-friend-main:focus-visible { background: var(--paper-2); outline: none; }
-  .hn-veil { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .55); }
-  .hn-prof { position: relative; width: min(400px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-  .hn-prof-banner { height: 72px; }
-  .hn-prof-x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; background: rgba(0, 0, 0, .45); border: 0; border-radius: var(--r); color: #fff; font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+  .hn-veil { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, .55); }
+  .hn-prof { position: relative; width: min(640px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .hn-prof.editing { width: min(820px, 100%); }
+  .hn-prof-banner { height: 110px; }
+  .hn-prof-x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, .45); border: 0; border-radius: var(--r); color: #fff; font: inherit; font-size: 1.2rem; line-height: 1; cursor: pointer; }
   .hn-prof-x:hover, .hn-prof-x:focus-visible { background: rgba(0, 0, 0, .7); outline: none; }
-  .hn-prof-body { padding: 0 18px 18px; }
-  .hn-prof-edit { padding-top: 18px; }
-  .hn-prof-wait { padding: 18px; }
-  .hn-prof .hn-av.big { width: 68px; height: 68px; margin-top: -34px; border: 3px solid #0b0b0b; box-sizing: content-box; }
-  .hn-prof .hn-av.big i { width: 14px; height: 14px; right: 0; bottom: 0; }
+  .hn-prof.editing .hn-prof-x { background: none; color: var(--pencil); }
+  .hn-prof.editing .hn-prof-x:hover, .hn-prof.editing .hn-prof-x:focus-visible { background: var(--paper-2); color: var(--ink); }
+  .hn-prof-wait { padding: 24px; }
+  .hn-prof-head { display: flex; align-items: flex-end; gap: 1rem; padding: 0 24px; }
+  .hn-prof .hn-av.big { width: 88px; height: 88px; margin-top: -44px; border: 4px solid #0b0b0b; box-sizing: content-box; flex: none; }
+  .hn-prof .hn-av.big i { width: 16px; height: 16px; right: 2px; bottom: 2px; }
   .hn-prof.on .hn-av i { background: #4cc57e; }
-  .hn-prof-name { margin: .5rem 0 .15rem; font-size: 1.2rem; }
-  .hn-prof-line { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 0; font-size: .86rem; color: var(--pencil); }
-  .hn-prof-status { margin: .75rem 0 0; font-size: .95rem; }
-  .hn-prof-bio { margin: .4rem 0 0; font-size: .88rem; color: var(--pencil); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .hn-prof-sec { margin: 1rem 0 .3rem; font-size: .78rem; font-weight: 700; color: var(--pencil); }
-  .hn-prof-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1.1rem; }
-  .hn-prof .hn-field { display: grid; gap: .35rem; margin-top: .9rem; font-size: .8rem; font-weight: 700; color: var(--pencil); }
-  .hn-prof input[type="text"], .hn-prof input[type="search"] { width: 100%; padding: .45rem .55rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; font-size: .9rem; font-weight: 400; box-sizing: border-box; }
-  .hn-pick-now { display: flex; align-items: center; gap: .6rem; min-height: 33px; font-weight: 400; }
+  .hn-prof-who { flex: 1; min-width: 0; padding-top: .7rem; }
+  .hn-prof-name { margin: 0 0 .2rem; font-size: 1.35rem; overflow-wrap: anywhere; }
+  .hn-prof-line { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 0; font-size: .9rem; color: var(--pencil); }
+  .hn-prof-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+  .hn-prof-main { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 1.5rem; padding: 1.25rem 24px 24px; margin-top: 1.25rem; border-top: 1px solid var(--edge); }
+  .hn-prof-sec { margin: 0 0 .35rem; font-size: .78rem; font-weight: 700; color: var(--pencil); }
+  .hn-prof-about .hn-prof-sec:not(:first-child) { margin-top: 1.1rem; }
+  .hn-prof-about .hn-muted, .hn-prof-side .hn-muted { margin: 0; font-size: .9rem; }
+  .hn-prof-status { margin: 0; font-size: 1rem; }
+  .hn-prof-bio { margin: 0; font-size: .95rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .hn-prof-game { display: grid; gap: .5rem; width: 100%; padding: .5rem; background: none; border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  .hn-prof-game:hover, .hn-prof-game:focus-visible { background: var(--paper-2); border-color: var(--pencil); outline: none; }
+  .hn-prof-game-art { display: block; width: 100%; aspect-ratio: 16 / 10; background: var(--paper-2); overflow: hidden; }
+  .hn-prof-game-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .hn-prof-edit { padding: 24px; }
+  .hn-prof-edit .hn-prof-name { margin-bottom: 1rem; }
+  .hn-prof-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; }
+  .hn-prof-col > :first-child { margin-top: 0; }
+  .hn-prof .hn-field { position: relative; display: grid; gap: .4rem; margin-top: 1.1rem; font-size: .85rem; font-weight: 700; color: var(--pencil); }
+  .hn-prof input[type="text"], .hn-prof input[type="search"], .hn-prof textarea { width: 100%; padding: .5rem .6rem; background: var(--paper-2); border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; font-size: .95rem; font-weight: 400; box-sizing: border-box; }
+  .hn-prof textarea { resize: vertical; min-height: 4.5rem; line-height: 1.45; }
+  .hn-prof input:focus-visible, .hn-prof textarea:focus-visible { outline: 1px solid var(--accent); outline-offset: 0; }
+  .hn-count { justify-self: end; font-size: .75rem; font-weight: 400; }
+  .hn-pick-now { display: flex; align-items: center; gap: .6rem; min-height: 36px; font-weight: 400; color: var(--ink); }
   .hn-pick-now .hn-tiny { margin-left: auto; }
-  .hn-games { display: grid; gap: .1rem; max-height: 190px; overflow-y: auto; font-weight: 400; }
-  .hn-prof fieldset { margin: .9rem 0 0; padding: 0; border: 0; }
-  .hn-prof legend { padding: 0; font-size: .8rem; font-weight: 700; color: var(--pencil); }
-  .hn-sws { display: flex; flex-wrap: wrap; gap: .4rem; }
-  .hn-sws legend { width: 100%; margin-bottom: .35rem; }
+  .hn-games { display: grid; gap: .1rem; max-height: 320px; overflow-y: auto; padding: .25rem; border: 1px solid var(--edge); border-radius: var(--r); font-weight: 400; }
+  .hn-prof fieldset { margin: 1.1rem 0 0; padding: 0; border: 0; }
+  .hn-prof legend { padding: 0; font-size: .85rem; font-weight: 700; color: var(--pencil); }
+  .hn-sws { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .hn-sws legend { width: 100%; margin-bottom: .45rem; }
   .hn-sw { position: relative; }
   .hn-sw input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
   .hn-sw span { display: block; width: 26px; height: 26px; border: 2px solid transparent; border-radius: var(--r); }
   .hn-sw span.none { border: 2px dashed var(--edge); }
   .hn-sw input:checked + span { border-color: var(--ink); }
   .hn-sw input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .hn-check { display: flex; align-items: center; gap: .55rem; margin-top: .45rem; font-size: .9rem; cursor: pointer; }
-  .hn-prof-note { margin: .9rem 0 0; font-size: .8rem; }
-  .hn-prof-err { min-height: 1.2em; margin: .6rem 0 0; font-size: .85rem; }
-  .hn-prof-go { margin: 0 18px 18px; }
+  .hn-check { display: flex; align-items: center; gap: .55rem; margin-top: .5rem; font-size: .95rem; cursor: pointer; }
+  .hn-prof-note { margin: 1.1rem 0 0; font-size: .82rem; }
+  .hn-prof-edit .hn-prof-actions { justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--edge); }
+  .hn-prof-err { flex: 1; margin: 0; font-size: .9rem; }
+  .hn-prof .hn-btn.ghost { background: transparent; color: var(--ink); border-color: var(--edge); }
+  .hn-prof .hn-btn.ghost:hover, .hn-prof .hn-btn.ghost:focus-visible { border-color: var(--pencil); }
+  .hn-prof-go { margin: 0 24px 24px; }
+  @media (max-width: 700px) { .hn-prof-main, .hn-prof-cols { grid-template-columns: 1fr; } }
+  .me-btn .hn-av.me-pic { width: 24px; height: 24px; }
+  .me-btn .hn-av.me-pic svg { width: 60%; height: 60%; }
   .hn-pick { position: relative; display: inline-flex; align-items: center; }
   .hn-pick select { appearance: none; -webkit-appearance: none; padding: 0 1.2rem 0 0; background: none; border: 0; color: var(--pencil); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
   .hn-pick select:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
@@ -565,10 +588,29 @@
           me.profile.share_play = me.profile.share_listen = local === 'yes';
         }
       } catch (e) {}
+      paintMeButton();
       return me;
     })();
     return meLoading;
   }
+  // the top bar's profile button: your picture when signed in, a plain person icon when not
+  const PERSON_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>';
+  function paintMeButton() {
+    const b = document.querySelector('.me-btn');
+    if (!b) return;
+    if (me.profile) {
+      const pic = friendPic(me.profile.id, me.profile.avatar);
+      pic.classList.add('me-pic');
+      pic.querySelector('i').remove();
+      b.replaceChildren(pic);
+      b.title = 'Your profile';
+    } else {
+      if (!b.querySelector(':scope > svg')) b.innerHTML = PERSON_ICON;
+      b.title = me.user ? 'Your profile' : 'Make an account';
+    }
+    b.setAttribute('aria-label', b.title);
+  }
+  window.addEventListener('chalk-me-btn', paintMeButton);
   // on unless turned off. Signed in, the profile's switches decide (null = never chose = on);
   // signed out, this browser's answer
   const sharing = (kind) => (me.profile ? me.profile['share_' + kind] !== false : read(SHARE, '') !== 'no');
@@ -595,10 +637,12 @@
     } catch (e) {}
     return [null, null];
   }
+  let onlineDb = null;   // kept so closing the page can say goodbye without waiting
   async function checkIn() {
     if (!device) return;
     try {
       const db = await loadOnline();
+      onlineDb = db;
       await loadMe();
       const [doing, item] = doingNow();
       await db.rpc('here_now', { p_device: device, p_doing: doing, p_item: item });
@@ -606,6 +650,17 @@
   }
   checkIn();
   setInterval(checkIn, 30000);
+  // closing the page: stop counting this browser now instead of after 90 seconds
+  // shortcut: tabs in one browser share an id, so closing one drops the rest until their next check-in (30 s)
+  window.addEventListener('pagehide', (e) => {
+    if (e.persisted || !device || !onlineDb) return;
+    const key = onlineDb.supabaseKey;
+    fetch(String(onlineDb.supabaseUrl).replace(/\/$/, '') + '/rest/v1/rpc/leave_now', {
+      method: 'POST', keepalive: true,
+      headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_device: device }),
+    }).catch(() => {});
+  });
 
   // the numbers sit next to the ChalkBored title, after "online now"
   let startOnline = () => {};
@@ -736,7 +791,10 @@
     x.addEventListener('click', closeProfile);
     return x;
   }
+  // the profile: banner, then name and what they're doing beside the picture,
+  // then about on the left and the favorite game on the right
   function paintProfile(card, p, own, live) {
+    card.classList.remove('editing');
     const banner = el('div', 'hn-prof-banner');
     banner.style.background = BANNERS[p.banner != null && p.banner !== '' ? Number(p.banner) : hashOf(p.id) % BANNERS.length];
     const pic = friendPic(p.id, p.avatar);
@@ -744,28 +802,14 @@
     if (!live || own) pic.querySelector('i').remove();
     const accent = p.accent != null && p.accent !== '' ? PFP_COLORS[Number(p.accent)] : null;
     if (accent) pic.style.boxShadow = '0 0 0 3px ' + accent;
-    const body = el('div', 'hn-prof-body');
     const name = el('h2', 'hn-prof-name', p.username);
     name.id = 'hn-prof-name';
     card.setAttribute('aria-labelledby', name.id);
     card.classList.toggle('on', !!(live && live.online && !own));
-    body.append(pic, name);
-    if (live && !(own && !live.doing)) body.append(friendLine(live));
-    else if (own) body.append(el('p', 'hn-prof-line', 'Your profile'));
-    if (p.status) body.append(el('p', 'hn-prof-status', p.status));
-    if (p.bio) body.append(el('p', 'hn-prof-bio', p.bio));
-    const game = p.fav_game && byPath(p.fav_game);
-    if (game) {
-      const label = el('p', 'hn-prof-sec', 'Favorite game');
-      const b = el('button', 'hn-row');
-      b.type = 'button';
-      const n = el('span', 'hn-row-name');
-      n.append(nameOf(game, 1.05));
-      b.append(cover(game, 'hn-row-art'), n);
-      b.setAttribute('aria-label', 'Open ' + shown(game));
-      b.addEventListener('click', () => { closeProfile(); launch(game); });
-      body.append(label, b);
-    }
+    const who = el('div', 'hn-prof-who');
+    who.append(name);
+    if (live && !(own && !live.doing)) who.append(friendLine(live));
+    else if (own) who.append(el('p', 'hn-prof-line', 'Your profile'));
     const actions = el('div', 'hn-prof-actions');
     if (own) {
       const edit = el('button', 'hn-btn', 'Edit profile');
@@ -774,17 +818,38 @@
       actions.append(edit);
     }
     if (!own && live && live.doing === 'play' && byPath(live.item)) {
-      const go = el('button', own ? 'hn-tiny ghost' : 'hn-btn', 'Play too');
+      const go = el('button', 'hn-btn', 'Play too');
       go.type = 'button';
       go.addEventListener('click', () => { closeProfile(); launch(byPath(live.item)); });
       actions.append(go);
     }
-    if (actions.children.length) body.append(actions);
-    card.replaceChildren(banner, closeButton(), body);
+    const head = el('div', 'hn-prof-head');
+    head.append(pic, who, actions);
+    const main = el('div', 'hn-prof-main');
+    const about = el('div', 'hn-prof-about');
+    about.append(el('p', 'hn-prof-sec', 'Status'), el('p', p.status ? 'hn-prof-status' : 'hn-muted', p.status || 'No status yet.'));
+    about.append(el('p', 'hn-prof-sec', 'About'), el('p', p.bio ? 'hn-prof-bio' : 'hn-muted', p.bio || 'Nothing here yet.'));
+    const side = el('div', 'hn-prof-side');
+    side.append(el('p', 'hn-prof-sec', 'Favorite game'));
+    const game = p.fav_game && byPath(p.fav_game);
+    if (game) {
+      const b = el('button', 'hn-prof-game');
+      b.type = 'button';
+      const n = el('span', 'hn-row-name');
+      n.append(nameOf(game, 1.05));
+      b.append(cover(game, 'hn-prof-game-art'), n);
+      b.setAttribute('aria-label', 'Open ' + shown(game));
+      b.addEventListener('click', () => { closeProfile(); launch(game); });
+      side.append(b);
+    } else side.append(el('p', 'hn-muted', 'None picked.'));
+    main.append(about, side);
+    card.replaceChildren(banner, closeButton(), head, main);
     card.querySelector('.hn-prof-x').focus();
   }
+  // every field is optional: Save works with nothing filled in
   function paintEdit(card, p) {
-    const form = el('form', 'hn-prof-body hn-prof-edit');
+    card.classList.add('editing');
+    const form = el('form', 'hn-prof-edit');
     const title = el('h2', 'hn-prof-name', 'Edit profile');
     title.id = 'hn-prof-name';
     const field = (labelText, input) => { const l = el('label', 'hn-field', labelText); l.append(input); return l; };
@@ -793,6 +858,17 @@
     status.maxLength = 60;
     status.value = p.status || '';
     status.placeholder = 'Studying for the quiz';
+    const bio = el('textarea');
+    bio.maxLength = 140;
+    bio.rows = 3;
+    bio.value = p.bio || '';
+    bio.placeholder = 'A line about you';
+    const bioCount = el('span', 'hn-count');
+    const countBio = () => { bioCount.textContent = bio.value.length + ' / 140'; };
+    bio.addEventListener('input', countBio);
+    countBio();
+    const bioField = field('About', bio);
+    bioField.append(bioCount);
     // favorite game: search the activity list (names are drawn as pictures, like everywhere else)
     let chosen = p.fav_game && byPath(p.fav_game) ? p.fav_game : null;
     const pickedRow = el('div', 'hn-pick-now');
@@ -863,17 +939,23 @@
     };
     share.append(check('online', 'When I’m online'), check('play', 'What I’m playing'), check('listen', 'What I’m listening to'),
       el('p', 'hn-muted hn-prof-note', 'These are public: anyone signed in can see them on your profile. Untick one to turn it off.'));
-    const note = el('p', 'hn-muted hn-prof-note', 'Your picture, bio and banner are changed in Chalk Chat.');
+    const note = el('p', 'hn-muted hn-prof-note', 'Your picture and banner are changed in Chalk Chat.');
     const err = el('p', 'hn-prof-err');
     err.setAttribute('role', 'status');
     const save = el('button', 'hn-btn', 'Save');
     save.type = 'submit';
-    const cancel = el('button', 'hn-tiny ghost', 'Cancel');
+    const cancel = el('button', 'hn-btn ghost', 'Cancel');
     cancel.type = 'button';
     cancel.addEventListener('click', () => paintProfile(card, me.profile || p, true));
     const actions = el('div', 'hn-prof-actions');
-    actions.append(save, cancel);
-    form.append(title, field('Status', status), gameBox, sws, share, note, err, actions);
+    actions.append(err, cancel, save);
+    const left = el('div', 'hn-prof-col');
+    left.append(field('Status', status), bioField, sws, share);
+    const right = el('div', 'hn-prof-col');
+    right.append(gameBox);
+    const cols = el('div', 'hn-prof-cols');
+    cols.append(left, right);
+    form.append(title, cols, note, actions);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       save.disabled = true;
@@ -883,6 +965,11 @@
         const db = await loadOnline();
         const { data: why, error } = await db.rpc('save_profile_more', { p_status: status.value, p_fav_game: chosen || '', p_accent: picked ? picked.value : '' });
         if (error || why) { err.textContent = error ? 'Couldn’t save. Try again.' : why; save.disabled = false; return; }
+        // the bio is saved with the picture and banner, which stay as they are
+        if (bio.value.trim() !== (p.bio || '')) {
+          const { data: bioWhy, error: bioErr } = await db.rpc('save_profile', { p_avatar: p.avatar || null, p_bio: bio.value, p_banner: p.banner || null });
+          if (bioErr || bioWhy) { err.textContent = bioErr ? 'Couldn’t save your about line. Try again.' : bioWhy; save.disabled = false; return; }
+        }
         const on = (k) => form.querySelector('input[name="' + k + '"]').checked;
         await setSharing(on('play'), on('listen'), on('online'));
         await loadMe(true);
