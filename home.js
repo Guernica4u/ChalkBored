@@ -18,7 +18,6 @@
     img.alt = '';
     img.decoding = 'async';
     img.src = art.src;
-    if (art.fit) img.style.objectFit = art.fit;
     if (art.pos) img.style.objectPosition = art.pos;
     if (art.bg) box.style.background = art.bg;
     img.addEventListener('error', () => { img.remove(); box.append(el('span', 'hn-initials', initials(shown(item)))); });
@@ -243,15 +242,20 @@
     text.append(el('p', 'hn-label', 'New this week'), name, count, actions);
     panel.append(art, text);
     let at = 0;
-    const paint = () => {
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    const paint = (dir) => {
       const item = FEATURED[at];
       if (!item) return;
       art.replaceChildren(cover(item, 'hn-cover'));
       name.replaceChildren(nameOf(item, 1.25));
       count.textContent = (at + 1) + ' of ' + FEATURED.length;
+      if (!dir || still.matches || !art.animate) return;
+      const slide = [{ opacity: 0, transform: 'translateX(' + dir * 14 + 'px)' }, { opacity: 1, transform: 'none' }];
+      art.firstChild.animate(slide, { duration: 240, easing: 'ease-out' });
+      name.animate(slide, { duration: 240, easing: 'ease-out' });
     };
-    prev.addEventListener('click', () => { at = (at + FEATURED.length - 1) % FEATURED.length; paint(); });
-    next.addEventListener('click', () => { at = (at + 1) % FEATURED.length; paint(); });
+    prev.addEventListener('click', () => { at = (at + FEATURED.length - 1) % FEATURED.length; paint(-1); });
+    next.addEventListener('click', () => { at = (at + 1) % FEATURED.length; paint(1); });
     play.addEventListener('click', () => { if (FEATURED[at]) launch(FEATURED[at]); });
     paint();
     section('featured', panel);
@@ -860,7 +864,7 @@
   function sharePicker() {
     const box = el('div', 'home-look-pick');
     const now = read(SHARE, '');
-    [['yes', 'Sure', 'Home shows numbers like 3 playing. No names.'], ['no', 'No I have W opsec', 'Nothing about what you play leaves this browser.']].forEach(([choice, title, about]) => {
+    [['yes', 'Sure', 'You count toward numbers on Home like \u201c3 playing\u201d. Your name is never shown.'], ['no', 'No I have W opsec', 'Nothing about what you play leaves this browser.']].forEach(([choice, title, about]) => {
       const b = el('button', 'way');
       b.type = 'button';
       b.setAttribute('aria-pressed', String(now === choice));
@@ -874,9 +878,22 @@
     });
     return box;
   }
+  function accountPicker() {
+    const box = el('div', 'home-look-pick');
+    let signedIn = false;
+    try { signedIn = !!localStorage.getItem('sb-thrwgeuljtqjfcohzfdt-auth-token'); } catch (e) {}
+    if (signedIn) { box.append(el('p', 'hn-muted', 'You already have one and you\u2019re signed in.')); return box; }
+    const b = el('button', 'way');
+    b.type = 'button';
+    b.append(el('b', '', 'Make an account'), el('span', '', 'Opens Chalk Chat. Pick a name and a password.'));
+    b.addEventListener('click', () => { closeSetup(); showPanel('chat'); });
+    box.append(b, el('p', 'hn-muted', 'Or press Next to skip. You can make one later in Chalk Chat.'));
+    return box;
+  }
   SETUP_STEPS.splice(SETUP_STEPS.length - 1, 0,
     { step: 'Home', title: 'Pick your Home', text: 'You can switch any time in Settings.', body: lookPicker },
-    { step: 'Sharing', title: 'Count what you play?', text: 'You can change this any time on Home.', body: sharePicker });
+    { step: 'Sharing', title: 'Share what you play?', text: 'Home shows how many people are playing each game. You can change this any time beside the title on Home.', body: sharePicker },
+    { step: 'Account', title: 'Make an account?', text: 'An account lets you chat, vote and add friends. It needs no email, phone number or anything else, just a name and a password.', body: accountPicker });
   if (!$('setup').hidden) renderSetup();
 
   // keep the look right when settings change in another tab

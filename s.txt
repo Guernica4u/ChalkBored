@@ -50,11 +50,11 @@
   /* ---------------- curtain ---------------- */
   .curtain {
     position: fixed; inset: 0; z-index: 50;
-    background: #0d1117;
+    background: var(--paper);
     pointer-events: none;
-    animation: lift 0.9s ease 0.1s forwards;
+    transition: opacity 0.3s ease;
   }
-  @keyframes lift { to { opacity: 0; } }
+  .curtain.up { opacity: 0; }
 
   /* ---------------- shell ---------------- */
   .shell { display: flex; height: 100%; }
@@ -409,7 +409,8 @@
     border-bottom: 1px solid var(--edge);
     overflow: hidden;
   }
-  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.2s ease; }
+  .thumb img.in { opacity: 1; }
   .mono { font-family: var(--hand); font-weight: 700; font-size: 2rem; color: var(--accent); }
 
   .card-body { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.85rem; }
@@ -1935,9 +1936,9 @@
           img.alt = '';
           img.decoding = 'async';
           img.addEventListener('error', () => img.remove());   // a missing file keeps the initials
+          img.addEventListener('load', () => img.classList.add('in'));
           if (nameWatch) { namesToDraw.set(img, () => { img.src = art.src; }); nameWatch.observe(img); }
           else { img.loading = 'lazy'; img.src = art.src; }
-          if (art.fit) img.style.objectFit = art.fit;
           if (art.pos) img.style.objectPosition = art.pos;   // which part of a cropped picture to keep
           if (art.pixel) img.style.imageRendering = 'pixelated';
           if (art.bg) card.querySelector('.thumb').style.background = art.bg;
@@ -2662,7 +2663,28 @@
     else if (seenVersion !== VERSION && returningVisitor) showNewNotes();
     else setTimeout(maybeAskCloak, 1200);
 
-    setTimeout(() => { const c = document.querySelector('.curtain'); if (c) c.remove(); }, 1200);
+    // the first screen fades in once its wallpaper, fonts and pictures are in (1.5s at most),
+    // then the first Games covers load in the background so that tab opens fully drawn
+    document.addEventListener('DOMContentLoaded', () => {
+      const curtain = document.querySelector('.curtain');
+      const loaded = (img) => (img.complete ? null : new Promise((ok) => { img.addEventListener('load', ok); img.addEventListener('error', ok); }));
+      const wall = /url\("?([^")]+)"?\)/.exec(getComputedStyle(document.body).backgroundImage);
+      const waits = [...document.querySelectorAll('.panel.active img')].map(loaded);
+      if (wall) { const img = new Image(); img.src = wall[1]; waits.push(loaded(img)); }
+      if (document.fonts) waits.push(document.fonts.ready);
+      waits.push(new Promise((ok) => setTimeout(ok, 400)));
+      Promise.race([Promise.all(waits), new Promise((ok) => setTimeout(ok, 1500))]).then(() => {
+        if (curtain) { curtain.classList.add('up'); setTimeout(() => curtain.remove(), 400); }
+        const idle = window.requestIdleCallback || ((f) => setTimeout(f, 600));
+        idle(() => {
+          ensureLessons();
+          if (nameWatch) [...document.querySelectorAll('#games .thumb img:not([src])')].slice(0, 24).forEach((img) => {
+            nameWatch.unobserve(img);
+            namesToDraw.get(img)();
+          });
+        }, { timeout: 2000 });
+      });
+    });
   </script>
   <script src="home.js"></script>
 </body>
