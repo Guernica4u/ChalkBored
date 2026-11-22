@@ -1,10 +1,9 @@
 // The activity list and card pictures shared by every Study Hall page.
 // Kept in its own file so the pages stay small. Edit it with game-tools/add15.py.
 // ---- the lesson list: brain exercises and study tools. `img` is optional: a screenshot for the card.
-// `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark.
-// `remote: true` means the lesson's files are on LESSON_HOST ----
-// Lessons marked `remote: true` live in the separate chalkbored-lessons repo and load from here;
-// their `path` stays the same, so favorites, covers and history keep working.
+// `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark ----
+// Lesson files live in the separate chalkbored-lessons repo and load from here. Card covers
+// (LESSONS/art) stay in this repo. A card's `path` keeps its old form, so favorites and history keep working.
 const LESSON_HOST = 'https://games.chalkbored.win/';
 
 const LIST = {
@@ -30,10 +29,10 @@ const LIST = {
     { name: '.B5sk3t;Bros?'                   , path: 'LESSONS/Court-Physics/index.html' },
     { name: '.Wr3stl3;Bros?'                  , path: 'LESSONS/Grappling-Physics/index.html' },
     { name: '.B5sk3tb5ll;L3g3nds?'            , path: 'LESSONS/Court-Legends/index.html' },
-    { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html', remote: true },
-    { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html', remote: true },
-    { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html', remote: true },
-    { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html', remote: true },
+    { name: '.FNAF?'                          , path: 'LESSONS/Night-Shift-Logs-1/index.html' },
+    { name: '.FNAF;2?'                        , path: 'LESSONS/Night-Shift-Logs-2/index.html' },
+    { name: '.FNAF;~3?'                       , path: 'LESSONS/Night-Shift-Logs-3/index.html' },
+    { name: '.FNAF;4?'                        , path: 'LESSONS/Night-Shift-Logs-4/index.html' },
     { name: '.Snow;Rid3r;~3D?'                , path: 'LESSONS/How-Sleds-Work/index.html' },
     { name: '.OvO?'                           , path: 'LESSONS/Parkour-Physics/index.html' },
     { name: '.Pl5nts;vs.;Zombi3s?'            , path: 'LESSONS/Botany-Defense-1/index.html' },
@@ -162,20 +161,20 @@ const ART = {
   'LESSONS/Basement-Diary/index.html':               { src: 'LESSONS/art/basement-diary.webp', bg: '#171412', fit: 'cover' },
   'LESSONS/Study-Hall-Remake/index.html':            { src: 'LESSONS/art/study-hall-remake.webp', bg: '#204020', fit: 'cover' },
 
-  'LESSONS/City-Planning/index.html':             { src: 'LESSONS/City-Planning/img/cover.jpg', bg: '#0d1b2a', fit: 'contain' },
+  'LESSONS/City-Planning/index.html':             { src: 'LESSONS/art/city-planning-cover.jpg', bg: '#0d1b2a', fit: 'contain' },
   'LESSONS/Grappling-Physics/index.html':        { src: 'LESSONS/art/grappling-physics.webp', bg: '#2a2f3a', fit: 'cover' },
   'LESSONS/Rhythm-Geometry/index.html':          { src: 'LESSONS/art/rhythm-geometry.webp', bg: '#0b2a4a', fit: 'contain' },
   'LESSONS/Rhythm-Geometry-Lite/index.html':     { src: 'LESSONS/art/rhythm-geometry-lite.webp', bg: '#0b2a4a', fit: 'cover' },
   'LESSONS/Hill-Physics-2/index.html':             { src: 'LESSONS/art/hill-physics-2.webp', bg: '#f4f2ee', fit: 'cover' },
   'LESSONS/Motion-Lab-Dismount/index.html':        { src: 'LESSONS/art/motion-lab-dismount.webp', bg: '#f4f2ee', fit: 'cover' },
-  'LESSONS/Pastry-Clicker/index.html':             { src: 'LESSONS/Pastry-Clicker/img/perfectCookie.png', bg: '#2a1a10', fit: 'contain' },
-  'LESSONS/Study-Hall/index.html':                 { src: 'LESSONS/Study-Hall/icon.png', bg: '#087F0B', fit: 'contain' },
-  'LESSONS/Slope-main/Slope-main/index.html':      { src: 'LESSONS/Slope-main/Slope-main/slope.png', bg: '#000', fit: 'contain' },
-  'LESSONS/rb-main/index.html':                    { src: 'LESSONS/rb-main/img/icon.jpg', bg: '#5b9a2f', fit: 'contain' },
-  'LESSONS/How-Sleds-Work/index.html':             { src: 'LESSONS/How-Sleds-Work/TemplateData/snow-rider-logo.png', bg: '#bfe3f5', fit: 'contain' },
+  'LESSONS/Pastry-Clicker/index.html':             { src: 'LESSONS/art/pastry-clicker-cover.png', bg: '#2a1a10', fit: 'contain' },
+  'LESSONS/Study-Hall/index.html':                 { src: 'LESSONS/art/study-hall-cover.png', bg: '#087F0B', fit: 'contain' },
+  'LESSONS/Slope-main/Slope-main/index.html':      { src: 'LESSONS/art/slope-main-cover.png', bg: '#000', fit: 'contain' },
+  'LESSONS/rb-main/index.html':                    { src: 'LESSONS/art/rb-main-cover.jpg', bg: '#5b9a2f', fit: 'contain' },
+  'LESSONS/How-Sleds-Work/index.html':             { src: 'LESSONS/art/how-sleds-work-cover.png', bg: '#bfe3f5', fit: 'contain' },
   'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/index.html':
-    { src: 'LESSONS/The-Final-Earth-2-main/The-Final-Earth-2-main/icons/favicon.png', bg: '#0d1530', fit: 'contain', pixel: true },
-  'LESSONS/Learn-Car-Maintenance/index.html':      { src: 'LESSONS/Learn-Car-Maintenance/loading.png', bg: '#f5c518', fit: 'cover' },
+    { src: 'LESSONS/art/the-final-earth-2-main-cover.png', bg: '#0d1530', fit: 'contain', pixel: true },
+  'LESSONS/Learn-Car-Maintenance/index.html':      { src: 'LESSONS/art/learn-car-maintenance-cover.png', bg: '#f5c518', fit: 'cover' },
   'LESSONS/Rail-Runner/index.html':                { src: 'LESSONS/art/rail-runner.webp', bg: '#3a8fd6', fit: 'cover' },
   'LESSONS/Pigeon/index.html':                     { src: 'LESSONS/art/pigeon-ascent.png', bg: '#3b9e64', fit: 'cover', pixel: true },
   'LESSONS/AeroDynamics-Loader.html':              { src: 'LESSONS/art/learn-to-fly-3.webp', bg: '#7cc4f2', fit: 'cover', pos: 'center 80%' },
