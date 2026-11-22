@@ -97,7 +97,7 @@ end; $$;
 
 create or replace function public.online_count()
 returns int language sql stable security definer set search_path = public, extensions as $$
-  select count(*)::int from online_now where seen_at > now() - interval '90 seconds';
+  select count(distinct coalesce(user_id::text, device::text))::int from online_now where seen_at > now() - interval '90 seconds';
 $$;
 
 revoke execute on all functions in schema public from public, anon, authenticated;
@@ -2016,7 +2016,7 @@ begin
     select * into me from profiles where id = auth.uid();
     if (v_doing = 'play' and me.share_play is false) or (v_doing = 'listen' and me.share_listen is false) then v_doing := null; end if;   -- never chose (null) counts as on
   end if;
-  v_item := case when v_doing = 'play' and p_item ~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then p_item end;
+  v_item := case when v_doing = 'play' and is_activity_path(p_item) then p_item end;
   insert into online_now (device, seen_at, doing, item, user_id) values (p_device, now(), v_doing, v_item, auth.uid())
   on conflict (device) do update set seen_at = now(), doing = excluded.doing, item = excluded.item, user_id = excluded.user_id;
   delete from online_now where seen_at < now() - interval '1 hour';
@@ -2025,12 +2025,16 @@ end; $$;
 create or replace function public.online_stats()
 returns table (online int, playing int, listening int, top jsonb)
 language sql stable security definer set search_path = public, extensions as $$
-  with now_on as (select * from online_now where seen_at > now() - interval '90 seconds')
-  select (select count(*)::int from now_on),
-         (select count(*)::int from now_on where doing = 'play'),
-         (select count(*)::int from now_on where doing = 'listen'),
+  with people as (
+    select distinct on (coalesce(user_id::text, device::text)) doing, item
+      from online_now where seen_at > now() - interval '90 seconds'
+     order by coalesce(user_id::text, device::text), (doing is not null) desc, seen_at desc
+  )
+  select (select count(*)::int from people),
+         (select count(*)::int from people where doing = 'play'),
+         (select count(*)::int from people where doing = 'listen'),
          coalesce((select jsonb_agg(jsonb_build_object('item', item, 'n', n) order by n desc, item)
-                     from (select item, count(*)::int n from now_on where doing = 'play' and item is not null
+                     from (select item, count(*)::int n from people where doing = 'play' and item is not null
                             group by item order by count(*) desc, item limit 5) t), '[]'::jsonb);
 $$;
 
@@ -2096,7 +2100,7 @@ begin
   if is_banned() then return 'Your account is banned.'; end if;
   if v_status is not null and char_length(v_status) > 60 then return 'Keep your status under 60 characters.'; end if;
   if v_status is not null and (has_blocked_word(v_status) or has_link(v_status)) then return 'That status isn''t allowed.'; end if;
-  if v_game is not null and v_game !~ '^LESSONS/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]{1,100}$' then return 'Pick a game from the list.'; end if;
+  if v_game is not null and not is_activity_path(v_game) then return 'Pick a game from the list.'; end if;
   if v_accent is not null and v_accent !~ '^[0-9]$' then return 'Pick one of the colours.'; end if;
   update profiles set status = v_status, fav_game = v_game, accent = v_accent where id = auth.uid();
   return null;
@@ -2146,6 +2150,33 @@ $$;
 revoke execute on function public.person_now(uuid) from public, anon;
 grant execute on function public.person_now(uuid) to authenticated;
 
+-- ================================================================ Online counts per person, and every game path (2026-11-22)
+-- Counts: a signed-in person counts once however many devices they use; signed out,
+-- one per browser. A person's activity is their newest row that is doing something.
+-- Closing the page calls leave_now, so you stop counting right away instead of after 90 seconds.
+-- Game paths: some games sit straight in LESSONS/ or have spaces in their file names.
+
+create or replace function public.is_activity_path(p text)
+returns boolean language sql immutable set search_path = public, extensions as $$
+  select p ~ '^LESSONS/[A-Za-z0-9._ /-]{1,150}$' and p !~ '\.\.';
+$$;
+
+alter table public.online_now drop constraint if exists online_now_item_check;
+alter table public.online_now add constraint online_now_item_check check (item is null or public.is_activity_path(item));
+alter table public.profiles drop constraint if exists profiles_fav_game_check;
+alter table public.profiles add constraint profiles_fav_game_check check (fav_game is null or public.is_activity_path(fav_game));
+
+-- the page is closing: stop counting this browser now
+create or replace function public.leave_now(p_device uuid)
+returns void language sql security definer set search_path = public, extensions as $$
+  delete from online_now where device = p_device;
+$$;
+
+revoke execute on function public.is_activity_path(text) from public, anon;
+grant execute on function public.is_activity_path(text) to authenticated;
+revoke execute on function public.leave_now(uuid) from public;
+grant execute on function public.leave_now(uuid) to anon, authenticated;
+
 -- ================================================================ Last step
 -- Keep this at the very end. Signed-out visitors can only reach the vote on
 -- Home (latest_poll), the old Requests poll, the online count and Home's
@@ -2153,5 +2184,4 @@ grant execute on function public.person_now(uuid) to authenticated;
 revoke execute on all functions in schema public from public, anon;
 grant execute on function public.my_votes(uuid), public.vote_for(bigint, uuid),
   public.i_am_here(uuid), public.online_count(), public.latest_poll(),
-  public.here_now(uuid, text, text), public.online_stats() to anon, authenticated;
-
+  public.here_now(uuid, text, text), public.online_stats(), public.leave_now(uuid) to anon, authenticated;
