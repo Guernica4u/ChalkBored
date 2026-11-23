@@ -11,7 +11,8 @@
   const style = document.createElement('style');
   style.textContent = `
   /* the panel, border, corners and text come from the page's setup box (.modal-box, .modal-step, .btn) */
-  .news-pop { position: fixed; top: 18px; left: 50%; z-index: 9000; transform: translateX(-50%); width: min(460px, calc(100vw - 32px)); }
+  /* centred with margins, not a transform, so the setup box's slide-in can't push it sideways */
+  .news-pop { position: fixed; top: 18px; left: 0; right: 0; z-index: 9000; width: min(460px, calc(100vw - 32px)); margin: 0 auto; }
   .news-pop > .news-body { margin: 0.2rem 0 0; color: var(--ink); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
   .news-pop .modal-row { margin-top: 1.1rem; }
   .news-pop .news-who { color: var(--pencil); font-size: 0.85rem; }`;
@@ -51,7 +52,7 @@
     foot.append(who, ok);
     box.append(head, text, foot);
     document.body.appendChild(box);
-    ok.focus();
+    ok.focus({ preventScroll: true });
   }
 
   // ---- the bell: @mentions, friend requests, new polls and announcements, for
@@ -78,6 +79,7 @@
   .bell-row:hover, .bell-row:focus-visible { background: var(--paper-2, rgba(255, 255, 255, .06)); outline: none; }
   .bell-row.new { font-weight: 600; }
   .bell-row small { display: block; margin-top: 2px; font-size: .68rem; font-weight: 400; color: var(--pencil, #9a9a9a); }
+  html.lowend .bell-list { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .bell-empty { margin: 4px 6px 6px; font-size: .78rem; color: var(--pencil, #9a9a9a); }`;
   document.head.appendChild(bellCss);
 

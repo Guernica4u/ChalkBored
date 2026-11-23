@@ -2,6 +2,29 @@
 // Kept in its own file so each Study Hall page stays small. Runs after the page's own script
 // and uses its helpers (settings, LIST, ART, launch, showPanel, namePicture...).
 (() => {
+  // low-end machines (4 GB or less, or 4 cores or fewer): no blur behind pop-ups
+  if ((navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4) document.documentElement.classList.add('lowend');
+  // who's signed in, from the sign-in saved in this browser (no request; the database still checks every call)
+  const signedIn = async (db) => { const { data } = await db.auth.getSession(); return (data.session && data.session.user) || null; };
+  // the online numbers, shared by the count beside the title and the activity list (one request per 20 s)
+  let statsAt = 0, statsCall = null;
+  function onlineStats() {
+    if (!statsCall || Date.now() - statsAt > 20000) {
+      statsAt = Date.now();
+      statsCall = loadOnline().then((db) => db.rpc('online_stats')).then(({ data, error }) => { if (error) throw error; return data && data[0]; });
+      statsCall.catch(() => { statsAt = 0; });
+    }
+    return statsCall;
+  }
+  // one short fade when something different fills in (not when the same thing repaints)
+  const shownKeys = new WeakMap();
+  function fadeIf(box, key, target = box) {
+    if (shownKeys.get(box) === key) return;
+    shownKeys.set(box, key);
+    target.classList.remove('hn-in');
+    void target.offsetWidth;
+    target.classList.add('hn-in');
+  }
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
   const read = (key, fallback) => { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v === null ? fallback : v; } catch (e) { return fallback; } };
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
@@ -23,6 +46,7 @@
     const img = new Image();
     img.alt = '';
     img.decoding = 'async';
+    img.loading = 'lazy';
     img.src = art.src;
     if (art.pos) img.style.objectPosition = art.pos;
     if (art.bg) box.style.background = art.bg;
@@ -96,7 +120,9 @@
   .hn-row-name { min-width: 0; font-weight: 700; overflow: hidden; white-space: nowrap; }
   .hn-row-n { color: var(--pencil); font-size: .8rem; }
   .hn-track { display: flex; align-items: center; gap: .8rem; min-width: 0; }
-  .hn-disc { flex: none; display: grid; place-items: center; width: 58px; height: 58px; background: var(--paper-2) center / cover; border: 1px solid var(--edge); border-radius: var(--r); color: var(--pencil); font-size: 1.4rem; }
+  .hn-disc { flex: none; display: grid; place-items: center; width: 58px; height: 58px; background: var(--paper-2) center / cover no-repeat; border: 1px solid var(--edge); border-radius: var(--r); color: var(--pencil); }
+  .hn-disc svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .hn-disc.has-art svg { display: none; }
   .hn-song { min-width: 0; overflow: hidden; }
   .hn-song-title { font-weight: 700; white-space: nowrap; }
   .hn-song-sub { color: var(--pencil); font-size: .9rem; white-space: nowrap; }
@@ -114,6 +140,16 @@
   .hn-veil { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, .55); }
   .hn-prof { position: relative; width: min(640px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   .hn-prof.editing { width: min(820px, 100%); }
+  html.lowend .hn-prof { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes hn-in { from { opacity: 0; transform: translateY(4px); } }
+    @keyframes hn-fade { from { opacity: 0; } }
+    .hn-in { animation: hn-in .2s ease-out; }
+    .hn-veil { animation: hn-fade .15s ease-out; }
+    .hn-prof { animation: hn-in .2s ease-out; }
+    .hn-queue button { animation: hn-fade .2s ease-out; }
+    .hn-row, .hn-friend-main, .hn-prof-game { transition: background-color .12s ease, border-color .12s ease; }
+  }
   .hn-prof-banner { height: 110px; }
   .hn-prof-x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, .45); border: 0; border-radius: var(--r); color: #fff; font: inherit; font-size: 1.2rem; line-height: 1; cursor: pointer; }
   .hn-prof-x:hover, .hn-prof-x:focus-visible { background: rgba(0, 0, 0, .7); outline: none; }
@@ -372,16 +408,17 @@
       }
     }
     recentPanel.replaceChildren(...body);
+    fadeIf(recentPanel, mode + '|' + list.map((x) => x.path).join(','), rows);
   }
   async function refreshLists() {
     const mode = read(LIST_MODE, 'most');
     try {
       const db = await loadOnline();
       if (mode === 'most') {
-        const { data } = await db.rpc('online_stats');
-        mostPlayed = ((data && data[0] && data[0].top) || []).map((t) => [t.item, t.n]);
+        const st = await onlineStats();
+        mostPlayed = ((st && st.top) || []).map((t) => [t.item, t.n]);
       } else if (mode === 'friends') {
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         if (!user) { friendsPlayed = null; paintRecent(); return; }
         const { data } = await db.rpc('friends_now');
         const tally = new Map();
@@ -410,7 +447,8 @@
   // ---- Chalk Music: works the player that lives in the Music tab ----
   {
     const panel = el('section', 'hn-panel');
-    const disc = el('span', 'hn-disc', '♫');
+    const disc = el('span', 'hn-disc');
+    disc.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg>';   // drawn, so it sits in the exact middle (the ♫ character didn't)
     const song = el('div', 'hn-song');
     const title = el('div', 'hn-song-title');
     const sub = el('div', 'hn-song-sub');
@@ -450,7 +488,7 @@
     let shownTitle = null;
     function paint() {
       const d = playerDoc();
-      let t = '', s = '', playing = false, pos = 0;
+      let t = '', s = '', playing = false, pos = 0, pic = '';
       if (d) {
         t = d.getElementById('title').textContent;
         s = d.getElementById('sub').textContent;
@@ -458,6 +496,8 @@
         const seek = d.getElementById('seek');
         pos = seek ? Number(seek.value) / 10 : 0;
         if (t === 'Nothing playing') t = '';
+        const art = d.getElementById('art');
+        pic = (art && art.style.backgroundImage) || '';
       } else {
         // not loaded yet: show the last song from Chalk Music's own save
         const saved = read('listening.v1', {});
@@ -469,6 +509,7 @@
         title.replaceChildren(t ? words(t, 1.15) : document.createTextNode('Nothing playing yet'));
         sub.replaceChildren(t ? words(s, 1) : document.createTextNode('Pick songs in Chalk Music'));
       }
+      if (disc.style.backgroundImage !== pic) { disc.style.backgroundImage = pic; disc.classList.toggle('has-art', !!pic); }
       play.textContent = playing ? 'Pause' : 'Play';
       fill.style.width = pos + '%';
       paintQueue(d);
@@ -577,7 +618,7 @@
     meLoading = (async () => {
       try {
         const db = await loadOnline();
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         me.user = user || null;
         me.profile = null;
         if (!user) return me;
@@ -642,6 +683,8 @@
   let onlineDb = null;   // kept so closing the page can say goodbye without waiting
   async function checkIn() {
     if (!device) return;
+    // a background tab stops checking in (and drops off the count) unless it's playing or listening
+    if (document.hidden && !doingNow()[0]) return;
     try {
       const db = await loadOnline();
       onlineDb = db;
@@ -652,6 +695,7 @@
   }
   checkIn();
   setInterval(checkIn, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkIn(); });
   // closing the page: stop counting this browser now instead of after 90 seconds
   // shortcut: tabs in one browser share an id, so closing one drops the rest until their next check-in (30 s)
   window.addEventListener('pagehide', (e) => {
@@ -684,11 +728,9 @@
     }
     async function load() {
       try {
-        const db = await loadOnline();
-        const { data, error } = await db.rpc('online_stats');
-        if (error) throw error;
-        const st = data && data[0];
-        nums.textContent = st.playing + ' playing · ' + st.listening + ' listening';
+        const st = await onlineStats();
+        const text = st.playing + ' playing · ' + st.listening + ' listening';
+        if (nums.textContent !== text) { nums.textContent = text; fadeIf(nums, text); }
       } catch (e) {
         nums.textContent = '';
       }
@@ -980,12 +1022,13 @@
     async function load() {
       try {
         const db = await loadOnline();
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         if (!user) { list.replaceChildren(el('p', 'hn-muted', 'Sign in to Chalk Chat to see your friends here.')); return; }
         const { data, error } = await db.rpc('friends_now');
         if (error) throw error;
         if (!(data || []).length) { list.replaceChildren(el('p', 'hn-muted', 'No friends yet. Add some in Chalk Chat.')); return; }
         const first = data.slice().sort((a, b) => (b.online - a.online) || a.username.localeCompare(b.username)).slice(0, 5);
+        fadeIf(list, first.map((f) => f.user_id + (f.online ? '+' : '-') + (f.doing || '') + (f.item || '')).join(','));
         list.replaceChildren(...first.map((f) => {
           const row = el('div', 'hn-friend' + (f.online ? ' on' : ''));
           const item = f.doing === 'play' && f.item ? byPath(f.item) : null;
