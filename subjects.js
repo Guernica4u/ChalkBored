@@ -104,6 +104,9 @@ const LIST = {
     { name: '.Kind3rg5rt3n;2?',               path: 'LESSONS/Class-Day-2/index.html' },
     { name: '.Und3rt5l3;Y3llow?',             path: 'LESSONS/Story-Yellow/index.html' },
     { name: '.NZ:;Port5bl3?',                 path: 'LESSONS/Night-Defense/index.html' },
+    { name: '.Gr5nny?',                       path: 'LESSONS/House-Escape-1/index.html' },
+    { name: '.Gr5nny:;Ch5pt3r;Two?',          path: 'LESSONS/House-Escape-2/index.html' },
+    { name: '.Gr5nny;~3?',                    path: 'LESSONS/House-Escape-3/index.html' },
     { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
     { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
     { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
@@ -134,6 +137,9 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/House-Escape-1/index.html': { src: 'LESSONS/art/house-escape-1.webp', fit: 'cover' },
+  'LESSONS/House-Escape-2/index.html': { src: 'LESSONS/art/house-escape-2.webp', fit: 'cover' },
+  'LESSONS/House-Escape-3/index.html': { src: 'LESSONS/art/house-escape-3.webp', fit: 'cover' },
   'LESSONS/Night-Defense/index.html': { src: 'LESSONS/art/night-defense.webp', fit: 'cover' },
   'LESSONS/Ragdoll-Sandbox/index.html': { src: 'LESSONS/art/ragdoll-sandbox.webp', fit: 'cover' },
   'LESSONS/Class-Day-1/index.html': { src: 'LESSONS/art/class-day-1.webp', fit: 'cover' },
