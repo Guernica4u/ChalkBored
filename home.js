@@ -2,6 +2,20 @@
 // Kept in its own file so each Study Hall page stays small. Runs after the page's own script
 // and uses its helpers (settings, LIST, ART, launch, showPanel, namePicture...).
 (() => {
+  // low-end machines (4 GB or less, or 4 cores or fewer): no blur behind pop-ups
+  if ((navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4) document.documentElement.classList.add('lowend');
+  // who's signed in, from the sign-in saved in this browser (no request; the database still checks every call)
+  const signedIn = async (db) => { const { data } = await db.auth.getSession(); return (data.session && data.session.user) || null; };
+  // the online numbers, shared by the count beside the title and the activity list (one request per 20 s)
+  let statsAt = 0, statsCall = null;
+  function onlineStats() {
+    if (!statsCall || Date.now() - statsAt > 20000) {
+      statsAt = Date.now();
+      statsCall = loadOnline().then((db) => db.rpc('online_stats')).then(({ data, error }) => { if (error) throw error; return data && data[0]; });
+      statsCall.catch(() => { statsAt = 0; });
+    }
+    return statsCall;
+  }
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
   const read = (key, fallback) => { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v === null ? fallback : v; } catch (e) { return fallback; } };
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
@@ -23,6 +37,7 @@
     const img = new Image();
     img.alt = '';
     img.decoding = 'async';
+    img.loading = 'lazy';
     img.src = art.src;
     if (art.pos) img.style.objectPosition = art.pos;
     if (art.bg) box.style.background = art.bg;
@@ -114,6 +129,7 @@
   .hn-veil { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, .55); }
   .hn-prof { position: relative; width: min(640px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   .hn-prof.editing { width: min(820px, 100%); }
+  html.lowend .hn-prof { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .hn-prof-banner { height: 110px; }
   .hn-prof-x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, .45); border: 0; border-radius: var(--r); color: #fff; font: inherit; font-size: 1.2rem; line-height: 1; cursor: pointer; }
   .hn-prof-x:hover, .hn-prof-x:focus-visible { background: rgba(0, 0, 0, .7); outline: none; }
@@ -378,10 +394,10 @@
     try {
       const db = await loadOnline();
       if (mode === 'most') {
-        const { data } = await db.rpc('online_stats');
-        mostPlayed = ((data && data[0] && data[0].top) || []).map((t) => [t.item, t.n]);
+        const st = await onlineStats();
+        mostPlayed = ((st && st.top) || []).map((t) => [t.item, t.n]);
       } else if (mode === 'friends') {
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         if (!user) { friendsPlayed = null; paintRecent(); return; }
         const { data } = await db.rpc('friends_now');
         const tally = new Map();
@@ -577,7 +593,7 @@
     meLoading = (async () => {
       try {
         const db = await loadOnline();
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         me.user = user || null;
         me.profile = null;
         if (!user) return me;
@@ -642,6 +658,8 @@
   let onlineDb = null;   // kept so closing the page can say goodbye without waiting
   async function checkIn() {
     if (!device) return;
+    // a background tab stops checking in (and drops off the count) unless it's playing or listening
+    if (document.hidden && !doingNow()[0]) return;
     try {
       const db = await loadOnline();
       onlineDb = db;
@@ -652,6 +670,7 @@
   }
   checkIn();
   setInterval(checkIn, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkIn(); });
   // closing the page: stop counting this browser now instead of after 90 seconds
   // shortcut: tabs in one browser share an id, so closing one drops the rest until their next check-in (30 s)
   window.addEventListener('pagehide', (e) => {
@@ -684,10 +703,7 @@
     }
     async function load() {
       try {
-        const db = await loadOnline();
-        const { data, error } = await db.rpc('online_stats');
-        if (error) throw error;
-        const st = data && data[0];
+        const st = await onlineStats();
         nums.textContent = st.playing + ' playing · ' + st.listening + ' listening';
       } catch (e) {
         nums.textContent = '';
@@ -980,7 +996,7 @@
     async function load() {
       try {
         const db = await loadOnline();
-        const { data: { user } } = await db.auth.getUser();
+        const user = await signedIn(db);
         if (!user) { list.replaceChildren(el('p', 'hn-muted', 'Sign in to Chalk Chat to see your friends here.')); return; }
         const { data, error } = await db.rpc('friends_now');
         if (error) throw error;
