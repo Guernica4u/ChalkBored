@@ -177,6 +177,8 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/Wild-Drive/index.html': { src: 'LESSONS/art/wild-drive.webp', fit: 'cover' },
+  'LESSONS/Road-Defense/index.html': { src: 'LESSONS/art/road-defense.webp', fit: 'cover' },
   'LESSONS/Swing-Physics/index.html': { src: 'LESSONS/art/swing-physics.webp', fit: 'cover' },
   'LESSONS/Turn-Duel/index.html': { src: 'LESSONS/art/turn-duel.webp', fit: 'cover' },
   'LESSONS/Safety-Lessons/index.html': { src: 'LESSONS/art/safety-lessons.webp', fit: 'cover' },
