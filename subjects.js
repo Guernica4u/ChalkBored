@@ -13,6 +13,7 @@ const LIST = {
     { name: '.BTD~3?'                         , path: 'LESSONS/Balloon-Math-3/index.html' },
     { name: '.BTD4?'                          , path: 'LESSONS/Bloons Math Loader.html' },
     { name: '.BTD~5?'                         , path: 'LESSONS/Balloon-Math-5/index.html' },
+    { name: '.BTD6?',                         path: 'LESSONS/Balloon-Math-6/index.html' },
     { name: '.L35rn;to;Fly?'                  , path: 'LESSONS/AeroDynamics-1/index.html' },
     { name: '.L35rn;to;Fly;2?'                , path: 'LESSONS/AeroDynamics-2/index.html' },
     { name: '.L35rn;to;Fly;~3?'               , path: 'LESSONS/AeroDynamics-Loader.html' },
@@ -107,6 +108,11 @@ const LIST = {
     { name: '.Gr5nny?',                       path: 'LESSONS/House-Escape-1/index.html' },
     { name: '.Gr5nny:;Ch5pt3r;Two?',          path: 'LESSONS/House-Escape-2/index.html' },
     { name: '.Gr5nny;~3?',                    path: 'LESSONS/House-Escape-3/index.html' },
+    { name: '.A;G5m3;About;F33ding;A;Bl5ck;Hol3?',path: 'LESSONS/Gravity-Lab/index.html' },
+    { name: '.B5rt;Bl5st?',                   path: 'LESSONS/Cartoon-Blast/index.html' },
+    { name: '.Br5wl;~3D?',                    path: 'LESSONS/Arena-3D/index.html' },
+    { name: '.Color;P3ncil;Run?',             path: 'LESSONS/Pencil-Run/index.html' },
+    { name: '.Driv3n;Wild?',                  path: 'LESSONS/Wild-Drive/index.html' },
     { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
     { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
     { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
@@ -137,6 +143,7 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/Balloon-Math-6/index.html': { src: 'LESSONS/art/balloon-math-6.webp', fit: 'cover' },
   'LESSONS/House-Escape-1/index.html': { src: 'LESSONS/art/house-escape-1.webp', fit: 'cover' },
   'LESSONS/House-Escape-2/index.html': { src: 'LESSONS/art/house-escape-2.webp', fit: 'cover' },
   'LESSONS/House-Escape-3/index.html': { src: 'LESSONS/art/house-escape-3.webp', fit: 'cover' },
