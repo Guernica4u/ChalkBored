@@ -194,6 +194,12 @@
   .channel .chan-grip:focus-visible { outline: 1px solid var(--accent); }
   @media (hover: none) { .channel .chan-grip { opacity: 0.6; } }
   .channel.dragging { opacity: 0.45; }
+  .chan-cat .cat-grip { display: inline-flex; flex: none; margin: 0 -2px 0 -4px; color: var(--muted); opacity: 0; cursor: grab; touch-action: none; }
+  .chan-cat .cat-grip svg { width: 10px; height: 12px; fill: currentColor; }
+  .chan-cat:hover .cat-grip, .chan-cat:focus-within .cat-grip, .chan-cat .cat-grip:focus-visible { opacity: 1; }
+  .chan-cat .cat-grip:focus-visible { outline: 1px solid var(--accent); }
+  @media (hover: none) { .chan-cat .cat-grip { opacity: 0.6; } }
+  .chan-cat.dragging { opacity: 0.45; }
   .drop-line { height: 2px; margin: 1px 9px; background: var(--accent); border-radius: 1px; pointer-events: none; }
   .channel:hover, .channel:focus-visible { background: var(--hover); color: var(--ink); outline: none; }
   .channel.on { background: var(--sel); color: var(--ink); }
@@ -267,6 +273,7 @@
   .poll-choice:hover, .poll-choice:focus-visible { border-color: var(--accent-dim); outline: none; }
   .poll-choice.mine { border-color: var(--accent); }
   .poll-choice i { position: absolute; inset: 0 auto 0 0; background: var(--sel); }
+  .poll-choice b { display: inline-block; }
   .poll-choice span, .poll-choice b { position: relative; }
   .poll-choice b { flex: none; font-variant-numeric: tabular-nums; color: var(--muted); }
   .poll-note { font-size: 0.62rem; color: var(--muted); }
@@ -1084,6 +1091,8 @@
     .msg-tools { transition: opacity 0.12s ease, transform 0.12s ease; transform: translateY(2px); }
     .msg:hover .msg-tools, .msg:focus-within .msg-tools { transform: none; }
     .poll-choice i { transition: width 0.3s ease-out; }
+    @keyframes cc-tick { from { opacity: 0.2; transform: translateY(-3px); } }
+    .poll-choice b.tick { animation: cc-tick 0.22s ease-out; }
     button, .channel, .server, .pick-row, .person, .cp-nav button, .vc-tile { transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.08s ease, opacity 0.12s ease; }
     button:active:not(:disabled), .channel:active, .pick-row:active, .person:active, .vc-tile:active:not(:disabled) { transform: scale(0.98); }
   }
@@ -2253,6 +2262,7 @@ function paintChannels() {
     const count = document.createElement('span');
     count.className = 'n';
     count.textContent = channels.length;
+    if (canManage(state.room)) head.appendChild(catGrip(cat, head));
     head.append(caret, label, count);
     head.onclick = () => {
       if (state.closedCats.has(cat)) state.closedCats.delete(cat);
@@ -2291,6 +2301,7 @@ function paintChannels() {
           btn.appendChild(dot);
         }
       }
+      if (!isVoice) btn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') prefetchChannel(ch); });
       btn.onclick = () => {
         if (!isVoice) openChannel(ch);
         else if (voice.key === key) openStage();
@@ -2402,12 +2413,75 @@ function dragGrip(ch, btn) {
   return grip;
 }
 
-async function saveOrder(list, movedId) {
+// a whole category moves as one block, before another category or after it
+function moveCategory(cat, targetCat, after) {
+  const order = [...new Set(state.channels.map((c) => c.category || 'General'))].filter((c) => c !== cat);
+  let at = order.indexOf(targetCat);
+  at = at < 0 ? order.length : at + (after ? 1 : 0);
+  order.splice(at, 0, cat);
+  const list = order.flatMap((k) => state.channels.filter((c) => (c.category || 'General') === k));
+  saveOrder(list, null, cat);
+}
+function catGrip(cat, head) {
+  const grip = make('span', 'chan-grip cat-grip');
+  grip.appendChild(shape('ic-grip'));
+  grip.setAttribute('role', 'button');
+  grip.setAttribute('tabindex', '0');
+  grip.setAttribute('aria-label', 'Move the ' + cat + ' category (drag, or use the arrow keys)');
+  grip.title = 'Drag to move the category';
+  grip.onclick = (e) => e.stopPropagation();
+  grip.onkeydown = (e) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const cats = [...new Set(state.channels.map((c) => c.category || 'General'))];
+    const i = cats.indexOf(cat);
+    const j = i + (e.key === 'ArrowUp' ? -1 : 1);
+    if (j < 0 || j >= cats.length) return;
+    moveCategory(cat, cats[j], e.key === 'ArrowDown');
+  };
+  grip.onpointerdown = (e) => {
+    if (e.button > 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    try { grip.setPointerCapture(e.pointerId); } catch (err) {}
+    head.classList.add('dragging');
+    const line = make('div', 'drop-line');
+    let target = null;
+    const move = (ev) => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const over = el && el.closest('#channels .channel, #channels .chan-cat');
+      if (!over || over.dataset.cat === cat) return;
+      // over a heading: before that category; over a channel: after its category
+      const after = !over.classList.contains('chan-cat');
+      target = { cat: over.dataset.cat, after };
+      const block = [...$('channels').querySelectorAll('[data-cat="' + CSS.escape(over.dataset.cat) + '"]')];
+      const edge = after ? block[block.length - 1] : block[0];
+      edge.parentNode.insertBefore(line, after ? edge.nextSibling : edge);
+    };
+    const end = (ev) => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      head.classList.remove('dragging');
+      line.remove();
+      if (ev.type === 'pointercancel' || !target) return;
+      moveCategory(cat, target.cat, target.after);
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  };
+  return grip;
+}
+
+async function saveOrder(list, movedId, movedCat) {
   const room = state.room;
   if (list.every((c, i) => c.id === state.channels[i].id && c.category === state.channels[i].category)) return;
   state.channels = list;
   paintChannels();
-  const grip = $('channels').querySelector('.channel[data-id="' + movedId + '"] .chan-grip');
+  const grip = movedCat ? $('channels').querySelector('.chan-cat[data-cat="' + CSS.escape(movedCat) + '"] .chan-grip')
+    : $('channels').querySelector('.channel[data-id="' + movedId + '"] .chan-grip');
   if (grip) grip.focus();
   const { data: why, error } = await db.rpc('reorder_channels', {
     p_room: room.id, p_ids: list.map((c) => c.id), p_categories: list.map((c) => c.category || 'General'),
@@ -2459,18 +2533,42 @@ async function openChannel(ch) {
   closeStage();
   state.channel = ch;
   clearReply();
-  state.messageById.clear();
   $('channel-name').textContent = ch.name;
   $('channel-name').title = ch.name;
   paintChannels();
   paintChannelHead();
 
-  const { data, error } = await fetchMessages(ch);
-
+  // a channel seen lately shows at once; the newest page then replaces it only if something changed
+  const cached = msgCache.get(ch.id);
+  if (cached) showRows(cached.rows);
+  const { data, error } = await fetchMessages(ch);   // always: anything posted since the cached copy shows up
   if (state.channel !== ch) return;   // clicked somewhere else while this was loading
   // a failed load must never look like an empty channel
-  if (error) { renderEmpty('Couldn’t load the messages here. Reload the page to try again.'); return; }
+  if (error) { if (!cached) renderEmpty('Couldn’t load the messages here. Reload the page to try again.'); return; }
   const rows = (data || []).reverse();
+  cacheRows(ch.id, rows);
+  if (!cached || rowsKey(rows) !== rowsKey(cached.rows)) showRows(rows);
+  markRead();
+  markChannelSeen(ch.id);
+  watchFeed();
+}
+
+// the last few channels you looked at, newest page each, so switching back is instant
+const msgCache = new Map();   // channel id -> { rows, at }
+function cacheRows(id, rows) {
+  msgCache.delete(id);
+  msgCache.set(id, { rows, at: Date.now() });
+  if (msgCache.size > 8) msgCache.delete(msgCache.keys().next().value);
+}
+const rowsKey = (rows) => rows.map((r) => r.id + ':' + (r.edited_at || '') + ':' + (r.pinned_at || '')).join(',');
+// pointing at a channel fetches it, so the click finds it ready
+function prefetchChannel(ch) {
+  const c = msgCache.get(ch.id);
+  if (ch.kind !== 'text' || (c && Date.now() - c.at < 30000) || (state.channel && state.channel.id === ch.id)) return;
+  fetchMessages(ch).then(({ data, error }) => { if (!error && data) cacheRows(ch.id, data.slice().reverse()); });
+}
+function showRows(rows) {
+  state.messageById.clear();
   $('messages').innerHTML = '';
   if (!rows.length) renderEmpty('Nothing here yet. Say something.');
   rows.forEach((r) => addMessage(r));
@@ -2481,9 +2579,6 @@ async function openChannel(ch) {
   loadReactions(rows.map((r) => r.id));
   loadPolls(rows.map((r) => r.id));
   scrollDown();
-  markRead();
-  markChannelSeen(ch.id);
-  watchFeed();
 }
 
 // the channel's topic, and whether you can write in it (Global works like any class:
@@ -2736,6 +2831,19 @@ function paintPoll(pl, counts) {
   if (!box) return;
   const total = counts.reduce((n, c) => n + c.votes, 0);
   const mine = counts.find((c) => c.mine);
+  const drawn = box.querySelectorAll('.poll-choice');
+  if (drawn.length === pl.options.length) {
+    drawn.forEach((b, i) => {
+      const votes = (counts.find((c) => c.choice === i) || { votes: 0 }).votes;
+      b.classList.toggle('mine', !!mine && mine.choice === i);
+      b.setAttribute('aria-pressed', String(!!mine && mine.choice === i));
+      b.querySelector('i').style.width = (total ? Math.round(votes / total * 100) : 0) + '%';
+      const n = b.querySelector('b');
+      if (n.textContent !== String(votes)) { n.textContent = String(votes); n.classList.remove('tick'); void n.offsetWidth; n.classList.add('tick'); }
+    });
+    box.querySelector('.poll-note').textContent = (total === 1 ? '1 vote' : total + ' votes') + (mine ? ' · press your choice again to take it back' : '');
+    return;
+  }
   box.innerHTML = '';
   pl.options.forEach((label, i) => {
     const votes = (counts.find((c) => c.choice === i) || { votes: 0 }).votes;
@@ -2938,6 +3046,8 @@ function watchFeed() {
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'messages', filter: 'channel_id=eq.' + state.channel.id },
       async ({ new: row }) => {
+        const c = msgCache.get(row.channel_id);
+        if (c) c.at = 0;
         if (row.user_id === state.me.id) {
           addMessage({ ...row, profiles: { username: state.me.username, avatar: state.me.avatar } });
         } else {
@@ -2954,12 +3064,12 @@ function watchFeed() {
       })
     .on('postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'messages', filter: 'channel_id=eq.' + state.channel.id },
-      ({ new: row }) => applyMessageChange(row))
+      ({ new: row }) => { const c = msgCache.get(row.channel_id); if (c) c.at = 0; applyMessageChange(row); })
     .on('postgres_changes',
       { event: 'DELETE', schema: 'public', table: 'messages' },
       ({ old: row }) => {
         const el = $('messages').querySelector('[data-id="' + row.id + '"]');
-        if (el) { el.remove(); regroupMessages(); }
+        if (el) { el.remove(); regroupMessages(); if (state.channel && msgCache.has(state.channel.id)) msgCache.get(state.channel.id).at = 0; }
       })
     .subscribe();
 }
