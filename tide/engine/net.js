@@ -5689,7 +5689,7 @@ Several C libraries are used, and their licenses are listed below:
       }
       this.event_loop = setInterval(() => {
         this.event_loop_func();
-      }, 0);
+      }, 10);
     }
     event_loop_func() {
       let libcurl_active = _session_get_active(this.session_ptr);
