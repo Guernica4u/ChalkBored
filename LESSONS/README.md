@@ -160,13 +160,13 @@ The game files are not in this repo. They live in
 | 149 | Trollface Quest 3 | `Prank-Quest-3/index.html` |
 | 150 | Trollface Quest 4 | `Prank-Quest-4/index.html` |
 | 151 | Trollface Quest 5 | `Prank-Quest-5/index.html` |
-| 152 | Trollface Quest 6 | `Prank-Quest-6/index.html` |
-| 153 | Trollface Quest 7 | `Prank-Quest-7/index.html` |
-| 154 | Trollface Quest 8 | `Prank-Quest-8/index.html` |
-| 155 | Trollface Quest 9 | `Prank-Quest-9/index.html` |
-| 156 | Trollface Quest 10 | `Prank-Quest-10/index.html` |
-| 157 | Trollface Quest 11 | `Prank-Quest-11/index.html` |
-| 158 | Trollface Quest 12 | `Prank-Quest-12/index.html` |
+| 152 | Trollface Quest: Sports | `Prank-Quest-6/index.html` |
+| 153 | Trollface Quest: Video Memes | `Prank-Quest-7/index.html` |
+| 154 | Trollface Quest: Video Games | `Prank-Quest-8/index.html` |
+| 155 | Trollface Quest: Video Games (other version) | `Prank-Quest-9/index.html` |
+| 156 | Trollface Quest: Video Games 2 | `Prank-Quest-10/index.html` |
+| 157 | Trollface Quest: TV Shows | `Prank-Quest-11/index.html` |
+| 158 | Trollface Quest: Internet Memes | `Prank-Quest-12/index.html` |
 | 159 | Trollface Quest 13 | `Prank-Quest-13/index.html` |
 | 160 | World's Hardest Game | `Hardest-Path-1/index.html` |
 | 161 | World's Hardest Game 2 | `Hardest-Path-2/index.html` |
