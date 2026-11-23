@@ -133,6 +133,7 @@ const LIST = {
     { name: '.G5ng;B35sts?',                  path: 'LESSONS/Jelly-Brawl/index.html' },
     { name: '.B5sk3t;R5ndom?',                path: 'LESSONS/Court-Random/index.html' },
     { name: '.Doki;Doki;Lit3r5tur3;Club?',    path: 'LESSONS/Literature-Club/index.html' },
+    { name: '.St3ll5rDriv3?',                 path: 'LESSONS/Star-Drive-Lab/index.html', ours: true },
     { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
     { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
     { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
@@ -176,6 +177,7 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/Star-Drive-Lab/index.html': { src: 'LESSONS/art/star-drive-lab.webp', fit: 'cover' },
   'LESSONS/Wild-Drive/index.html': { src: 'LESSONS/art/wild-drive.webp', fit: 'cover' },
   'LESSONS/Road-Defense/index.html': { src: 'LESSONS/art/road-defense.webp', fit: 'cover' },
   'LESSONS/Swing-Physics/index.html': { src: 'LESSONS/art/swing-physics.webp', fit: 'cover' },

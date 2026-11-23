@@ -1,7 +1,7 @@
 # What the lessons really are
 
 Every game has a school-sounding code name so the filter doesn't block the notebook.
-This table lists them in card order (161 games).
+This table lists them in card order (162 games).
 
 The game files are not in this repo. They live in
 [Guernica4u/chalkbored-lessons](https://github.com/Guernica4u/chalkbored-lessons) and load from
@@ -134,39 +134,40 @@ The game files are not in this repo. They live in
 | 123 | Gang Beasts | `Jelly-Brawl/index.html` |
 | 124 | Basket Random | `Court-Random/index.html` |
 | 125 | Doki Doki Literature Club | `Literature-Club/index.html` |
-| 126 | Age of War | `Ancient-Evolution/index.html` |
-| 127 | Vex 3 | `Room-Escape-3/index.html` |
-| 128 | Vex 4 | `Room-Escape-4/index.html` |
-| 129 | Vex 5 | `Room-Escape-5/index.html` |
-| 130 | Vex 6 | `Room-Escape-6/index.html` |
-| 131 | Vex 7 | `Room-Escape-7/index.html` |
-| 132 | Papa's Bakeria | `Kitchen-Math-Baking/index.html` |
-| 133 | Papa's Burgeria | `Kitchen-Math-Burgers/index.html` |
-| 134 | Papa's Cheeseria | `Kitchen-Math-Cheese/index.html` |
-| 135 | Papa's Cupcakeria | `Kitchen-Math-Cupcakes/index.html` |
-| 136 | Papa's Donuteria | `Kitchen-Math-Donuts/index.html` |
-| 137 | Papa's Freezeria | `Kitchen-Math-Frozen-Desserts/index.html` |
-| 138 | Papa's Hot Doggeria | `Kitchen-Math-Hot-Dogs/index.html` |
-| 139 | Papa's Pancakeria | `Kitchen-Math-Pancakes/index.html` |
-| 140 | Papa's Pastaria | `Kitchen-Math-Pasta/index.html` |
-| 141 | Papa's Pizzeria | `Kitchen-Math-Pizza/index.html` |
-| 142 | Papa's Scooperia | `Kitchen-Math-Ice-Cream/index.html` |
-| 143 | Papa's Sushiria | `Kitchen-Math-Sushi/index.html` |
-| 144 | Papa's Taco Mia | `Kitchen-Math-Tacos/index.html` |
-| 145 | Papa's Wingeria | `Kitchen-Math-Wings/index.html` |
-| 146 | Trollface Quest | `Prank-Quest-1/index.html` |
-| 147 | Trollface Quest 2 | `Prank-Quest-2/index.html` |
-| 148 | Trollface Quest 3 | `Prank-Quest-3/index.html` |
-| 149 | Trollface Quest 4 | `Prank-Quest-4/index.html` |
-| 150 | Trollface Quest 5 | `Prank-Quest-5/index.html` |
-| 151 | Trollface Quest: Sports | `Prank-Quest-6/index.html` |
-| 152 | Trollface Quest: Video Memes | `Prank-Quest-7/index.html` |
-| 153 | Trollface Quest: Video Games | `Prank-Quest-8/index.html` |
-| 154 | Trollface Quest: Video Games (other version) | `Prank-Quest-9/index.html` |
-| 155 | Trollface Quest: Video Games 2 | `Prank-Quest-10/index.html` |
-| 156 | Trollface Quest: TV Shows | `Prank-Quest-11/index.html` |
-| 157 | Trollface Quest: Internet Memes | `Prank-Quest-12/index.html` |
-| 158 | Trollface Quest 13 | `Prank-Quest-13/index.html` |
-| 159 | World's Hardest Game | `Hardest-Path-1/index.html` |
-| 160 | World's Hardest Game 2 | `Hardest-Path-2/index.html` |
-| 161 | Line Rider | `Line-Drawing-Physics/index.html` |
+| 126 | StellarDrive | `Star-Drive-Lab/index.html` |
+| 127 | Age of War | `Ancient-Evolution/index.html` |
+| 128 | Vex 3 | `Room-Escape-3/index.html` |
+| 129 | Vex 4 | `Room-Escape-4/index.html` |
+| 130 | Vex 5 | `Room-Escape-5/index.html` |
+| 131 | Vex 6 | `Room-Escape-6/index.html` |
+| 132 | Vex 7 | `Room-Escape-7/index.html` |
+| 133 | Papa's Bakeria | `Kitchen-Math-Baking/index.html` |
+| 134 | Papa's Burgeria | `Kitchen-Math-Burgers/index.html` |
+| 135 | Papa's Cheeseria | `Kitchen-Math-Cheese/index.html` |
+| 136 | Papa's Cupcakeria | `Kitchen-Math-Cupcakes/index.html` |
+| 137 | Papa's Donuteria | `Kitchen-Math-Donuts/index.html` |
+| 138 | Papa's Freezeria | `Kitchen-Math-Frozen-Desserts/index.html` |
+| 139 | Papa's Hot Doggeria | `Kitchen-Math-Hot-Dogs/index.html` |
+| 140 | Papa's Pancakeria | `Kitchen-Math-Pancakes/index.html` |
+| 141 | Papa's Pastaria | `Kitchen-Math-Pasta/index.html` |
+| 142 | Papa's Pizzeria | `Kitchen-Math-Pizza/index.html` |
+| 143 | Papa's Scooperia | `Kitchen-Math-Ice-Cream/index.html` |
+| 144 | Papa's Sushiria | `Kitchen-Math-Sushi/index.html` |
+| 145 | Papa's Taco Mia | `Kitchen-Math-Tacos/index.html` |
+| 146 | Papa's Wingeria | `Kitchen-Math-Wings/index.html` |
+| 147 | Trollface Quest | `Prank-Quest-1/index.html` |
+| 148 | Trollface Quest 2 | `Prank-Quest-2/index.html` |
+| 149 | Trollface Quest 3 | `Prank-Quest-3/index.html` |
+| 150 | Trollface Quest 4 | `Prank-Quest-4/index.html` |
+| 151 | Trollface Quest 5 | `Prank-Quest-5/index.html` |
+| 152 | Trollface Quest: Sports | `Prank-Quest-6/index.html` |
+| 153 | Trollface Quest: Video Memes | `Prank-Quest-7/index.html` |
+| 154 | Trollface Quest: Video Games | `Prank-Quest-8/index.html` |
+| 155 | Trollface Quest: Video Games (other version) | `Prank-Quest-9/index.html` |
+| 156 | Trollface Quest: Video Games 2 | `Prank-Quest-10/index.html` |
+| 157 | Trollface Quest: TV Shows | `Prank-Quest-11/index.html` |
+| 158 | Trollface Quest: Internet Memes | `Prank-Quest-12/index.html` |
+| 159 | Trollface Quest 13 | `Prank-Quest-13/index.html` |
+| 160 | World's Hardest Game | `Hardest-Path-1/index.html` |
+| 161 | World's Hardest Game 2 | `Hardest-Path-2/index.html` |
+| 162 | Line Rider | `Line-Drawing-Physics/index.html` |
