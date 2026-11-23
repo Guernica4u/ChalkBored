@@ -233,7 +233,6 @@
   .row .pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; }
   .row .g { flex: none; width: 18px; text-align: center; color: var(--pencil); font-size: 0.75rem; }
   .row .pic { flex: none; width: 40px; height: 30px; border-radius: 5px; background: var(--paper-2) center/cover; }
-  .row .mini.vid svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
   .row .pic.letter, .pl .ic { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
   .pl .ic.art { background: var(--paper-2) center/cover; border-color: transparent; }
   .row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -241,6 +240,7 @@
   .row .d { flex: none; color: var(--pencil); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
   .mini { flex: none; width: 26px; height: 26px; border-radius: 6px; border: 1px solid transparent; background: none; color: var(--pencil); }
   .mini:hover { border-color: var(--edge); color: var(--ink); background: var(--card); }
+  .row .mini.src { width: auto; height: 20px; padding: 0 5px; border-color: var(--edge); border-radius: 4px; font-size: 0.62rem; }
   .none { padding: 22px 12px; text-align: center; color: var(--pencil); line-height: 1.6; font-size: 0.85rem; }
 
   /* small menus and boxes */
@@ -1033,6 +1033,20 @@ function stepIndex(dir) {
 const song = i => S.songs[tracks[i]];
 const listName = id => (id === "all" ? "All songs" : (listById(id) || {}).name || "All songs");
 
+/* where a song plays from: its own source, unless one was picked for it */
+const nativeSource = s => s.kind === "yt" ? "yt" : s.kind === "sc" ? "sc" : String(s.id).startsWith("au:") ? "au" : "file";
+const sourceOf = s => s.pref || nativeSource(s);
+const SOURCE_ORDER = ["yt", "sc", "au"];
+function nextSource(s) {
+  keepSong(s);
+  const k = s.pref || nativeSource(s);
+  const to = SOURCE_ORDER[(SOURCE_ORDER.indexOf(k) + 1) % SOURCE_ORDER.length];
+  if (to === nativeSource(s)) delete s.pref; else s.pref = to;
+  save();
+  toast(s.title + ": now plays from " + NAME[to]);
+  const cur = song(at);
+  if (cur && cur.id === s.id) play(at); else { drawPlaylists(); drawSongs(); drawQueue(); }
+}
 function songRow(s, opts) {
   const r = el("div", "row" + (opts.on ? " on" : ""));
   const pick = el("button", "pick");
@@ -1047,13 +1061,12 @@ function songRow(s, opts) {
   pick.append(pic, n, el("span", "d", s.secs ? fmt(s.secs) : ""));
   pick.onclick = opts.play;
   r.appendChild(pick);
-  if (s.kind === "yt" && opts.play) {
-    const v = el("button", "mini vid");
-    v.type = "button";
-    v.title = "Watch the video";
-    v.innerHTML = '<svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M7 6.3v3.4L9.8 8z"/></svg>';
-    v.onclick = e => { e.stopPropagation(); watchVideo(s, opts.play); };
-    r.appendChild(v);
+  if (sourceOf(s) !== "file") {
+    const src = el("button", "mini src", NAME[sourceOf(s)]);
+    src.type = "button";
+    src.title = "Plays from " + NAME[sourceOf(s)] + ". Press to try the next source";
+    src.onclick = e => { e.stopPropagation(); nextSource(s); src.textContent = NAME[sourceOf(s)]; src.title = "Plays from " + NAME[sourceOf(s)] + ". Press to try the next source"; };
+    r.appendChild(src);
   }
   const plus = el("button", "mini", "+");
   plus.type = "button";
@@ -1083,6 +1096,12 @@ function dragRow(r, pos, move) {
 const moved = (a, from, to) => { const b = a.slice(), [x] = b.splice(from, 1); b.splice(to, 0, x); return b; };
 
 /* ---- the bar on the right: playlists, then the songs in the one picked ---- */
+function listSource(id) {
+  const seen = new Set(listIds(id).map(x => sourceOf(S.songs[x])));
+  if (seen.size > 1) return "Mixed";
+  const one = [...seen][0];
+  return !one ? "" : one === "file" ? "links" : NAME[one];
+}
 function drawPlaylists() {
   const box = $("pls");
   box.innerHTML = "";
@@ -1108,7 +1127,7 @@ function drawPlaylists() {
     box.appendChild(r);
   };
   row("all", "All songs", listIds("all").length);
-  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, ({ spotify: NAME.sp, youtube: NAME.yt, soundcloud: NAME.sc, audius: NAME.au })[l.from] || ""));
+  S.lists.forEach(l => row(l.id, l.name, listIds(l.id).length, listSource(l.id)));
 }
 let shownList = null;
 function drawSongs() {
@@ -1254,7 +1273,7 @@ function setArt(url, title) {
 function dressUp(s) {
   $("title").textContent = s.title;
   $("sub").textContent = s.author || (s.kind === "file" ? "a link" : "");
-  $("watch").disabled = s.kind !== "yt";
+  $("watch").disabled = sourceOf(s) !== "yt";
   setArt(s.thumb, s.title);
   if ("mediaSession" in navigator) {
     try {
@@ -1273,7 +1292,8 @@ async function play(i, dir) {
   save();
   slide(back, () => dressUp(s));
   stopOthers();
-  if (s.kind === "yt") playYouTubeSong(s);
+  if (s.pref && s.pref !== nativeSource(s)) playPicked(s);
+  else if (s.kind === "yt") playYouTubeSong(s);
   else if (s.kind === "sc") playSc(s);
   else {
     using = "file";
@@ -1282,6 +1302,27 @@ async function play(i, dir) {
   }
   drawSongs();
   drawQueue();
+}
+/* a song moved to another source: the same song there, found once and kept */
+async function playPicked(s) {
+  const to = s.pref;
+  s.alts = s.alts || {};
+  let alt = s.alts[to];
+  if (!alt) {
+    $("sub").textContent = "Finding this on " + NAME[to] + "…";
+    try { alt = await findOn(to, asTrack(s)); } catch (e) { alt = null; }
+    if (song(at) !== s) return;
+    if (!alt) return skipSoon("This one isn't on " + NAME[to] + ".");
+    s.alts[to] = alt;
+    save();
+  }
+  dressUp(s);
+  $("sub").textContent = (s.author ? s.author + " · " : "") + "from " + NAME[to];
+  if (alt.kind === "yt") return playYouTubeSong(alt);
+  if (alt.kind === "sc") return playSc(alt, s);
+  using = "file";
+  setSrc(alt.url);
+  audio.play().catch(() => {});
 }
 /* only one thing plays at a time */
 function stopOthers() {
@@ -1393,7 +1434,7 @@ function addLink() {
   box.append(el("h2", null, "Add songs"),
     el("p", null, "A song or a playlist from " + NAME.yt + ", " + NAME.sp + ", " + NAME.sc + " or " + NAME.au + ", or a link straight to a sound file. A playlist becomes a Chalk Music playlist."),
     input, el("div", "lab", "Play the songs from"));
-  [["same", "Where the link is from", NAME.sp + " playlists play from " + NAME.yt],
+  [["same", "Automatic", "Each link plays from its own source. " + NAME.sp + " links play from " + NAME.yt + "."],
    ["yt", NAME.yt, ""], ["sc", NAME.sc, ""], ["au", NAME.au, ""]].forEach(([v, name, note], k) => {
     const l = el("label", "opt"), i = el("input"), t = el("span", null, name);
     i.type = "radio"; i.name = "to"; i.value = v; i.checked = k === 0;
