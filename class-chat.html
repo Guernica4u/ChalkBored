@@ -1087,6 +1087,7 @@
     button, .channel, .server, .pick-row, .person, .cp-nav button, .vc-tile { transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.08s ease, opacity 0.12s ease; }
     button:active:not(:disabled), .channel:active, .pick-row:active, .person:active, .vc-tile:active:not(:disabled) { transform: scale(0.98); }
   }
+  html.lowend * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }   /* blur is the costly part on Chromebooks; short fades stay */
   @media (prefers-reduced-motion: reduce) {
     .dot { animation: none; }
     .app, .people-fold, .people-inner { transition: none; }
@@ -1429,6 +1430,8 @@ const state = {
 };
 
 // the profile columns that actually exist
+if ((navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4) document.documentElement.classList.add('lowend');
+
 function profileCols(extra) {
   return 'username, is_mod, avatar, bio, banner' + (extra ? ', ' + extra : '');
 }
@@ -2722,10 +2725,9 @@ $('pins-veil').addEventListener('click', (e) => { if (e.target.id === 'pins-veil
 // ---- polls
 async function loadPolls(ids) {
   if (!ids.length) return;
-  const [{ data: polls }, { data: counts }] = await Promise.all([
-    db.from('polls').select('message_id, options').in('message_id', ids),
-    db.rpc('poll_results', { p_ids: ids }),
-  ]);
+  const { data: polls } = await db.from('polls').select('message_id, options').in('message_id', ids);
+  if (!(polls || []).length) return;
+  const { data: counts } = await db.rpc('poll_results', { p_ids: polls.map((pl) => pl.message_id) });
   (polls || []).forEach((pl) => paintPoll(pl, (counts || []).filter((c) => c.message_id === pl.message_id)));
 }
 
@@ -2844,9 +2846,10 @@ function watchUnread() {
   document.addEventListener('visibilitychange', markRead);
   db.channel('unread:' + state.me.id)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, ({ new: row }) => {
-      if (row.user_id === state.me.id) return;
+      if (row.user_id === state.me.id || state.unread.has(row.channel_id)) return;
+      if (state.channel && row.channel_id === state.channel.id && !document.hidden && !state.homeOn) return;
       clearTimeout(unreadTimer);
-      unreadTimer = setTimeout(loadUnread, 600);
+      unreadTimer = setTimeout(loadUnread, 2000);
     })
     .subscribe();
 }
@@ -2927,6 +2930,7 @@ function composeNote(text) {
 }
 
 // live messages for the open channel
+let readSoon = null;
 function watchFeed() {
   if (state.feed) db.removeChannel(state.feed);
   state.feed = db
@@ -2945,7 +2949,8 @@ function watchFeed() {
         if (added) added.classList.add('arrive');
         loadPolls([row.id]);
         scrollDown();
-        markRead();
+        clearTimeout(readSoon);
+        readSoon = setTimeout(markRead, 1500);
       })
     .on('postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'messages', filter: 'channel_id=eq.' + state.channel.id },
@@ -3204,11 +3209,11 @@ function loadEveryone() {
 
 // who's online anywhere in the chat: this tab checks in every 30 seconds,
 // and the database (not anyone's browser) decides who counts as online
-let beatTimer = null;
+let beatTimer = null, beats = 0;
 async function heartbeat() {
   await db.rpc('chat_here');
   if (document.hidden) return;   // the check-in keeps you online; the rest catches up when the tab is seen again
-  loadFriends();   // friend requests and answers arrive with the check-in
+  if (beats++ % 2 === 0) loadFriends();   // friend requests and answers, every other check-in
   const { data } = await db.rpc('online_ids');
   const next = new Set(data || []);
   const changed = !sameSet(next, state.online);
@@ -3220,7 +3225,7 @@ function watchEveryone() {
   if (beatTimer) return;
   heartbeat();
   beatTimer = setInterval(heartbeat, 30000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) heartbeat(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { beats = 0; heartbeat(); } });
 }
 
 function personTag(p) {
@@ -4553,7 +4558,7 @@ function canEndVoice(key) {
   return !!state.room && state.channels.some((c) => 'v:' + c.id === key) && canManage(state.room);
 }
 
-// shortcut: checks every 8 seconds who's in the class's voice channels; a live feed would show the names of private calls
+// shortcut: checks every 15 seconds who's in the class's voice channels; a live feed would show the names of private calls
 async function loadVoicePeople() {
   const room = state.room;
   if (!room) return;
@@ -4710,7 +4715,7 @@ $('voice-calls').onclick = async () => {
 window.addEventListener('pagehide', () => { if (voice.key) leaveVoice(); });
 
 function watchVoice() {
-  setInterval(() => { if (!document.hidden) loadVoicePeople(); }, 8000);
+  setInterval(() => { if (!document.hidden) loadVoicePeople(); }, 15000);
   db.channel('voice:' + state.me.id)
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'voice_signals', filter: 'to_id=eq.' + state.me.id },

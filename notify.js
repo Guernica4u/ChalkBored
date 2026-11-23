@@ -78,6 +78,7 @@
   .bell-row:hover, .bell-row:focus-visible { background: var(--paper-2, rgba(255, 255, 255, .06)); outline: none; }
   .bell-row.new { font-weight: 600; }
   .bell-row small { display: block; margin-top: 2px; font-size: .68rem; font-weight: 400; color: var(--pencil, #9a9a9a); }
+  html.lowend .bell-list { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .bell-empty { margin: 4px 6px 6px; font-size: .78rem; color: var(--pencil, #9a9a9a); }`;
   document.head.appendChild(bellCss);
 
