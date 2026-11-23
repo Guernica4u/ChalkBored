@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <title>Chalk Music</title>
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -115,10 +117,12 @@
   #discwrap { position: relative; width: min(56%, 40vh, 280px); aspect-ratio: 1; flex: 0 0 auto; margin: 4% 0 3%; }
   #disc {
     position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden;
-    background: var(--paper-2); box-shadow: var(--shadow), 0 0 0 1px var(--edge) inset;
+    background: var(--paper-2); box-shadow: 0 0 0 1px var(--edge) inset;
     animation: spin 16s linear infinite; animation-play-state: paused;
   }
-  body.playing #disc { animation-play-state: running; }
+  #discwrap::before { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: var(--shadow); }
+  body.square #discwrap::before { border-radius: var(--radius); }
+  body.playing #disc { animation-play-state: running; will-change: transform; }
   body.no-spin #disc { animation: none; }
   #side-btn svg { transition: transform 0.2s ease; }
   body.side-shut #side-btn svg { transform: rotate(180deg); }
@@ -126,10 +130,10 @@
   #art { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; }
   #art.letter { display: flex; align-items: center; justify-content: center; font: 700 clamp(44px, 16vh, 84px)/1 var(--hand); color: var(--accent-ink); background: var(--accent); }
   /* YouTube's player plays the sound from here, out of sight */
-  #screen { position: absolute; left: 0; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
+  #screen { position: absolute; left: -10000px; top: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; overflow: hidden; }
   #screen iframe { width: 100%; height: 100%; border: 0; }
   #screen .shield, #vhint { display: none; }
-  #screen.video { position: fixed; inset: 0; width: auto; height: auto; z-index: 30; opacity: 1; pointer-events: auto; background: #000; animation: fade-in 0.4s ease-out; }
+  #screen.video { position: fixed; inset: 0; left: 0; width: auto; height: auto; z-index: 30; opacity: 1; pointer-events: auto; background: #000; animation: fade-in 0.4s ease-out; }
   /* covers the player, so YouTube's own buttons never show on hover */
   #screen.video .shield { display: block; position: absolute; inset: 0; z-index: 1; cursor: none; }
   #screen.video #vhint { display: block; position: absolute; top: 18px; left: 50%; z-index: 2; transform: translateX(-50%); padding: 7px 14px; border-radius: var(--radius);
@@ -251,6 +255,9 @@
   #menu button { display: block; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px; background: none; text-align: left; font-size: 0.85rem; }
   #menu button:hover { background: var(--paper-2); }
   #menu .sep { height: 1px; margin: 4px 2px; background: var(--edge); }
+  .veil { animation: fade-in 0.15s ease-out; }
+  .veil .box { animation: list-in 0.18s ease-out; }
+  #toast:not([hidden]) { animation: fade-in 0.18s ease-out; }
   .veil { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.45); }
   .box { width: 100%; max-width: 430px; padding: 18px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--edge); box-shadow: var(--shadow); }
   .box h2 { margin: 0 0 6px; font: 700 1.15rem/1.3 var(--hand); }
@@ -296,6 +303,7 @@
     #queue, #side, #corner, #seekbar, #controls, #handle, #side-btn svg { transition: none; }
     #songs.enter, body.idle #card, #screen.video { animation: none; }
     #lyrics p { transition: none; }
+    .veil, .veil .box, #toast:not([hidden]) { animation: none; }
   }
   /* narrow: the bar on the right slides in over the player */
   @media (max-width: 720px) {
@@ -916,8 +924,8 @@ function tideTick() {
   if (v && v.ended && tideEnded !== tideVid) { tideEnded = tideVid; ended(); }
 }
 /* found out early, so searching already knows where songs come from */
-timeout(loadYouTubeApi(), 10000).catch(() => { ytBlocked = true; });
-function ytPlayer(firstVid) {
+setTimeout(() => timeout(loadYouTubeApi(), 10000).catch(() => { ytBlocked = true; }), 4000);
+function ytPlayer(firstVid, cue) {
   /* a school filter often just never answers, so give up after a while */
   if (!ytReadyP) ytReadyP = timeout(loadYouTubeApi(), 10000).then(() => timeout(new Promise(ok => {
     const f = document.createElement("iframe");
@@ -925,7 +933,7 @@ function ytPlayer(firstVid) {
     f.title = "Player";
     f.allow = "autoplay; encrypted-media";
     f.referrerPolicy = "strict-origin-when-cross-origin";
-    f.src = "https://www.youtube.com/embed/" + firstVid + "?enablejsapi=1&autoplay=1&playsinline=1&rel=0&controls=0&iv_load_policy=3&disablekb=1&fs=0&origin=" + encodeURIComponent(location.origin);
+    f.src = "https://www.youtube.com/embed/" + firstVid + "?enablejsapi=1&autoplay=" + (cue ? 0 : 1) + "&playsinline=1&rel=0&controls=0&iv_load_policy=3&disablekb=1&fs=0&origin=" + encodeURIComponent(location.origin);
     $("screen").appendChild(f);
     yt = new YT.Player(f, {
       events: {
@@ -1033,6 +1041,9 @@ function stepIndex(dir) {
 const song = i => S.songs[tracks[i]];
 const listName = id => (id === "all" ? "All songs" : (listById(id) || {}).name || "All songs");
 
+/* a song's picture at row size (about a sixth of the bytes) */
+const smallPic = u => String(u || "").replace(/\/(hq|sd|maxres)default\.jpg/, "/default.jpg").replace("480x480", "150x150")
+  .replace("-t300x300.", "-large.").replace(/=w\d+-h\d+/, "=w120-h120");
 /* where a song plays from: its own source, unless one was picked for it */
 const nativeSource = s => s.kind === "yt" ? "yt" : s.kind === "sc" ? "sc" : String(s.id).startsWith("au:") ? "au" : "file";
 const sourceOf = s => s.pref || nativeSource(s);
@@ -1055,7 +1066,7 @@ function songRow(s, opts) {
   if (opts.num != null) pick.appendChild(el("span", "g", opts.on && !engine.paused() ? "▶" : String(opts.num)));
   const pic = el("span", "pic");
   if (!s.thumb) { pic.classList.add("letter"); pic.textContent = (s.title || "?").trim().charAt(0).toUpperCase(); }
-  else pic.style.backgroundImage = 'url("' + String(s.thumb).replace(/"/g, "%22") + '")';
+  else pic.style.backgroundImage = 'url("' + smallPic(s.thumb).replace(/"/g, "%22") + '")';
   const n = el("span", "n", s.title);
   n.appendChild(el("small", null, s.author || (s.kind === "file" ? "a link" : "")));
   pick.append(pic, n, el("span", "d", s.secs ? fmt(s.secs) : ""));
@@ -1111,7 +1122,7 @@ function drawPlaylists() {
     pick.type = "button";
     const ic = el("span", "ic", id === "all" ? "♫" : name.trim().charAt(0).toUpperCase() || "♪");
     const first = id === "all" ? null : listIds(id).map(x => S.songs[x]).find(x => x && x.thumb);
-    if (first) { ic.textContent = ""; ic.classList.add("art"); ic.style.backgroundImage = 'url("' + String(first.thumb).replace(/"/g, "%22") + '")'; }
+    if (first) { ic.textContent = ""; ic.classList.add("art"); ic.style.backgroundImage = 'url("' + smallPic(first.thumb).replace(/"/g, "%22") + '")'; }
     pick.append(ic, el("span", "n", name));
     if (from) pick.appendChild(el("span", "from", from));
     pick.appendChild(el("span", "c", String(n)));
@@ -1397,6 +1408,7 @@ function ended() {
 let wasPaused = true;
 function playingChanged() {
   const p = engine.paused();
+  if (p === wasPaused && $("play").firstChild) return;
   document.body.classList.toggle("playing", !p);
   $("play").innerHTML = p ? '<svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>'
                           : '<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>';
@@ -1647,6 +1659,7 @@ async function find(q) {
     g.value.forEach(s => box.appendChild(songRow(s, { play: () => takeSong(s, true) })));
   });
   if (!any) box.appendChild(el("div", "none", err || "Nothing found. Try other words."));
+  box.classList.remove("enter"); void box.offsetWidth; box.classList.add("enter");
 }
 
 const SOURCES = [
@@ -1979,11 +1992,12 @@ audio.onerror = async () => {
 /* the clock, and keeping up with YouTube's player, which says less on its own */
 setInterval(() => {
   if (using === "none") return;
+  if (using === "tide") tideTick();
+  if (document.hidden) return;
   const t = engine.time(), d = engine.dur();
   if (!seeking && d) $("seek").value = String(Math.round(t / d * 1000));
   $("at").textContent = fmt(t);
   $("of").textContent = fmt(d);
-  if (using === "tide") tideTick();
   lyricsTick();
   if (using === "yt" || using === "tide") playingChanged();
 }, 250);
@@ -2039,6 +2053,10 @@ if (S.now && S.songs[S.now.id]) {
   build();
   at = tracks.indexOf(S.now.id);
   if (at >= 0) { reorder(); dressUp(song(at)); drawSongs(); drawQueue(); }
+  /* the player gets ready for that song once the page has settled, so Play starts at once */
+  const ready = song(at);
+  if (ready && ready.kind === "yt" && !ready.pref && ["auto", "yt"].includes(S.source || "auto"))
+    setTimeout(() => { if (!yt && !ytBlocked && using === "none") ytPlayer(ready.vid, true).catch(() => {}); }, 6000);
 }
 build();
 </script>
