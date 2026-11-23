@@ -198,6 +198,29 @@ engine.then(() => { if (framed) try { window.parent.postMessage({ tide: 'ready' 
     : 'Its engine did not start (' + e.message + '). Reloading usually fixes it.'));
 /* Firefox can't hand a stream between pages, so there each answer goes over whole */
 const CHUNK = 4 * 1024 * 1024;
+const MEDIA_FILE = /\.(mp4|m4v|webm|mov|ogv|mp3|m4a|ogg|oga|wav|flac|opus)$/i;
+const moved = new Map();   // a video's address -> where it redirected
+const warming = new Set();
+/* While the player page sets up, ask for the file's first byte: the connections are open and any
+   redirect is known by the time the player asks, so its first part comes straight back. */
+async function warm(url) {
+  if (warming.has(url)) return;
+  warming.add(url);
+  setTimeout(() => warming.delete(url), 10000);
+  try {
+    const t = ctl.transport;
+    if (!t.session) await (t.tideInit = t.tideInit || t.init());
+    for (let hop = 0; hop < 3; hop++) {
+      const r = await t.request(new URL(url), 'GET', null, [['range', 'bytes=0-0']], undefined);
+      try { r.body && r.body.cancel(); } catch (e) {}
+      const loc = r.status >= 301 && r.status <= 308 && new Headers(r.headers).get('location');
+      if (!loc) return;
+      const to = new URL(loc, url).href;
+      moved.set(url, to);
+      url = to;
+    }
+  } catch (e) {}
+}
 const canStream =(() => { try { const ch = new MessageChannel(), rs = new ReadableStream(); ch.port1.postMessage(rs, [rs]); return true; } catch (e) { return false; } })();
 
 /* ---- tabs ---- */
@@ -316,6 +339,7 @@ async function open(t, input) {
   renderTabs();
   saveTabs();
   try { await engine; } catch (e) { return; }
+  try { if (MEDIA_FILE.test(new URL(url).pathname)) warm(url); } catch (e) {}   // before the page even starts
   frameFor(t).go(url);
   if (t === active) t.frame.element.classList.add('shown');
 }
@@ -338,12 +362,33 @@ function frameFor(t) {
      film asked for as "bytes=N-" would pile up in memory far ahead of playback. Ask for 4 MB at
      a time instead; the player asks for the next part when it needs it. */
   Tap.tap(f.hooks.fetch.request, (ctx, props) => {
+    const dest = ctx.parsed.destination || ctx.request.rawDestination;
+    const url = String(props.url);
+    /* A video or song opened as a page: answer with a small player page right here. Otherwise the
+       page request downloads the whole file while the player asks for it again on a second connection. */
+    if ((dest === 'document' || dest === 'iframe') && MEDIA_FILE.test(new URL(url).pathname)) {
+      const src = url.replace(/[&"<>]/g, c => '&#' + c.charCodeAt(0) + ';');
+      const name = decodeURIComponent(new URL(url).pathname.split('/').pop()).replace(/[&<>]/g, '');
+      props.earlyResponse = new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>' + name +
+        '</title><style>html,body{margin:0;height:100%;background:#000}video{display:block;width:100%;height:100%;object-fit:contain}</style>' +
+        '<video src="' + src + '" controls autoplay playsinline></video>', { headers: { 'content-type': 'text/html; charset=utf-8' } });
+      warm(url);
+      return;
+    }
+    /* the player's later parts go straight to where the file was redirected, skipping a hop */
+    if (dest === 'video' || dest === 'audio') { const to = moved.get(url); if (to) props.url = new URL(to); }
     const h = props.init.headers;
     if (!Array.isArray(h)) return;
     for (const pair of h) {
       const m = /^range$/i.test(pair[0]) && /^bytes=(\d+)-$/.exec(String(pair[1]).trim());
       if (m) pair[1] = 'bytes=' + m[1] + '-' + (+m[1] + CHUNK - 1);
     }
+  });
+  Tap.tap(f.hooks.fetch.preresponse, (ctx, props) => {
+    const dest = ctx.parsed.destination || ctx.request.rawDestination, r = props.response;
+    if ((dest !== 'video' && dest !== 'audio') || r.status < 301 || r.status > 308) return;
+    const loc = r.headers.get ? r.headers.get('location') : null;
+    if (loc) { if (moved.size > 50) moved.clear(); moved.set(String(ctx.parsed.url), new URL(loc, String(ctx.parsed.url)).href); }
   });
   if (!canStream) Tap.tap(f.hooks.fetch.response, async (ctx, props) => {
     const body = props.response.body;
