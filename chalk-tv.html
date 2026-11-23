@@ -20,6 +20,7 @@
     --highlight: #3a3a3a;
     --rail: #080808;
     --r: 4px;
+    --pbar: 40px;
     --body: 'Aptos', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
     color-scheme: dark;
   }
@@ -55,8 +56,10 @@
   }
   #brand { border: 0; background: none; padding: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
   #brand b { color: var(--pencil); font-weight: 400; }
-  #source { border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); color: var(--pencil); padding: 5px 10px; font-size: .76rem; font-weight: 600; white-space: nowrap; }
-  #source:hover { color: var(--ink); border-color: var(--accent); background: var(--highlight); }
+  #source { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); padding: 4px 10px; line-height: 1.05; white-space: nowrap; }
+  #source .src-label { color: var(--pencil); font-size: .58rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  #source .src-name { color: var(--ink); font-size: .82rem; font-weight: 700; }
+  #source:hover { border-color: var(--accent); background: var(--highlight); }
   .nav { display: flex; gap: 4px; }
   .nav button { border: 1px solid transparent; background: none; padding: 7px 12px; border-radius: var(--r); color: var(--pencil); font-size: .92rem; }
   .nav button:hover { color: var(--ink); background: var(--highlight); }
@@ -137,31 +140,49 @@
   #details h3 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: -.02em; }
   #details p { margin: 0 0 18px; color: #c9c9c9; line-height: 1.65; }
   #d-close-x { position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--paper); font-size: 1.2rem; }
+  #d-picker { margin-top: 18px; border-top: 1px solid var(--edge); padding-top: 16px; }
+  .pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .pick-head label { color: var(--pencil); font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  #d-season { border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); padding: 6px 10px; font-size: .82rem; }
+  #d-epcount { color: var(--pencil); font-size: .78rem; }
+  #d-eps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 232px; overflow-y: auto; padding-right: 4px; }
+  .ep { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 88px; padding: 8px 9px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); text-align: left; overflow: hidden; }
+  .ep .art, .ep .shade { position: absolute; inset: 0; }
+  .ep .art { background-size: cover; background-position: center; opacity: .5; }
+  .ep .shade { background: linear-gradient(0deg, rgba(0,0,0,.94), rgba(0,0,0,.20)); }
+  .ep > span:not(.art):not(.shade) { position: relative; }
+  .ep .no { color: var(--pencil); font-size: .7rem; font-weight: 700; }
+  .ep .name { font-size: .82rem; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ep .meta { color: #bdbdbd; font-size: .7rem; }
+  .ep:hover, .ep.on { border-color: var(--accent); }
+  .ep.on .shade { background: linear-gradient(0deg, rgba(0,0,0,.96), rgba(242,242,242,.14)); }
+  #d-eps .ep.more { grid-column: 1 / -1; min-height: 38px; align-items: center; justify-content: center; color: var(--pencil); font-size: .78rem; }
   @media (max-width: 640px) {
     #hero .dots { display: none; }
     #details .body { grid-template-columns: 1fr; margin-top: -30px; padding: 0 20px 24px; }
     #details .poster { width: 116px; }
     #details .cover { height: 200px; }
+    #d-eps { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); max-height: 210px; }
   }
 
   /* player: the viewing pane fills this area */
   #player { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #000; animation: veil .2s ease backwards; }
   #p-bar { animation: rise .24s ease backwards; }
-  #p-bar { display: flex; align-items: center; gap: 12px; flex: none; height: 56px; padding: 0 14px; background: var(--paper-2); border-bottom: 1px solid var(--edge); }
-  #p-back { border: 1px solid var(--edge); background: var(--card); border-radius: var(--r); padding: 7px 12px; }
+  #p-bar { display: flex; align-items: center; gap: 9px; flex: none; height: var(--pbar); padding: 0 9px; background: #0d0d0d; border-bottom: 1px solid #242424; }
+  #p-back { border: 1px solid #2a2a2a; background: #101010; border-radius: var(--r); padding: 4px 9px; font-size: .78rem; }
   #p-back:hover { background: var(--accent); color: var(--accent-ink); }
-  #p-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 700; }
-  #p-note { margin-left: auto; color: var(--pencil); font-size: .78rem; }
+  #p-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .84rem; font-weight: 700; }
   #p-stage { position: relative; flex: 1; background: #000; }
-  #p-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--pencil); pointer-events: none; }
+  #p-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--pencil); pointer-events: none; }
+  #p-open { border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); padding: 5px 10px; font-size: .78rem; pointer-events: auto; }
   #pane { position: fixed; width: 1px; height: 1px; left: -10px; top: 0; border: 0; opacity: 0; pointer-events: none; }
-  body.playing #pane { left: 0; top: 56px; width: 100%; height: calc(100% - 56px); opacity: 1; pointer-events: auto; z-index: 21; background: #000; }
+  body.playing #pane { left: 0; top: var(--pbar); width: 100%; height: calc(100% - var(--pbar)); opacity: 1; pointer-events: auto; z-index: 21; background: #000; }
 </style>
 </head>
 <body>
 <header id="top">
   <button id="brand" type="button" title="Chalk TV home">Chalk<b>TV</b></button>
-  <button id="source" type="button" aria-label="Change library">Main</button>
+  <button id="source" type="button" aria-label="Source: Movy, main library. Change source."><span class="src-label">source</span><span class="src-name">Movy</span></button>
   <nav class="nav" id="nav">
     <button type="button" data-section="all" class="on">Home</button>
     <button type="button" data-section="anime">Anime</button>
@@ -181,6 +202,10 @@
         <h3 id="d-title"></h3>
         <div class="meta" id="d-meta"></div>
         <p id="d-text"></p>
+        <div id="d-picker" hidden>
+          <div class="pick-head"><label for="d-season">Season</label><select id="d-season"></select><span id="d-epcount"></span></div>
+          <div id="d-eps"></div>
+        </div>
         <div class="actions"><button class="btn main" id="d-play" type="button">&#9654; Play</button><button class="btn" id="d-close" type="button">Close</button></div>
       </div>
     </div>
@@ -188,7 +213,7 @@
 </div>
 
 <div id="player" hidden>
-  <div id="p-bar"><button id="p-back" type="button">&#8249; Back to Chalk TV</button><div id="p-title"></div><div id="p-note">Now viewing</div></div>
+  <div id="p-bar"><button id="p-back" type="button">&#8249; Back to Chalk TV</button><div id="p-title"></div></div>
   <div id="p-stage"><div id="p-wait">Loading film…</div></div>
 </div>
 
@@ -211,21 +236,23 @@ const PANE_PAGE = new URL(decode("dGlkZS8="), location.href).href;   // local vi
 const PANE_ORIGIN = new URL(PANE_PAGE).origin;
 const ART_HOST = SITE.replace("://", "://www.");
 const SOURCES = [
-  { name: "Main", site: SITE, api: LIBRARY, art: (path, size) => ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp", anime: false },
-  { name: "Beta", site: BETA, api: BETA + "/tmdb", art: (path, size) => BETA_IMG + "/" + size + path, anime: true }
+  { name: "Movy", role: "main", site: SITE, api: LIBRARY, art: (path, size) => ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp", anime: false },
+  { name: "CNO", role: "backup", site: BETA, api: BETA + "/tmdb", art: (path, size) => BETA_IMG + "/" + size + path, anime: true }
 ];
 let sourceIndex = 0;
 try { sourceIndex = Number(localStorage.getItem(SOURCE_KEY)) === 1 ? 1 : 0; } catch (e) {}
 const source = () => SOURCES[sourceIndex];
 function updateSourceButton() {
   const b = $("source");
-  b.textContent = source().name;
-  b.title = "Library: " + source().name + " — change";
-  b.setAttribute("aria-label", "Change library, now " + source().name);
+  b.innerHTML = '<span class="src-label">source</span><span class="src-name"></span>';
+  b.querySelector(".src-name").textContent = source().name;
+  b.title = source().name + " — " + source().role + " source. Change source.";
+  b.setAttribute("aria-label", "Source: " + source().name + ", " + source().role + ". Change source.");
 }
 updateSourceButton();
 const ADULT = ["sex", "sexy", "nude", "nudist", "naked", "erotic", "stripper", "striptease", "lust", "burlesque", "porn"];
 const ADULT_RE = /\b(sex|sexy|nude|nudist|naked|erotic|stripper|striptease|lust|burlesque|porn)/i;   // the school-safe list from the old app
+const slugOf = title => String(title || "").toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
 const GENRES = { 12:"Adventure",14:"Fantasy",16:"Animation",18:"Drama",27:"Horror",28:"Action",
   35:"Comedy",36:"History",37:"Western",53:"Thriller",80:"Crime",99:"Documentary",878:"Sci-fi",
   9648:"Mystery",10402:"Music",10749:"Romance",10751:"Family",10762:"Kids",10763:"News",
@@ -316,9 +343,13 @@ function clean(r, forced) {
   const date = r.release_date || r.first_air_date || "";
   const back = r.backdrop_path || r.poster_path;
   const front = r.poster_path || r.backdrop_path;
+  const backup = sourceIndex === 1;
+  const path = slugOf(title) + "-" + r.id;
+  const kind = type === "tv" ? "show" : "movie";
   return {
-    key: type + ":" + r.id, id: r.id, type, title,
-    url: source().site + "/" + type + "/" + r.id,
+    key: type + ":" + r.id, id: r.id, sid: r.id, path, backupType: kind, type, title,
+    url: backup ? BETA + "/" + kind + "/" + path : SITE + "/" + type + "/" + r.id,
+    playUrl: backup ? BETA + "/watch/" + (type === "tv" ? kind + "/" + path + "/1/1" : path) : "",
     art: imageUrl(back), poster: imageUrl(front, "w342"),
     text: r.overview || "",
     year: date.slice(0, 4) || "",
@@ -355,17 +386,19 @@ function cleanAnime(a) {
   const genres = a.genres || [];
   if (!title || ADULT_RE.test(title + " " + (a.synopsis || "")) || ANIME_ADULT_RE.test(title + " " + genres.join(" "))) return null;
   const aid = String(a.anilistId || a.malId || a.id || "");
+  const sid = String(a.id || aid);
   if (!aid) return null;
-  const slug = title.toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
-  const path = slug + "-" + aid;
+  const path = slugOf(title) + "-" + aid;
   const poster = a.poster ? (/^https?:/i.test(a.poster) ? a.poster : BETA + a.poster) : "";
   return {
-    key: "anime:" + aid, id: aid, type: "tv", title,
+    key: "anime:" + aid, id: aid, sid, path, backupType: "anime", type: "tv", title,
     url: BETA + "/anime/" + path,
+    playUrl: BETA + "/watch/" + path + "/1",
     art: poster, poster, text: a.synopsis || "",
     year: a.year ? String(a.year) : "",
     rating: Math.round((Number(a.score) || 0) * 10) / 10,
     tags: genres.slice(0, 3),
+    episodeCount: Math.max(1, Number(a.episodeCount) || 1),
     source: sourceIndex, beta: true
   };
 }
@@ -446,7 +479,10 @@ function hero(item) {
   h.querySelector("h1").textContent = item.title;
   h.querySelector(".meta").innerHTML = metaHTML(item);
   h.querySelector("p").textContent = item.text || "A classroom-friendly pick. Open it to watch.";
-  h.querySelector(".btn.main").onclick = () => play(item);
+  h.querySelector(".btn.main").onclick = () => {
+    if (item.type === "tv" || item.beta) details(item);
+    else play(item);
+  };
   h.querySelector(".more").onclick = () => details(item);
   const dots = h.querySelector(".dots");
   heroItems.forEach((_, i) => {
@@ -471,8 +507,9 @@ function showContinue(box) {
   const spots = loadContinue();
   if (!spots.length) return;
   const sec = row("Continue watching", spots.map(s => ({ title: s.title, art: s.art, poster: s.poster, year: s.year, type: s.type,
-    url: s.url, playUrl: s.playUrl, beta: s.beta, source: s.source })), {
-    note: "", click: s => play(s, 0),
+    id: s.id, sid: s.sid, path: s.path, url: s.url, playUrl: s.playUrl, beta: s.beta, source: s.source,
+    season: s.season, episode: s.episode })), {
+    note: "", click: s => play(s, 0, { season: s.season, episode: s.episode }),
     pct: 0
   });
   if (!sec) return;
@@ -481,7 +518,7 @@ function showContinue(box) {
     const s = spots[i], pct = s.d ? Math.round(100 * s.t / s.d) : 0;
     c.querySelector(".s").textContent = s.d ? Math.max(1, Math.round((s.d - s.t) / 60)) + " min left" : "Resume";
     c.querySelector(".prog i").style.width = pct + "%";
-    c.onclick = () => play(s, s.t);
+    c.onclick = () => play(s, s.t, { season: s.season, episode: s.episode });
   });
   box.appendChild(sec);
 }
@@ -583,20 +620,174 @@ $("search").onsubmit = e => {
   }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the library. Try again."; } });
 };
 
-/* ---- one title ---- */
-let current = null;
+/* ---- one title, with season and episode picking ---- */
+let current = null, pick = { season: 1, episode: 1 }, pickerRun = 0;
+const episodeCache = new Map();
+function sourceFor(item) { return SOURCES[item.source == null ? sourceIndex : item.source] || source(); }
+function artFor(item, path, size) { return path ? sourceFor(item).art(path, size) : ""; }
+function genericEpisodes(count) {
+  return Array.from({ length: Math.min(Math.max(Number(count) || 1, 1), 1000) }, (_, i) => ({ episode_number: i + 1, name: "Episode " + (i + 1) }));
+}
+async function loadSeasons(item) {
+  const key = item.key + ":seasons";
+  if (episodeCache.has(key)) return episodeCache.get(key);
+  let seasons;
+  if (item.beta) {
+    const j = await getJson(BETA + "/api/anime/series/" + encodeURIComponent(item.sid || item.id));
+    const eps = (j.episodes || []).filter(e => !ADULT_RE.test((e.title || "") + " " + (e.description || "")));
+    seasons = [{ season_number: 1, name: "Season 1", episodes: eps }];
+  } else {
+    const j = await getJson(sourceFor(item).api + "/tv/" + encodeURIComponent(item.id));
+    seasons = (j.seasons || []).filter(s => !ADULT_RE.test(s.name || ""))
+      .sort((a, b) => (Number(a.season_number) || 0) - (Number(b.season_number) || 0));
+  }
+  episodeCache.set(key, seasons);
+  return seasons;
+}
+async function loadEpisodes(item, season) {
+  const key = item.key + ":eps:" + season;
+  if (episodeCache.has(key)) return episodeCache.get(key);
+  let eps;
+  if (item.beta) {
+    const seasons = await loadSeasons(item);
+    eps = (seasons[0] && seasons[0].episodes) || genericEpisodes(item.episodeCount || 1);
+  } else {
+    const j = await getJson(sourceFor(item).api + "/tv/" + encodeURIComponent(item.id) + "/season/" + encodeURIComponent(season));
+    eps = (j.episodes || []).filter(e => !ADULT_RE.test((e.name || "") + " " + (e.overview || "")));
+  }
+  episodeCache.set(key, eps);
+  return eps;
+}
+function renderSeasonOptions(seasons, selected) {
+  const sel = $("d-season");
+  sel.replaceChildren();
+  sel.disabled = false;
+  seasons.forEach(s => {
+    const o = document.createElement("option");
+    o.value = String(s.season_number);
+    o.textContent = s.name || "Season " + s.season_number;
+    sel.appendChild(o);
+  });
+  const pref = seasons.find(s => Number(s.season_number) === Number(selected))
+    || seasons.find(s => Number(s.season_number) === 1) || seasons[0];
+  sel.value = String(pref.season_number);
+  return Number(pref.season_number);
+}
+function renderEpisodes(item, season, eps) {
+  const box = $("d-eps");
+  box.replaceChildren();
+  $("d-epcount").textContent = eps.length + (eps.length === 1 ? " episode" : " episodes");
+  const limit = 60;
+  let shown = Math.min(limit, eps.length);
+  function draw() {
+    box.replaceChildren();
+    eps.slice(0, shown).forEach(e => {
+      const n = Number(e.episode_number != null ? e.episode_number : e.number);
+      const name = e.name || e.title || "Episode " + n;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ep" + (n === pick.episode ? " on" : "");
+      const still = e.still_path ? artFor(item, e.still_path, "w500")
+        : e.thumbnail ? (/^https?:/i.test(e.thumbnail) ? e.thumbnail : BETA + e.thumbnail) : "";
+      if (still) { const art = document.createElement("span"); art.className = "art"; setImage(art, still); b.appendChild(art); }
+      const shade = document.createElement("span"); shade.className = "shade"; b.appendChild(shade);
+      const no = document.createElement("span"); no.className = "no"; no.textContent = "EP " + n; b.appendChild(no);
+      const nm = document.createElement("span"); nm.className = "name"; nm.textContent = name; b.appendChild(nm);
+      const mins = e.runtime || (e.runtimeSeconds ? Math.round(e.runtimeSeconds / 60) : 0);
+      const date = e.air_date || e.aired || "";
+      const meta = [mins ? mins + " min" : "", date ? String(date).slice(0, 4) : ""].filter(Boolean).join(" · ");
+      if (meta) { const m = document.createElement("span"); m.className = "meta"; m.textContent = meta; b.appendChild(m); }
+      b.setAttribute("aria-label", "Select " + item.title + ", season " + season + " episode " + n);
+      b.onclick = () => {
+        pick.episode = n;
+        box.querySelectorAll(".ep.on").forEach(x => x.classList.remove("on"));
+        b.classList.add("on");
+        $("d-play").textContent = "▶ Play S" + season + " E" + n;
+      };
+      box.appendChild(b);
+    });
+    if (shown < eps.length) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "ep more";
+      more.textContent = "Show " + Math.min(limit, eps.length - shown) + " more";
+      more.onclick = () => { shown += limit; draw(); };
+      box.appendChild(more);
+    }
+  }
+  draw();
+}
+function showPicker(item) {
+  const run = ++pickerRun;
+  pick = { season: Number(item.season) || 1, episode: Number(item.episode) || 1 };
+  if (item.type !== "tv" && !item.beta) {
+    $("d-picker").hidden = true;
+    $("d-play").textContent = "▶ Play";
+    return;
+  }
+  $("d-picker").hidden = false;
+  $("d-season").replaceChildren();
+  $("d-season").disabled = true;
+  $("d-season").onchange = null;
+  $("d-epcount").textContent = "Loading seasons…";
+  $("d-eps").replaceChildren();
+  $("d-play").textContent = "▶ Play";
+  loadSeasons(item).then(seasons => {
+    if (run !== pickerRun || current !== item) return;
+    if (!seasons.length) throw new Error("no seasons");
+    const s = renderSeasonOptions(seasons, pick.season);
+    pick.season = s;
+    $("d-epcount").textContent = "Loading episodes…";
+    return loadEpisodes(item, s).then(list => {
+      if (run !== pickerRun || current !== item) return;
+      const eps = list.length ? list : genericEpisodes(1);
+      if (!eps.some(e => Number(e.episode_number != null ? e.episode_number : e.number) === pick.episode)) pick.episode = 1;
+      renderEpisodes(item, s, eps);
+      $("d-play").textContent = "▶ Play S" + s + " E" + pick.episode;
+      $("d-season").onchange = () => {
+        const ns = Number($("d-season").value) || 1;
+        pick.season = ns;
+        pick.episode = 1;
+        $("d-epcount").textContent = "Loading episodes…";
+        $("d-eps").replaceChildren();
+        loadEpisodes(item, ns).then(list2 => {
+          if (run !== pickerRun || current !== item) return;
+          renderEpisodes(item, ns, list2.length ? list2 : genericEpisodes(1));
+          $("d-play").textContent = "▶ Play S" + ns + " E" + pick.episode;
+        }).catch(() => {
+          if (run !== pickerRun || current !== item) return;
+          renderEpisodes(item, ns, genericEpisodes(1));
+          $("d-play").textContent = "▶ Play S" + ns + " E1";
+        });
+      };
+    });
+  }).catch(() => {
+    if (run !== pickerRun || current !== item) return;
+    $("d-season").replaceChildren();
+    const o = document.createElement("option"); o.value = "1"; o.textContent = "Season 1"; $("d-season").appendChild(o);
+    $("d-season").disabled = true;
+    pick.season = 1; pick.episode = 1;
+    renderEpisodes(item, 1, genericEpisodes(item.episodeCount || 1));
+    $("d-play").textContent = "▶ Play S1 E1";
+  });
+}
 function details(item) {
   current = item;
   setImage($("d-cover"), item.art || item.poster);
   setImage($("d-poster"), item.poster || item.art);
   $("d-title").textContent = item.title;
   $("d-meta").innerHTML = metaHTML(item);
-  $("d-text").textContent = item.text || "Open this film to watch it.";
+  $("d-text").textContent = item.text || "Open this title to watch it.";
   $("details").hidden = false;
+  showPicker(item);
   $("d-play").focus();
 }
-function closeDetails() { $("details").hidden = true; current = null; }
-$("d-play").onclick = () => { if (current) play(current); };
+function closeDetails() { pickerRun++; $("details").hidden = true; current = null; }
+$("d-play").onclick = () => {
+  if (!current) return;
+  if (current.type === "tv" || current.beta) play(current, 0, { season: pick.season, episode: pick.episode });
+  else play(current);
+};
 $("d-close").onclick = closeDetails;
 $("d-close-x").onclick = closeDetails;
 $("details").onclick = e => { if (e.target === $("details")) closeDetails(); };
@@ -638,22 +829,41 @@ function clickPlay() {
     }
     if (++tries > 80) {
       clearInterval(autoTimer);
-      $("p-wait").textContent = beta ? "Press play on the film page." : "Press Play to start.";
+      $("p-wait").textContent = "If playback doesn’t start, press Play in the player.";
     }
   }, 1000);
 }
-function play(item, at = 0) {
+function playTarget(item, season, episode) {
+  const which = item.source == null ? sourceIndex : item.source;
+  const s = Math.max(1, Number(season) || 1), e = Math.max(1, Number(episode) || 1);
+  if (which === 1 || item.beta) {
+    const kind = item.backupType || (item.beta ? "anime" : (item.type === "tv" ? "show" : "movie"));
+    const path = item.path || String(item.url || "").split("/" + kind + "/")[1] || "";
+    if (kind === "anime") return path ? BETA + "/watch/" + path + "/" + e : item.url;
+    if (kind === "show") return path ? BETA + "/watch/show/" + path + "/" + s + "/" + e : item.url;
+    return path ? BETA + "/watch/" + path : item.url;
+  }
+  const id = encodeURIComponent(item.id);
+  if (item.type === "tv") return SITE + "/tv/" + id + "/" + s + "/" + e + "?play=true";
+  return item.url + (item.url.includes("?") ? "&" : "?") + "play=true";
+}
+function play(item, at = 0, selected = null) {
   closeDetails();
   clearInterval(heroTimer);
-  const url = item.playUrl || item.url;
+  const explicit = !!(selected && (selected.season || selected.episode));
+  const season = Number(explicit ? selected.season : (item.season || 1)) || 1;
+  const episode = Number(explicit ? selected.episode : (item.episode || 1)) || 1;
+  const url = explicit ? playTarget(item, season, episode) : (item.playUrl || playTarget(item, season, episode));
   const which = item.source == null ? sourceIndex : item.source;
+  const label = item.type === "tv" ? " · S" + season + " E" + episode : "";
   playing = { key: item.key || item.type + ":" + item.id, title: item.title, url,
-    playUrl: item.playUrl, beta: !!item.beta || which === 1, source: which,
+    playUrl: url, beta: !!item.beta || which === 1, source: which,
+    season, episode, path: item.path, sid: item.sid,
     art: item.art || item.poster, poster: item.poster, year: item.year, type: item.type,
     t: 0, d: 0 };
   seekTo = at || 0;
-  $("p-title").textContent = item.title;
-  $("p-wait").textContent = "Loading film…";
+  $("p-title").textContent = item.title + label;
+  $("p-wait").textContent = item.type === "tv" ? "Loading episode…" : "Loading film…";
   $("p-wait").hidden = false;
   $("player").hidden = false;
   document.body.classList.add("playing");
