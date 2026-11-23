@@ -197,7 +197,8 @@ engine.then(() => { if (framed) try { window.parent.postMessage({ tide: 'ready' 
     ? 'Its engine needs service workers, which private windows and some settings turn off. Open Tide in a normal window.'
     : 'Its engine did not start (' + e.message + '). Reloading usually fixes it.'));
 /* Firefox can't hand a stream between pages, so there each answer goes over whole */
-const canStream = (() => { try { const ch = new MessageChannel(), rs = new ReadableStream(); ch.port1.postMessage(rs, [rs]); return true; } catch (e) { return false; } })();
+const CHUNK = 4 * 1024 * 1024;
+const canStream =(() => { try { const ch = new MessageChannel(), rs = new ReadableStream(); ch.port1.postMessage(rs, [rs]); return true; } catch (e) { return false; } })();
 
 /* ---- tabs ---- */
 const view = $('view');
@@ -233,13 +234,20 @@ function closeTab(t) {
   }
 }
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
+const LIVE_TABS = 3;
 function showTab(t) {
   if (active && active !== t && active.frame) {
     active.frame.element.classList.remove('shown');
     try { active.frame.element.contentDocument.querySelectorAll('video, audio').forEach(m => m.pause()); } catch (e) {}
   }
   active = t;
+  t.used = Date.now();
   if (t.waiting) { t.waiting = false; open(t, t.url); }
+  // only the 3 most recently used tabs keep their site running; older ones load again when opened
+  tabs.filter(o => o.frame && o !== t).sort((a, b) => b.used - a.used).slice(LIVE_TABS - 1).forEach(o => {
+    o.frame.element.remove();
+    Object.assign(o, { frame: null, loading: false, painted: false, waiting: !!o.url });
+  });
   if (t.frame && t.url) t.frame.element.classList.add('shown');
   $('home').hidden = !!t.url;
   showBar(t.loading);
@@ -326,6 +334,17 @@ function frameFor(t) {
       props.response = BareResponse.fromNativeResponse(new Response(null, { status: 204 }));
     });
   }
+  /* The engine reads a response as fast as the server sends it, with no way to slow down, so a
+     film asked for as "bytes=N-" would pile up in memory far ahead of playback. Ask for 4 MB at
+     a time instead; the player asks for the next part when it needs it. */
+  Tap.tap(f.hooks.fetch.request, (ctx, props) => {
+    const h = props.init.headers;
+    if (!Array.isArray(h)) return;
+    for (const pair of h) {
+      const m = /^range$/i.test(pair[0]) && /^bytes=(\d+)-$/.exec(String(pair[1]).trim());
+      if (m) pair[1] = 'bytes=' + m[1] + '-' + (+m[1] + CHUNK - 1);
+    }
+  });
   if (!canStream) Tap.tap(f.hooks.fetch.response, async (ctx, props) => {
     const body = props.response.body;
     if (body instanceof ReadableStream) props.response.body = await new Response(body).arrayBuffer();
