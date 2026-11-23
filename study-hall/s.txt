@@ -163,122 +163,6 @@
   .rail-foot { margin-top: auto; padding: 1rem 1.2rem; font-size: 0.8rem; }
   .rail-foot a { color: var(--pencil); text-decoration: none; }
   .rail-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-  /* the little chalk guy who lives at the foot of the rail */
-  .rail-guy {
-    position: fixed; left: 0; bottom: 0; z-index: 70; width: 38px; height: 50px;
-    touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
-    will-change: transform; filter: drop-shadow(0 2px 3px rgba(31, 45, 68, 0.18));
-  }
-  .rail-guy svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .rail-guy .guy-body { transform-box: view-box; transform-origin: 22px 55px; animation: guy-breathe 3.8s ease-in-out infinite; }
-  .rail-guy .ink { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .rail-guy .face .ink { stroke-width: 1.8; }
-  .rail-guy .head { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; }
-  .rail-guy .torso { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: round; }
-  .rail-guy .hood { stroke-width: 2.1; }
-  .rail-guy .hand { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
-  .rail-guy .shoe { fill: var(--ink); stroke: var(--ink); stroke-width: 1.4; opacity: 0.8; }
-  .rail-guy .blush { fill: var(--accent); opacity: 0.42; }
-  .rail-guy .glint { fill: var(--paper); }
-  .rail-guy .string, .rail-guy .pocket { stroke-width: 1.6; opacity: 0.6; }
-  .rail-guy .cap { fill: var(--accent); stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; opacity: 0.92; }
-  .rail-guy .collar { stroke-width: 2; opacity: 0.4; }
-  .rail-guy .eye-dot { fill: var(--ink); }
-  .rail-guy .face { display: none; }
-  .rail-guy.f-calm .face-calm,
-  .rail-guy.f-happy .face-happy,
-  .rail-guy.f-scared .face-scared,
-  .rail-guy.f-hurt .face-hurt,
-  .rail-guy.f-dizzy .face-dizzy { display: block; }
-  .rail-guy.f-calm .eye-dot { animation: guy-blink 5.2s steps(1, end) infinite; transform-box: fill-box; transform-origin: center; }
-  .rail-guy .limb { transform-box: view-box; }
-  .rail-guy .arm-a-g { transform-origin: 18.4px 23.6px; }
-  .rail-guy .arm-b-g { transform-origin: 25.6px 23.6px; }
-  .rail-guy .leg-a-g { transform-origin: 19.5px 37.6px; }
-  .rail-guy .leg-b-g { transform-origin: 24.6px 37.6px; }
-  .rail-guy .head-g { transform-box: view-box; transform-origin: 22px 21.8px; transition: transform 0.25s ease; }
-  .rail-guy .stars { opacity: 0; transform-box: view-box; transform-origin: 22px 13px; }
-  .rail-guy.f-hurt .stars, .rail-guy.f-dizzy .stars { opacity: 1; animation: guy-stars 2.4s linear infinite; }
-  .rail-guy .star { stroke-width: 1.5; }
-
-  .rail-guy.f-happy .head-g { transform: rotate(-6deg); }
-  .rail-guy.f-scared .head-g { transform: rotate(5deg) scale(1.05); }
-  .rail-guy.f-hurt .head-g { transform: rotate(-11deg); }
-  .rail-guy.f-dizzy .head-g { transform: rotate(7deg); }
-  .rail-guy.hurt .ink, .rail-guy.hurt .head, .rail-guy.hurt .torso { stroke: var(--danger); }
-
-  .rail-guy.walk .leg-a-g { animation: guy-step 0.62s ease-in-out infinite alternate; }
-  .rail-guy.walk .leg-b-g { animation: guy-step 0.62s ease-in-out infinite alternate-reverse; }
-  .rail-guy.walk .arm-a-g { animation: guy-swing 0.62s ease-in-out infinite alternate-reverse; }
-  .rail-guy.walk .arm-b-g { animation: guy-swing 0.62s ease-in-out infinite alternate; }
-  .rail-guy.climb .arm-a-g { animation: guy-reach 0.5s ease-in-out infinite alternate; }
-  .rail-guy.climb .arm-b-g { animation: guy-reach 0.5s ease-in-out infinite alternate-reverse; }
-  .rail-guy.climb .leg-a-g { animation: guy-step 0.5s ease-in-out infinite alternate; }
-  .rail-guy.climb .leg-b-g { animation: guy-step 0.5s ease-in-out infinite alternate-reverse; }
-  .rail-guy.wave .arm-b-g { animation: guy-wave 0.3s ease-in-out infinite alternate; }
-  .rail-guy.held .arm-a-g { transform: rotate(152deg); }
-  .rail-guy.held .arm-b-g { transform: rotate(-152deg); }
-  .rail-guy.held .leg-a-g { animation: guy-dangle 0.7s ease-in-out infinite alternate; }
-  .rail-guy.held .leg-b-g { animation: guy-dangle 0.7s ease-in-out infinite alternate-reverse; }
-  .rail-guy.flail .arm-a-g { animation: guy-flail 0.16s linear infinite alternate; }
-  .rail-guy.flail .arm-b-g { animation: guy-flail 0.13s linear infinite alternate-reverse; }
-  .rail-guy.flail .leg-a-g { animation: guy-flail 0.15s linear infinite alternate-reverse; }
-  .rail-guy.flail .leg-b-g { animation: guy-flail 0.18s linear infinite alternate; }
-  .rail-guy.hit .guy-body { animation: guy-hit 0.3s ease-out; }
-  .rail-guy.land svg { animation: guy-squash 0.34s cubic-bezier(0.25, 0.9, 0.3, 1); }
-  .rail-guy.dragging, .rail-guy.held { cursor: grabbing; }
-
-  .rail-guy .guy-bubble {
-    position: absolute; left: 50%; bottom: 108%; transform: translateX(-50%) rotate(-4deg);
-    padding: 2px 7px; border-radius: 8px; background: var(--ink); color: var(--paper);
-    font: 700 11px/1.4 var(--body); white-space: nowrap; opacity: 0; transition: opacity 0.12s;
-    pointer-events: none;
-  }
-  .rail-guy .guy-bubble.on { opacity: 1; }
-
-  .rail-guy .guy-puff {
-    position: absolute; left: 50%; bottom: 2px; width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(31, 45, 68, 0.18); pointer-events: none;
-    animation: guy-puff 0.62s ease-out forwards;
-  }
-  .rail-guy .guy-puff.p1 { --dx: -15px; }
-  .rail-guy .guy-puff.p2 { --dx: 13px; }
-  .rail-guy .guy-puff.p3 { --dx: -6px; }
-  .rail-guy .guy-puff.p4 { --dx: 7px; }
-
-  /* how he is feeling, right above the footer note */
-  .guy-mood {
-    display: flex; align-items: center; gap: 7px; margin: 0 0 0.55rem;
-    font-size: 0.68rem; letter-spacing: 0.03em; color: var(--pencil);
-  }
-  .guy-mood-label { min-width: 3.4em; text-transform: lowercase; }
-  .guy-mood-track {
-    position: relative; flex: 1; height: 5px; border-radius: 99px;
-    background: rgba(31, 45, 68, 0.12); overflow: hidden;
-  }
-  .guy-mood-fill {
-    position: absolute; inset: 0 auto 0 0; width: 55%; border-radius: 99px;
-    background: #6b8fbf; transition: width 0.4s ease, background 0.4s ease;
-  }
-  .guy-mood[data-mood="calm"] .guy-mood-fill { width: 55%; background: #6b8fbf; }
-  .guy-mood[data-mood="happy"] .guy-mood-fill { width: 88%; background: #3f9d5a; }
-  .guy-mood[data-mood="scared"] .guy-mood-fill { width: 97%; background: #d08a2e; }
-  .guy-mood[data-mood="hurt"] .guy-mood-fill { width: 22%; background: var(--danger); }
-  .guy-mood[data-mood="dizzy"] .guy-mood-fill { width: 34%; background: #8f6bbf; }
-
-  body.no-guy .rail-guy { display: none; }
-  @keyframes guy-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.03); } }
-  @keyframes guy-blink { 0%, 93%, 100% { transform: scaleY(1); } 95%, 97% { transform: scaleY(0.08); } }
-  @keyframes guy-step { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
-  @keyframes guy-swing { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
-  @keyframes guy-reach { from { transform: rotate(-16deg); } to { transform: rotate(38deg); } }
-  @keyframes guy-wave { from { transform: rotate(-38deg); } to { transform: rotate(-6deg); } }
-  @keyframes guy-flail { from { transform: rotate(-64deg); } to { transform: rotate(68deg); } }
-  @keyframes guy-dangle { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
-  @keyframes guy-hit { 0% { scale: 1.26 0.76; } 55% { scale: 0.92 1.08; } 100% { scale: 1 1; } }
-  @keyframes guy-squash { 0% { transform: scale(1.3, 0.72); } 55% { transform: scale(0.94, 1.06); } 100% { transform: scale(1, 1); } }
-  @keyframes guy-stars { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  @keyframes guy-puff { from { opacity: 0.75; transform: translate(-50%, 0) scale(0.5); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), -16px) scale(1.6); } }
   .rail-note { margin-top: 0.1rem; font-size: 0.72rem; color: var(--pencil); }
 
   /* ---------------- main sheet ---------------- */
@@ -669,6 +553,8 @@
     background: rgba(15, 20, 30, 0.45);
   }
   .modal[hidden] { display: none; }
+  .modal:not([hidden]) { animation: veil-in 0.2s ease; }
+  @keyframes veil-in { from { opacity: 0; } }
   .modal-box {
     width: min(460px, 100%);
     max-height: 90vh;
@@ -719,6 +605,7 @@
   }
   .viewer-bar b { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .viewer iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+  .viewer:not([hidden]) { animation: rise 0.22s ease-out; }
 
   /* the advanced tools frame */
   .frame { flex: 1; width: 100%; min-height: 70vh; border: 1px solid var(--edge); border-radius: var(--r); background: #0c0d10; }
@@ -773,17 +660,10 @@
   body.os .rail-top .icon-btn { flex: none; }
   @media (min-width: 761px) {
     body.os.rail-mini .rail-search { display: none; }
-    body.os.rail-mini .nav.tabs-drop, body.os.rail-mini .nav.tabs-rise { animation: none; }
     body.os.rail-mini .rail-top { padding-left: 16px; padding-bottom: 0.25rem; }
   }
   /* leaving Home, the search box drops into the sidebar */
-  .search-wrap.arrive { animation: search-in 0.25s ease; }
-  @keyframes search-in { from { opacity: 0; transform: translateY(-6px); } }
-  .nav.tabs-drop { animation: tabs-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
-  @keyframes tabs-drop { from { opacity: 0.35; transform: translateY(-42px); } }
   /* returning Home: the tabs and search rise together */
-  .nav.tabs-rise { animation: tabs-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
-  @keyframes tabs-rise { from { opacity: 0.35; transform: translateY(42px); } }
   @keyframes search-home { from { opacity: 0; transform: translateY(42px); } }
 
   /* ---------------- small screens ---------------- */
@@ -1411,375 +1291,6 @@
       openTab(item.path.startsWith('LESSONS/') ? LESSON_HOST + item.path : item.path, { title: coded(item) ? '' : item.name, cloak: mode || settings.cloakMode || 'classroom' });
     }
 
-    // the little guy: walks the floor, climbs the rail, ragdolls when thrown
-    (function railGuy() {
-      const el = document.getElementById('rail-guy');
-      if (!el) return;
-
-      const FACE = '<g class="head-g">' +
-        '<ellipse class="head" cx="22" cy="13.1" rx="8.3" ry="8.6"></ellipse>' +
-        '<path class="cap" d="M15.2 9.6 q0.6 -5.4 6.8 -5.4 q6.2 0 6.8 5.4 q-6.8 -1.9 -13.6 0 z"></path>' +
-        '<path class="cap" d="M28.4 8.9 q4.8 0.1 5.2 2.3 q-2.8 1.4 -5.5 0.4 z"></path>' +
-        '<g class="face face-calm">' +
-          '<circle class="eye-dot" cx="19.1" cy="13" r="1.45"></circle>' +
-          '<circle class="glint" cx="18.7" cy="12.55" r="0.45"></circle>' +
-          '<circle class="eye-dot" cx="24.9" cy="13" r="1.45"></circle>' +
-          '<circle class="glint" cx="24.5" cy="12.55" r="0.45"></circle>' +
-          '<ellipse class="blush" cx="16.4" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
-          '<ellipse class="blush" cx="27.6" cy="16.6" rx="1.7" ry="0.9"></ellipse>' +
-          '<path class="ink mouth" d="M20.4 16.8 q1.6 1.2 3.2 0"></path>' +
-        '</g>' +
-        '<g class="face face-happy">' +
-          '<path class="ink eye" d="M17.6 13.6 q1.5 -2.1 3 0"></path>' +
-          '<path class="ink eye" d="M23.4 13.6 q1.5 -2.1 3 0"></path>' +
-          '<ellipse class="blush" cx="16.3" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
-          '<ellipse class="blush" cx="27.7" cy="16.7" rx="1.6" ry="0.85"></ellipse>' +
-          '<path class="ink mouth" d="M18.8 16.3 q3.2 3.4 6.4 0"></path>' +
-        '</g>' +
-        '<g class="face face-scared">' +
-          '<circle class="eye-dot" cx="19" cy="12.7" r="1.85"></circle>' +
-          '<circle class="glint" cx="18.5" cy="12.15" r="0.5"></circle>' +
-          '<circle class="eye-dot" cx="25" cy="12.7" r="1.85"></circle>' +
-          '<circle class="glint" cx="24.5" cy="12.15" r="0.5"></circle>' +
-          '<ellipse class="ink mouth-o" cx="22" cy="18" rx="1.85" ry="2.3"></ellipse>' +
-        '</g>' +
-        '<g class="face face-hurt">' +
-          '<path class="ink eye" d="M17.4 11.6 l3 3 M20.4 11.6 l-3 3"></path>' +
-          '<path class="ink eye" d="M23.6 11.6 l3 3 M26.6 11.6 l-3 3"></path>' +
-          '<path class="ink mouth" d="M18.9 18.3 q1.55 -1.5 3.1 0 q1.55 1.5 3.1 0"></path>' +
-        '</g>' +
-        '<g class="face face-dizzy">' +
-          '<path class="ink eye" d="M19.5 10.9 a2.3 2.3 0 1 1 -2.3 2.4"></path>' +
-          '<path class="ink eye" d="M24.5 10.9 a2.3 2.3 0 1 0 2.3 2.4"></path>' +
-          '<path class="ink mouth" d="M19 17.7 q1.5 1.2 3 0 q1.5 -1.2 3 0"></path>' +
-        '</g>' +
-      '</g>';
-
-      el.innerHTML = '<svg viewBox="0 0 44 58" aria-hidden="true">' +
-        '<g class="guy-body">' +
-          '<g class="limb leg-a-g">' +
-            '<path class="ink leg" d="M19.5 37.6 q-0.9 6.4 -1.2 15.2"></path>' +
-            '<ellipse class="shoe" cx="17.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
-          '</g>' +
-          '<g class="limb leg-b-g">' +
-            '<path class="ink leg" d="M24.5 37.6 q0.9 6.4 1.2 15.2"></path>' +
-            '<ellipse class="shoe" cx="26.5" cy="54.2" rx="2.7" ry="1.55"></ellipse>' +
-          '</g>' +
-          '<g class="limb arm-a-g">' +
-            '<path class="ink arm" d="M18.4 23.6 q-3.4 3.2 -4.9 8.4"></path>' +
-            '<circle class="hand" cx="13.2" cy="32.6" r="1.75"></circle>' +
-          '</g>' +
-          '<g class="limb arm-b-g">' +
-            '<path class="ink arm" d="M25.6 23.6 q3.4 3.2 4.9 8.4"></path>' +
-            '<circle class="hand" cx="30.8" cy="32.6" r="1.75"></circle>' +
-          '</g>' +
-          '<path class="torso hood" d="M17.8 22.2 q4.2 -4.2 8.4 0 q-4.2 3.1 -8.4 0 z"></path>' +
-          '<path class="torso" d="M17.9 21.4 q4.1 -2.2 8.2 0 q1.1 3.4 1.2 7.4 q0.2 4.8 -0.9 9.1 q-4.4 1.3 -8.8 0 q-1.1 -4.3 -0.9 -9.1 q0.1 -4 1.2 -7.4 z"></path>' +
-          '<path class="ink collar" d="M19.6 22.7 q2.4 2.1 4.8 0"></path>' +
-          '<path class="ink string" d="M20.9 24.2 l-0.4 3.1 M23.1 24.2 l0.4 3.1"></path>' +
-          '<path class="ink pocket" d="M19.4 32.5 q2.6 1.3 5.2 0"></path>' +
-          FACE +
-        '</g>' +
-        '<g class="stars">' +
-          '<path class="ink star" d="M11 6.1 l0.9 1.9 2.1 0.2 -1.6 1.5 0.4 2.1 -1.8 -1 -1.8 1 0.4 -2.1 -1.6 -1.5 2.1 -0.2z"></path>' +
-          '<path class="ink star" d="M33 7.6 l0.8 1.7 1.9 0.2 -1.5 1.3 0.4 1.9 -1.6 -0.9 -1.6 0.9 0.4 -1.9 -1.5 -1.3 1.9 -0.2z"></path>' +
-        '</g>' +
-      '</svg>';
-
-      const bubble = document.createElement('span');
-      bubble.className = 'guy-bubble';
-      el.appendChild(bubble);
-
-      /* the meter that sits above "ChalkBored · made for fun" */
-      const foot = el.parentElement;
-      let moodBox = null, moodText = null;
-      if (foot) {
-        moodBox = document.createElement('div');
-        moodBox.className = 'guy-mood';
-        moodBox.setAttribute('role', 'status');
-        moodBox.setAttribute('aria-live', 'polite');
-        moodBox.dataset.mood = 'calm';
-        moodBox.innerHTML = '<span class="guy-mood-label">calm</span>' +
-          '<span class="guy-mood-track"><span class="guy-mood-fill"></span></span>';
-        moodText = moodBox.querySelector('.guy-mood-label');
-        const note = foot.querySelector('.rail-note');
-        foot.insertBefore(moodBox, note || null);
-      }
-
-      const W = 38, H = 50, GRAVITY = 1900;
-      const rail = document.querySelector('nav.rail') || document.querySelector('.rail');
-      const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const railW = () => (rail ? rail.getBoundingClientRect().width : 210);
-      const maxX = () => Math.max(0, window.innerWidth - W);
-      const maxY = () => Math.max(0, window.innerHeight - H);
-      const pick = (a) => a[(Math.random() * a.length) | 0];
-
-      let x = 8, y = 0, vx = 0, vy = 0, angle = 0, spin = 0;
-      let mode = 'ground';                 // ground | walk | climb | held | air | land | hurt
-      let held = false, grabX = 0, grabY = 0;
-      let walkTo = x, climbTo = 0, climbDir = 1, hurtFor = 0, landFor = 0;
-      let lastX = 0, lastY = 0, lastT = 0, flickX = 0, flickY = 0;
-
-      const set = (name, on) => el.classList.toggle(name, !!on);
-      const place = () => {
-        el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (-y).toFixed(1) + 'px) rotate(' + angle.toFixed(2) + 'deg)';
-      };
-
-      function mood(name, label) {
-        el.dataset.mood = name;
-        el.classList.remove('f-calm', 'f-happy', 'f-scared', 'f-hurt', 'f-dizzy');
-        el.classList.add('f-' + name);
-        if (moodBox) { moodBox.dataset.mood = name; moodText.textContent = label || name; }
-      }
-
-      /* tiny sounds made on the spot, so there is no file to load */
-      let ac = null;
-      function beep(kind) {
-        try {
-          ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-          if (ac.state === 'suspended') ac.resume();
-          const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
-          const scream = kind === 'scream';
-          o.type = scream ? 'sawtooth' : 'triangle';
-          o.frequency.setValueAtTime(scream ? 900 : 170, t);
-          o.frequency.exponentialRampToValueAtTime(scream ? 250 : 55, t + (scream ? 0.42 : 0.12));
-          g.gain.setValueAtTime(0.0001, t);
-          g.gain.exponentialRampToValueAtTime(scream ? 0.06 : 0.1, t + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + (scream ? 0.46 : 0.16));
-          o.connect(g).connect(ac.destination);
-          o.start(t);
-          o.stop(t + (scream ? 0.5 : 0.18));
-        } catch (e) {}
-      }
-
-      let bubbleTimer = 0;
-      function say(text, ms) {
-        bubble.textContent = text;
-        bubble.classList.add('on');
-        clearTimeout(bubbleTimer);
-        bubbleTimer = setTimeout(() => bubble.classList.remove('on'), ms || 1200);
-      }
-
-      function calm() { set('climb', false); set('wave', false); set('flail', false); set('walk', false); }
-
-      function puff() {
-        for (let i = 1; i <= 4; i++) {
-          const p = document.createElement('span');
-          p.className = 'guy-puff p' + i;
-          el.appendChild(p);
-          setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 650);
-        }
-      }
-
-      let squashTimer = 0;
-      function squash() {
-        set('land', true);
-        clearTimeout(squashTimer);
-        squashTimer = setTimeout(() => set('land', false), 360);
-      }
-
-      function impactFx(impact) {
-        squash();
-        if (impact > 60) { puff(); beep('thump'); }
-        if (impact > 240) mood('hurt', 'oof'); else mood('calm');
-      }
-
-      function getUp() {
-        mode = 'land';
-        landFor = 260;
-        vx = 0; vy = 0;
-        set('hurt', false);
-        calm();
-        mood('calm');
-        walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10);
-      }
-
-      function bonk() {
-        mode = 'hurt';
-        hurtFor = 900;
-        angle = 0; spin = 0; vx = 0; vy = 0;
-        set('flail', false);
-        set('hurt', true);
-        set('hit', true);
-        setTimeout(() => { set('hit', false); if (mode === 'hurt') mood('dizzy', 'dizzy'); }, 420);
-        squash();
-        puff();
-        beep('thump');
-        mood('hurt', 'OW!');
-        say('OW!', 1000);
-      }
-
-      function thrown() {
-        calm();
-        set('flail', true);
-        mode = 'air';
-        mood('scared', 'AAAH!');
-        say('AAAH!', 1100);
-        beep('scream');
-      }
-
-      function hop() {
-        if (mode !== 'ground' && mode !== 'walk') return;
-        calm();
-        mode = 'air';
-        vy = 430;
-        vx = (Math.random() - 0.5) * 90;
-        mood('happy', 'wee');
-      }
-
-      function wander() {
-        if (held || mode === 'air' || mode === 'hurt' || mode === 'land' || mode === 'climb') return;
-        const r = Math.random();
-        if (r < 0.38) {
-          calm(); mode = 'walk';
-          walkTo = 4 + Math.random() * Math.max(8, railW() - W - 10);
-          mood('calm');
-        } else if (r < 0.6) {
-          calm(); set('wave', true); mood('happy', 'hii');
-          say(pick(['hi', 'hello', 'oh!']), 800);
-          setTimeout(() => set('wave', false), 1800);
-        } else if (r < 0.84) {
-          calm(); mode = 'climb'; climbDir = 1;
-          climbTo = 30 + Math.random() * Math.max(40, window.innerHeight - 190);
-          set('climb', true);
-          mood('happy', 'up we go');
-        } else hop();
-      }
-
-      let last = performance.now();
-      function frame(now) {
-        const dt = Math.min(0.04, (now - last) / 1000);
-        last = now;
-
-        if (held) { set('held', true); place(); requestAnimationFrame(frame); return; }
-        set('held', false);
-
-        if (mode === 'air' || mode === 'hurt') {
-          vy -= GRAVITY * dt;
-          x += vx * dt;
-          y += vy * dt;
-          angle += spin * dt;
-
-          if (x < 0) {
-            x = 0;
-            if (Math.abs(vx) > 260) bonk(); else vx = Math.abs(vx) * 0.5;
-            spin *= 0.4;
-          } else if (x > maxX()) {
-            x = maxX();
-            if (Math.abs(vx) > 260) bonk(); else vx = -Math.abs(vx) * 0.5;
-            spin *= 0.4;
-          }
-
-          if (y <= 0) {
-            const impact = -vy;
-            y = 0;
-            if (mode === 'hurt') {
-              vy = 0; vx *= 0.5;
-            } else if (impact > 420) {
-              bonk();
-            } else if (impact > 90) {
-              impactFx(impact);
-              vy = impact * 0.34;
-              vx *= 0.72;
-              spin *= 0.55;
-              if (impact > 240) say('oof', 600);
-            } else {
-              vx *= 0.6;
-              vy = 0;
-              impactFx(impact);
-              mode = 'land';
-              landFor = 210;
-            }
-          }
-          if (y > maxY()) { y = maxY(); vy = -Math.abs(vy) * 0.3; }
-        } else if (mode === 'land') {
-          // settle gently instead of snapping upright on contact
-          angle = ((angle % 360) + 540) % 360 - 180;
-          angle *= Math.max(0, 1 - 11 * dt);
-          x += vx * dt;
-          vx *= Math.max(0, 1 - 7 * dt);
-          y = 0;
-          landFor -= dt * 1000;
-          if (landFor <= 0) { mode = 'ground'; angle = 0; calm(); mood('calm'); }
-        } else if (mode === 'climb') {
-          y += 130 * dt * climbDir;
-          x += (4 - x) * Math.min(1, 6 * dt);
-          if (y >= climbTo) climbDir = -1;
-          if (y <= 0) { y = 0; mode = 'ground'; calm(); mood('calm'); }
-        } else {
-          const gap = walkTo - x;
-          const moving = Math.abs(gap) > 1.2;
-          set('walk', moving);
-          if (moving) {
-            x += Math.sign(gap) * Math.min(Math.abs(gap), 90 * dt);
-            angle = Math.sin(now / 90) * 3;
-          } else { angle = 0; }
-        }
-
-        if (mode === 'hurt') {
-          hurtFor -= dt * 1000;
-          if (hurtFor <= 0) getUp();
-        }
-        place();
-        requestAnimationFrame(frame);
-      }
-
-      el.addEventListener('pointerdown', (e) => {
-        if (mode === 'hurt') return;
-        held = true;
-        set('held', true);
-        mode = 'held';
-        try { el.setPointerCapture(e.pointerId); } catch (err) {}
-        grabX = e.clientX - x;
-        grabY = (window.innerHeight - e.clientY) - y;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        lastT = performance.now();
-        flickX = 0;
-        flickY = 0;
-        calm();
-        set('flail', true);
-        mood('scared', pick(['!', 'eek', 'whoa']));
-        say(pick(['hey!', 'whoa!', 'put me down']), 900);
-        e.preventDefault();
-      });
-      el.addEventListener('pointermove', (e) => {
-        if (!held) return;
-        const now = performance.now();
-        const dt = Math.max(8, now - lastT) / 1000;
-        flickX = (e.clientX - lastX) / dt;
-        flickY = (lastY - e.clientY) / dt;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        lastT = now;
-        x = Math.max(0, Math.min(maxX(), e.clientX - grabX));
-        y = Math.max(0, Math.min(maxY(), (window.innerHeight - e.clientY) - grabY));
-        angle = Math.max(-22, Math.min(22, -flickX * 0.02));
-        place();
-      });
-      const release = (e) => {
-        if (!held) return;
-        held = false;
-        set('held', false);
-        try { el.releasePointerCapture(e.pointerId); } catch (err) {}
-        const speed = Math.hypot(flickX, flickY);
-        vx = flickX * 0.85;
-        vy = flickY * 0.85;
-        if (speed < 90) { vx = 0; vy = 0; }
-        spin = (vx >= 0 ? 1 : -1) * Math.min(760, 120 + speed * 0.7);
-        if (speed < 240) { calm(); set('flail', true); mode = 'air'; }
-        else thrown();
-      };
-      el.addEventListener('pointerup', release);
-      el.addEventListener('pointercancel', release);
-
-      mood('calm');
-      place();
-      requestAnimationFrame(frame);
-      setTimeout(wander, 1400);
-      if (!still) setInterval(wander, 4200);
-    })();
-
     // ---- building the lists ----
     function closeAllMenus(except) {
       document.querySelectorAll('.card-wrap.is-open').forEach((w) => {
@@ -2213,23 +1724,18 @@
       const fromHero = searchWrap.parentNode === $('hero-search-slot');
       const fromRail = searchWrap.parentNode === $('rail-search-slot');
       const nav = document.querySelector('.nav');
-      searchWrap.classList.remove('arrive');
       to.appendChild(searchWrap);
+      // folded, the tabs don't move between pages (the hidden search box takes no room)
+      const folded = document.body.classList.contains('rail-mini') && innerWidth > 760;
+      const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
       if (to.id === 'rail-search-slot') {
-        void searchWrap.offsetWidth;
-        searchWrap.classList.add('arrive');
-        if (fromHero && nav) {
-          nav.classList.remove('tabs-drop', 'tabs-rise');
-          void nav.offsetWidth;
-          nav.classList.add('tabs-drop');
-        }
-      } else if (nav) {
-        nav.classList.remove('tabs-drop', 'tabs-rise');
-        if (fromRail) {
-          void nav.offsetWidth;
-          nav.classList.add('tabs-rise');
-        }
-      }
+        playMove(searchWrap, { opacity: 0, transform: 'translateY(-6px)' }, 250, 'ease');
+        if (fromHero && !folded) playMove(nav, { opacity: 0.35, transform: 'translateY(-42px)' }, 280, ease);
+      } else if (fromRail && !folded) playMove(nav, { opacity: 0.35, transform: 'translateY(42px)' }, 380, ease);
+    }
+    function playMove(el, from, ms, easing) {
+      if (!el || !el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      el.animate([from, { opacity: 1, transform: 'none' }], { duration: ms, easing });
     }
 
     // your background picture stays in this browser (IndexedDB); it's never uploaded
@@ -2459,6 +1965,8 @@
       $('setup-back').textContent = setupStep === 0 ? 'Skip' : 'Back';
       setupEl.querySelector('.modal-box').scrollTop = 0;
       $('setup-next').textContent = st.next || 'Next';
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      ['setup-title', 'setup-text', 'setup-body'].forEach((id) => { const el = $(id); if (el.animate) el.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'ease-out' }); });
     }
 
     function openSetup() {
@@ -2703,7 +2211,7 @@
         const idle = window.requestIdleCallback || ((f) => setTimeout(f, 600));
         idle(() => {
           ensureLessons();
-          if (nameWatch) [...document.querySelectorAll('#games .thumb img:not([src])')].slice(0, 24).forEach((img) => {
+          if (nameWatch) [...document.querySelectorAll('#games .thumb img:not([src])')].slice(0, 15).forEach((img) => {
             nameWatch.unobserve(img);
             namesToDraw.get(img)();
           });
