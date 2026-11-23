@@ -103,7 +103,7 @@
   .hn-btn.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 700; }
   .hn-initials { display: grid; place-items: center; width: 100%; height: 100%; font-weight: 700; color: var(--pencil); }
   .hn-feature { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); padding: 0; overflow: hidden; }
-  .hn-feature-art { display: block; aspect-ratio: 16 / 10; background: var(--paper-2); border-right: 1px solid var(--edge); overflow: hidden; }
+  .hn-feature-art { display: block; aspect-ratio: 16 / 9; background: var(--paper-2); border-right: 1px solid var(--edge); overflow: hidden; }
   .hn-cover { display: block; width: 100%; height: 100%; }
   .hn-feature-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .hn-feature-text { display: flex; flex-direction: column; gap: .5rem; min-width: 0; padding: 1.1rem; }
@@ -172,7 +172,7 @@
   .hn-prof-bio { margin: 0; font-size: .95rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
   .hn-prof-game { display: grid; gap: .5rem; width: 100%; padding: .5rem; background: none; border: 1px solid var(--edge); border-radius: var(--r); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
   .hn-prof-game:hover, .hn-prof-game:focus-visible { background: var(--paper-2); border-color: var(--pencil); outline: none; }
-  .hn-prof-game-art { display: block; width: 100%; aspect-ratio: 16 / 10; background: var(--paper-2); overflow: hidden; }
+  .hn-prof-game-art { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--paper-2); overflow: hidden; }
   .hn-prof-game-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .hn-prof-edit { padding: 24px; }
   .hn-prof-edit .hn-prof-name { margin-bottom: 1rem; }
