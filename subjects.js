@@ -82,7 +82,6 @@ const LIST = {
     { name: '.M35t;Boy?'                      , path: 'LESSONS/Square-Platformer/index.html' },
     { name: '.Rooftop;Snip3rs?'               , path: 'LESSONS/Rooftop-Angles/index.html' },
     { name: '.SM64?'                          , path: 'LESSONS/Polygon-Platformer/index.html' },
-    { name: '.Binding;of;Is55c?'              , path: 'LESSONS/Basement-Diary/index.html' },
     { name: '.Sp33d;St5rs?'                   , path: 'LESSONS/Track-Sprints/index.html' },
     { name: '.Sl3nd3r;M5n;Th3;Eight;P5g3s?',  path: 'LESSONS/Forest-Logs/index.html' },
     { name: '.B5ldi;R3m5st3r3d?'              , path: 'LESSONS/Study-Hall-Remake/index.html' },
@@ -238,7 +237,6 @@ const ART = {
   'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/board-games-club.webp', bg: '#2b2b26', fit: 'cover' },
   'LESSONS/Line-Drawing-Physics/index.html':         { src: 'LESSONS/art/line-drawing-physics.webp', bg: '#1b2430', fit: 'cover' },
   'LESSONS/Square-Platformer/index.html':            { src: 'LESSONS/art/square-platformer.webp', bg: '#2a1518', fit: 'cover' },
-  'LESSONS/Basement-Diary/index.html':               { src: 'LESSONS/art/basement-diary.webp', bg: '#171412', fit: 'cover' },
   'LESSONS/Study-Hall-Remake/index.html':            { src: 'LESSONS/art/study-hall-remake.webp', bg: '#204020', fit: 'cover' },
 
   'LESSONS/City-Planning/index.html':             { src: 'LESSONS/art/city-planning-cover.jpg', bg: '#0d1b2a', fit: 'contain' },
