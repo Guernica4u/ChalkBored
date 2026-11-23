@@ -2303,7 +2303,9 @@ function paintChannels() {
       }
       if (!isVoice) btn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') prefetchChannel(ch); });
       btn.onclick = () => {
-        if (!isVoice) openChannel(ch);
+        // the channel already on screen: nothing to load again
+        const showing = state.channel && state.channel.id === ch.id && !state.homeOn && $('vc-stage').hidden && $('class-page').hidden;
+        if (!isVoice) { if (!showing) openChannel(ch); }
         else if (voice.key === key) openStage();
         else askJoinVoice(key, ch.name + ' · ' + state.room.name);
       };
@@ -2540,7 +2542,8 @@ async function openChannel(ch) {
 
   // a channel seen lately shows at once; the newest page then replaces it only if something changed
   const cached = msgCache.get(ch.id);
-  if (cached) showRows(cached.rows);
+  // drawn just after the click shows, so the highlight moves first and typing isn't held up
+  if (cached) setTimeout(() => { if (state.channel === ch) showRows(cached.rows); }, 0);
   const { data, error } = await fetchMessages(ch);   // always: anything posted since the cached copy shows up
   if (state.channel !== ch) return;   // clicked somewhere else while this was loading
   // a failed load must never look like an empty channel
