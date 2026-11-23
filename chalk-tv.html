@@ -37,14 +37,14 @@
   @keyframes settle { from { opacity: 0; transform: translateY(5px) scale(.988); } }
   @keyframes mark { from { opacity: 0; transform: translateY(-3px) scale(.86); } }
   @keyframes veil { from { opacity: 0; } }
-  .nav button, #source, .btn, .row-nav button, #p-back, .dots button {
+  .nav button, .btn, .row-nav button, #p-back, .dots button {
     transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease, width .18s ease;
   }
-  .nav button:active, #source:active, .btn:active, .row-nav button:active, #p-back:active { transform: translateY(1px); }
+  .nav button:active, .btn:active, .row-nav button:active, #p-back:active { transform: translateY(1px); }
   @media (prefers-reduced-motion: reduce) {
     #hero .art, #hero .copy > *, .row, .card, .card .rank, #details, #details .box, #player, #p-bar { animation: none; }
     .strip { scroll-behavior: auto; }
-    .nav button, #source, .btn, .row-nav button, #p-back, .dots button, .card { transition: none; }
+    .nav button, .btn, .row-nav button, #p-back, .dots button, .card { transition: none; }
   }
 
   /* ---- top bar ---- */
@@ -56,10 +56,6 @@
   }
   #brand { border: 0; background: none; padding: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
   #brand b { color: var(--pencil); font-weight: 400; }
-  #source { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--card); padding: 4px 10px; line-height: 1.05; white-space: nowrap; }
-  #source .src-label { color: var(--pencil); font-size: .58rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-  #source .src-name { color: var(--ink); font-size: .82rem; font-weight: 700; }
-  #source:hover { border-color: var(--accent); background: var(--highlight); }
   .nav { display: flex; gap: 4px; }
   .nav button { border: 1px solid transparent; background: none; padding: 7px 12px; border-radius: var(--r); color: var(--pencil); font-size: .92rem; }
   .nav button:hover { color: var(--ink); background: var(--highlight); }
@@ -182,7 +178,6 @@
 <body>
 <header id="top">
   <button id="brand" type="button" title="Chalk TV home">Chalk<b>TV</b></button>
-  <button id="source" type="button" aria-label="Source: Movy, main library. Change source."><span class="src-label">source</span><span class="src-name">Movy</span></button>
   <nav class="nav" id="nav">
     <button type="button" data-section="all" class="on">Home</button>
     <button type="button" data-section="anime">Anime</button>
@@ -225,34 +220,15 @@ const decode = s => atob(s);                     // quiet configuration
 const encode = s => btoa(s);
 const SITE = decode("aHR0cHM6Ly9tb3Z5LnN4");
 const LIBRARY = decode("aHR0cHM6Ly9kYi53ZWNvbGxlZ2UubmV0LzM=");
-const BETA = decode("aHR0cHM6Ly9iZXRhLmNuby50bw==");
-const BETA_IMG = decode("aHR0cHM6Ly9pbWFnZS50bWRiLm9yZy90L3A=");
 const CONTINUE = "chalk-tv.continue";
-const SOURCE_KEY = "chalk-tv.source";
 const RELAY = decode("d3NzOi8vZmVybi5iZXN0L3dpc3Av");
 const MSG = decode("dGlkZQ==");                      // viewing protocol key
 const HASH = decode("Y2Zn");                        // quiet start key
 const PANE_PAGE = new URL(decode("dGlkZS8="), location.href).href;   // local viewing pane in this copy
 const PANE_ORIGIN = new URL(PANE_PAGE).origin;
 const ART_HOST = SITE.replace("://", "://www.");
-const SOURCES = [
-  { name: "Movy", role: "main", site: SITE, api: LIBRARY, art: (path, size) => ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp", anime: false },
-  { name: "CNO", role: "backup", site: BETA, api: BETA + "/tmdb", art: (path, size) => BETA_IMG + "/" + size + path, anime: true }
-];
-let sourceIndex = 0;
-try { sourceIndex = Number(localStorage.getItem(SOURCE_KEY)) === 1 ? 1 : 0; } catch (e) {}
-const source = () => SOURCES[sourceIndex];
-function updateSourceButton() {
-  const b = $("source");
-  b.innerHTML = '<span class="src-label">source</span><span class="src-name"></span>';
-  b.querySelector(".src-name").textContent = source().name;
-  b.title = source().name + " — " + source().role + " source. Change source.";
-  b.setAttribute("aria-label", "Source: " + source().name + ", " + source().role + ". Change source.");
-}
-updateSourceButton();
 const ADULT = ["sex", "sexy", "nude", "nudist", "naked", "erotic", "stripper", "striptease", "lust", "burlesque", "porn"];
 const ADULT_RE = /\b(sex|sexy|nude|nudist|naked|erotic|stripper|striptease|lust|burlesque|porn)/i;   // the school-safe list from the old app
-const slugOf = title => String(title || "").toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
 const GENRES = { 12:"Adventure",14:"Fantasy",16:"Animation",18:"Drama",27:"Horror",28:"Action",
   35:"Comedy",36:"History",37:"Western",53:"Thriller",80:"Crime",99:"Documentary",878:"Sci-fi",
   9648:"Mystery",10402:"Music",10749:"Romance",10751:"Family",10762:"Kids",10763:"News",
@@ -295,7 +271,8 @@ function get(url) {
 const getJson = url => get(url).then(r => JSON.parse(new TextDecoder().decode(r.body)));
 
 /* ---- artwork, loaded as it scrolls into view ---- */
-const imageUrl = (path, size = "w780") => path ? source().art(path, size) : "";
+const artUrl = (path, size = "w780") => ART_HOST + "/img/" + size + "/" + String(path).replace(/^\//, "") + "/q65.webp";
+const imageUrl = (path, size = "w780") => path ? artUrl(path, size) : "";
 const blobs = new Map();
 const imageQueue = [];
 let imageBusy = 0;
@@ -343,19 +320,14 @@ function clean(r, forced) {
   const date = r.release_date || r.first_air_date || "";
   const back = r.backdrop_path || r.poster_path;
   const front = r.poster_path || r.backdrop_path;
-  const backup = sourceIndex === 1;
-  const path = slugOf(title) + "-" + r.id;
-  const kind = type === "tv" ? "show" : "movie";
   return {
-    key: type + ":" + r.id, id: r.id, sid: r.id, path, backupType: kind, type, title,
-    url: backup ? BETA + "/" + kind + "/" + path : SITE + "/" + type + "/" + r.id,
-    playUrl: backup ? BETA + "/watch/" + (type === "tv" ? kind + "/" + path + "/1/1" : path) : "",
+    key: type + ":" + r.id, id: r.id, type, title,
+    url: SITE + "/" + type + "/" + r.id,
     art: imageUrl(back), poster: imageUrl(front, "w342"),
     text: r.overview || "",
     year: date.slice(0, 4) || "",
     rating: Math.round((Number(r.vote_average) || 0) * 10) / 10,
-    tags: (r.genre_ids || []).map(g => GENRES[g]).filter(Boolean).slice(0, 3),
-    source: sourceIndex
+    tags: (r.genre_ids || []).map(g => GENRES[g]).filter(Boolean).slice(0, 3)
   };
 }
 const ROWS = [
@@ -368,46 +340,20 @@ const ROWS = [
   ["Now showing", "/tv/airing_today", "tv", false]
 ];
 function fetchRow([name, path, type, ranked]) {
-  return getJson(source().api + path).then(j => ({
+  return getJson(LIBRARY + path).then(j => ({
     name, ranked,
     items: (j.results || []).map(r => clean(r, type)).filter(Boolean).slice(0, 20)
   }));
 }
 
 const ANIME_ROWS = [
-  { name: "Popular anime", main: "/trending/all/week", beta: "sort=popular&limit=20&sfw=1", ranked: true },
-  { name: "Highly rated anime", main: "/tv/top_rated", beta: "sort=score&limit=20&sfw=1", ranked: false },
-  { name: "New anime", main: "/tv/airing_today", beta: "year=" + new Date().getFullYear() + "&limit=20&sfw=1", ranked: false },
-  { name: "Anime films", main: "/tv/popular", beta: "format=MOVIE&limit=20&sfw=1", ranked: false }
+  { name: "Popular anime", path: "/trending/all/week", ranked: true },
+  { name: "Highly rated anime", path: "/tv/top_rated", ranked: false },
+  { name: "New anime", path: "/tv/airing_today", ranked: false },
+  { name: "Anime films", path: "/tv/popular", ranked: false }
 ];
-const ANIME_ADULT_RE = /hentai|uncensored/i;
-function cleanAnime(a) {
-  const title = a.title || a.native || "";
-  const genres = a.genres || [];
-  if (!title || ADULT_RE.test(title + " " + (a.synopsis || "")) || ANIME_ADULT_RE.test(title + " " + genres.join(" "))) return null;
-  const aid = String(a.anilistId || a.malId || a.id || "");
-  const sid = String(a.id || aid);
-  if (!aid) return null;
-  const path = slugOf(title) + "-" + aid;
-  const poster = a.poster ? (/^https?:/i.test(a.poster) ? a.poster : BETA + a.poster) : "";
-  return {
-    key: "anime:" + aid, id: aid, sid, path, backupType: "anime", type: "tv", title,
-    url: BETA + "/anime/" + path,
-    playUrl: BETA + "/watch/" + path + "/1",
-    art: poster, poster, text: a.synopsis || "",
-    year: a.year ? String(a.year) : "",
-    rating: Math.round((Number(a.score) || 0) * 10) / 10,
-    tags: genres.slice(0, 3),
-    episodeCount: Math.max(1, Number(a.episodeCount) || 1),
-    source: sourceIndex, beta: true
-  };
-}
 function fetchAnimeRow(row) {
-  if (source().anime) return getJson(BETA + "/api/anime/browse?" + row.beta).then(j => ({
-    name: row.name, ranked: row.ranked,
-    items: (j.items || []).map(cleanAnime).filter(Boolean).slice(0, 20)
-  }));
-  return getJson(LIBRARY + row.main).then(j => ({
+  return getJson(LIBRARY + row.path).then(j => ({
     name: row.name, ranked: row.ranked,
     items: (j.results || []).filter(r => (r.genre_ids || []).includes(16)).map(r => clean(r, "tv")).filter(Boolean).slice(0, 20)
   }));
@@ -458,10 +404,9 @@ function row(name, items, opt = {}) {
 
 /* ---- continue watching ---- */
 const allContinue = () => { try { const v = JSON.parse(localStorage.getItem(CONTINUE)); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
-const loadContinue = () => allContinue().filter(s => (s.source || 0) === sourceIndex);
+const loadContinue = () => allContinue().filter(s => s && s.key && s.title && s.url && String(s.url).startsWith(SITE + "/"));
 function saveSpot(spot) {
-  const which = spot.source == null ? sourceIndex : spot.source;
-  const list = allContinue().filter(s => (s.source || 0) !== which && s.key !== spot.key);
+  const list = allContinue().filter(s => !(s && s.key === spot.key));
   if (!(spot.d && spot.t > spot.d - 90)) list.unshift(spot);
   try { localStorage.setItem(CONTINUE, JSON.stringify(list.slice(0, 12))); } catch (e) {}
 }
@@ -480,7 +425,7 @@ function hero(item) {
   h.querySelector(".meta").innerHTML = metaHTML(item);
   h.querySelector("p").textContent = item.text || "A classroom-friendly pick. Open it to watch.";
   h.querySelector(".btn.main").onclick = () => {
-    if (item.type === "tv" || item.beta) details(item);
+    if (item.type === "tv") details(item);
     else play(item);
   };
   h.querySelector(".more").onclick = () => details(item);
@@ -506,9 +451,8 @@ function rotateHero() {
 function showContinue(box) {
   const spots = loadContinue();
   if (!spots.length) return;
-  const sec = row("Continue watching", spots.map(s => ({ title: s.title, art: s.art, poster: s.poster, year: s.year, type: s.type,
-    id: s.id, sid: s.sid, path: s.path, url: s.url, playUrl: s.playUrl, beta: s.beta, source: s.source,
-    season: s.season, episode: s.episode })), {
+  const sec = row("Continue watching", spots.map(s => ({ key: s.key, title: s.title, art: s.art, poster: s.poster,
+    year: s.year, type: s.type, id: s.id, url: s.url, season: s.season, episode: s.episode })), {
     note: "", click: s => play(s, 0, { season: s.season, episode: s.episode }),
     pct: 0
   });
@@ -567,14 +511,6 @@ $("nav").onclick = e => {
   home();
 };
 $("brand").onclick = () => { section = "all"; home(); };
-$("source").onclick = () => {
-  sourceIndex = sourceIndex ? 0 : 1;
-  try { localStorage.setItem(SOURCE_KEY, String(sourceIndex)); } catch (e) {}
-  updateSourceButton();
-  heroItems = [];
-  section = "all";
-  home();
-};
 $("search").onsubmit = e => {
   e.preventDefault();
   const q = $("q").value.replace(/[^\p{L}\p{N}\s'-]/gu, " ").trim();
@@ -597,14 +533,11 @@ $("search").onsubmit = e => {
   status.className = "msg";
   status.textContent = "Searching…";
   grid.before(status);
-  const extra = source().anime
-    ? getJson(BETA + "/api/anime/browse?q=" + encodeURIComponent(q) + "&limit=20&sfw=1").catch(() => ({ items: [] }))
-    : Promise.resolve({ items: [] });
-  Promise.all([getJson(source().api + "/search/multi?query=" + encodeURIComponent(q)), extra]).then(([j, more]) => {
+  getJson(LIBRARY + "/search/multi?query=" + encodeURIComponent(q)).then(j => {
     if (run !== viewRun) return;
     const seen = new Set();
     const items = [];
-    for (const it of [...(j.results || []).map(r => clean(r)), ...(more.items || []).map(cleanAnime)].filter(Boolean)) {
+    for (const it of (j.results || []).map(r => clean(r)).filter(Boolean)) {
       const k = it.title.toLowerCase();
       if (seen.has(k)) continue;
       seen.add(k);
@@ -614,7 +547,7 @@ $("search").onsubmit = e => {
     if (!items.length) { status.textContent = "Nothing found. Try another title."; grid.after(status); return; }
     const count = document.createElement("div");
     count.className = "result-count";
-    count.textContent = items.length + (items.length === 1 ? " result" : " results") + " for “" + q + "” · " + source().name;
+    count.textContent = items.length + (items.length === 1 ? " result" : " results") + " for “" + q + "”";
     grid.before(count);
     items.forEach((it, i) => grid.appendChild(card(it, { i })));
   }).catch(() => { if (run === viewRun) { status.textContent = "Search couldn't reach the library. Try again."; } });
@@ -623,38 +556,24 @@ $("search").onsubmit = e => {
 /* ---- one title, with season and episode picking ---- */
 let current = null, pick = { season: 1, episode: 1 }, pickerRun = 0;
 const episodeCache = new Map();
-function sourceFor(item) { return SOURCES[item.source == null ? sourceIndex : item.source] || source(); }
-function artFor(item, path, size) { return path ? sourceFor(item).art(path, size) : ""; }
+function artFor(item, path, size) { return path ? artUrl(path, size) : ""; }
 function genericEpisodes(count) {
   return Array.from({ length: Math.min(Math.max(Number(count) || 1, 1), 1000) }, (_, i) => ({ episode_number: i + 1, name: "Episode " + (i + 1) }));
 }
 async function loadSeasons(item) {
   const key = item.key + ":seasons";
   if (episodeCache.has(key)) return episodeCache.get(key);
-  let seasons;
-  if (item.beta) {
-    const j = await getJson(BETA + "/api/anime/series/" + encodeURIComponent(item.sid || item.id));
-    const eps = (j.episodes || []).filter(e => !ADULT_RE.test((e.title || "") + " " + (e.description || "")));
-    seasons = [{ season_number: 1, name: "Season 1", episodes: eps }];
-  } else {
-    const j = await getJson(sourceFor(item).api + "/tv/" + encodeURIComponent(item.id));
-    seasons = (j.seasons || []).filter(s => !ADULT_RE.test(s.name || ""))
-      .sort((a, b) => (Number(a.season_number) || 0) - (Number(b.season_number) || 0));
-  }
+  const j = await getJson(LIBRARY + "/tv/" + encodeURIComponent(item.id));
+  const seasons = (j.seasons || []).filter(s => !ADULT_RE.test(s.name || ""))
+    .sort((a, b) => (Number(a.season_number) || 0) - (Number(b.season_number) || 0));
   episodeCache.set(key, seasons);
   return seasons;
 }
 async function loadEpisodes(item, season) {
   const key = item.key + ":eps:" + season;
   if (episodeCache.has(key)) return episodeCache.get(key);
-  let eps;
-  if (item.beta) {
-    const seasons = await loadSeasons(item);
-    eps = (seasons[0] && seasons[0].episodes) || genericEpisodes(item.episodeCount || 1);
-  } else {
-    const j = await getJson(sourceFor(item).api + "/tv/" + encodeURIComponent(item.id) + "/season/" + encodeURIComponent(season));
-    eps = (j.episodes || []).filter(e => !ADULT_RE.test((e.name || "") + " " + (e.overview || "")));
-  }
+  const j = await getJson(LIBRARY + "/tv/" + encodeURIComponent(item.id) + "/season/" + encodeURIComponent(season));
+  const eps = (j.episodes || []).filter(e => !ADULT_RE.test((e.name || "") + " " + (e.overview || "")));
   episodeCache.set(key, eps);
   return eps;
 }
@@ -687,8 +606,7 @@ function renderEpisodes(item, season, eps) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "ep" + (n === pick.episode ? " on" : "");
-      const still = e.still_path ? artFor(item, e.still_path, "w500")
-        : e.thumbnail ? (/^https?:/i.test(e.thumbnail) ? e.thumbnail : BETA + e.thumbnail) : "";
+      const still = e.still_path ? artFor(item, e.still_path, "w500") : "";
       if (still) { const art = document.createElement("span"); art.className = "art"; setImage(art, still); b.appendChild(art); }
       const shade = document.createElement("span"); shade.className = "shade"; b.appendChild(shade);
       const no = document.createElement("span"); no.className = "no"; no.textContent = "EP " + n; b.appendChild(no);
@@ -720,7 +638,7 @@ function renderEpisodes(item, season, eps) {
 function showPicker(item) {
   const run = ++pickerRun;
   pick = { season: Number(item.season) || 1, episode: Number(item.episode) || 1 };
-  if (item.type !== "tv" && !item.beta) {
+  if (item.type !== "tv") {
     $("d-picker").hidden = true;
     $("d-play").textContent = "▶ Play";
     return;
@@ -785,7 +703,7 @@ function details(item) {
 function closeDetails() { pickerRun++; $("details").hidden = true; current = null; }
 $("d-play").onclick = () => {
   if (!current) return;
-  if (current.type === "tv" || current.beta) play(current, 0, { season: pick.season, episode: pick.episode });
+  if (current.type === "tv") play(current, 0, { season: pick.season, episode: pick.episode });
   else play(current);
 };
 $("d-close").onclick = closeDetails;
@@ -807,25 +725,15 @@ function video() { const d = nestedDoc(); return d && d.querySelector("video"); 
 function clickPlay() {
   clearInterval(autoTimer);
   let tries = 0;
-  const beta = !!(playing && playing.beta);
   autoTimer = setInterval(() => {
     const d = nestedDoc();
     if (d) {
-      if (beta) {
-        const v = d.querySelector("video");
-        if (v && (v.duration > 0 || v.readyState > 0)) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
-        const again = [...d.querySelectorAll("button")].find(x => x.textContent.trim() === "Try Again");
-        if (again && tries < 2) { again.click(); tries++; return; }
-        const go = [...d.querySelectorAll("a,button")].find(x => /^Play( E\d+)?$/i.test(x.textContent.trim()) && (x.tagName !== "A" || /^\/watch\//.test(x.getAttribute("href") || "")));
-        if (go && tries < 3) { go.click(); tries++; return; }
-      } else {
-        const started = (d.body && /QUALITY|SERVER/i.test(d.body.innerText)) || [...d.querySelectorAll("video")].some(v => v.duration > 600);
-        if (started) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
-        // the trailer buttons are not .mv-btn--primary; this is the button that opens the film.
-        // Next.js paints the HTML before its handlers attach, so keep trying until the player opens.
-        const b = [...d.querySelectorAll("button.mv-btn--primary")].find(x => x.textContent.trim() === "Play");
-        if (b) { b.click(); tries++; return; }
-      }
+      const started = (d.body && /QUALITY|SERVER/i.test(d.body.innerText)) || [...d.querySelectorAll("video")].some(v => v.duration > 600);
+      if (started) { clearInterval(autoTimer); $("p-wait").hidden = true; return; }
+      // the trailer buttons are not .mv-btn--primary; this is the button that opens the film.
+      // Next.js paints the HTML before its handlers attach, so keep trying until the player opens.
+      const b = [...d.querySelectorAll("button.mv-btn--primary")].find(x => x.textContent.trim() === "Play");
+      if (b) { b.click(); tries++; return; }
     }
     if (++tries > 80) {
       clearInterval(autoTimer);
@@ -834,18 +742,9 @@ function clickPlay() {
   }, 1000);
 }
 function playTarget(item, season, episode) {
-  const which = item.source == null ? sourceIndex : item.source;
   const s = Math.max(1, Number(season) || 1), e = Math.max(1, Number(episode) || 1);
-  if (which === 1 || item.beta) {
-    const kind = item.backupType || (item.beta ? "anime" : (item.type === "tv" ? "show" : "movie"));
-    const path = item.path || String(item.url || "").split("/" + kind + "/")[1] || "";
-    if (kind === "anime") return path ? BETA + "/watch/" + path + "/" + e : item.url;
-    if (kind === "show") return path ? BETA + "/watch/show/" + path + "/" + s + "/" + e : item.url;
-    return path ? BETA + "/watch/" + path : item.url;
-  }
-  const id = encodeURIComponent(item.id);
-  if (item.type === "tv") return SITE + "/tv/" + id + "/" + s + "/" + e + "?play=true";
-  return item.url + (item.url.includes("?") ? "&" : "?") + "play=true";
+  if (item.type === "tv") return SITE + "/tv/" + encodeURIComponent(item.id) + "/" + s + "/" + e + "?play=true";
+  return String(item.url).split("?")[0] + "?play=true";
 }
 function play(item, at = 0, selected = null) {
   closeDetails();
@@ -853,14 +752,11 @@ function play(item, at = 0, selected = null) {
   const explicit = !!(selected && (selected.season || selected.episode));
   const season = Number(explicit ? selected.season : (item.season || 1)) || 1;
   const episode = Number(explicit ? selected.episode : (item.episode || 1)) || 1;
-  const url = explicit ? playTarget(item, season, episode) : (item.playUrl || playTarget(item, season, episode));
-  const which = item.source == null ? sourceIndex : item.source;
+  const url = playTarget(item, season, episode);
   const label = item.type === "tv" ? " · S" + season + " E" + episode : "";
   playing = { key: item.key || item.type + ":" + item.id, title: item.title, url,
-    playUrl: url, beta: !!item.beta || which === 1, source: which,
-    season, episode, path: item.path, sid: item.sid,
-    art: item.art || item.poster, poster: item.poster, year: item.year, type: item.type,
-    t: 0, d: 0 };
+    season, episode, art: item.art || item.poster, poster: item.poster, year: item.year,
+    type: item.type, t: 0, d: 0 };
   seekTo = at || 0;
   $("p-title").textContent = item.title + label;
   $("p-wait").textContent = item.type === "tv" ? "Loading episode…" : "Loading film…";
