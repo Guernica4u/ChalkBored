@@ -177,6 +177,9 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/Swing-Physics/index.html': { src: 'LESSONS/art/swing-physics.webp', fit: 'cover' },
+  'LESSONS/Turn-Duel/index.html': { src: 'LESSONS/art/turn-duel.webp', fit: 'cover' },
+  'LESSONS/Safety-Lessons/index.html': { src: 'LESSONS/art/safety-lessons.webp', fit: 'cover' },
   'LESSONS/Prank-Quest-1/index.html': { src: 'LESSONS/art/prank-quest-1.webp', fit: 'cover' },
   'LESSONS/Prank-Quest-2/index.html': { src: 'LESSONS/art/prank-quest-2.webp', fit: 'cover' },
   'LESSONS/Prank-Quest-3/index.html': { src: 'LESSONS/art/prank-quest-3.webp', fit: 'cover' },
@@ -242,7 +245,7 @@ const ART = {
   'LESSONS/Rhythm-Geometry-Lite/index.html':     { src: 'LESSONS/art/rhythm-geometry-lite.webp', bg: '#0b2a4a', fit: 'cover' },
   'LESSONS/Hill-Physics-2/index.html':             { src: 'LESSONS/art/hill-physics-2.webp', bg: '#f4f2ee', fit: 'cover' },
   'LESSONS/Motion-Lab-Dismount/index.html':        { src: 'LESSONS/art/motion-lab-dismount.webp', bg: '#f4f2ee', fit: 'cover' },
-  'LESSONS/Pastry-Clicker/index.html':             { src: 'LESSONS/art/pastry-clicker-cover.png', bg: '#2a1a10', fit: 'contain' },
+  'LESSONS/Pastry-Clicker/index.html': { src: 'LESSONS/art/pastry-clicker.webp', fit: 'cover' },
   'LESSONS/Study-Hall/index.html':                 { src: 'LESSONS/art/study-hall-cover.png', bg: '#087F0B', fit: 'contain' },
   'LESSONS/Slope-main/Slope-main/index.html':      { src: 'LESSONS/art/slope-main-cover.png', bg: '#000', fit: 'contain' },
   'LESSONS/rb-main/index.html':                    { src: 'LESSONS/art/rb-main-cover.jpg', bg: '#5b9a2f', fit: 'contain' },
@@ -273,8 +276,8 @@ const ART = {
   'LESSONS/Botany-Defense-1/index.html':           { src: 'LESSONS/art/botany-defense-1.webp', bg: '#f5a623', fit: 'cover' },
   'LESSONS/Botany-Defense-2/index.html':           { src: 'LESSONS/art/botany-defense-2.webp', bg: '#5a3d8a', fit: 'cover' },
   'LESSONS/Road-Safety-Lab/index.html':            { src: 'LESSONS/art/road-safety-lab.webp', bg: '#4a7d4f', fit: 'contain' },
-  'LESSONS/Temple-Architecture/index.html':        { src: 'LESSONS/art/temple-architecture.webp', bg: '#2f7a2f', fit: 'cover' },
-  'LESSONS/Crypto-Economics/index.html':           { src: 'LESSONS/art/crypto-economics.webp', bg: '#f3e2b3', fit: 'cover' },
+  'LESSONS/Temple-Architecture/index.html': { src: 'LESSONS/art/temple-architecture.webp', fit: 'cover' },
+  'LESSONS/Crypto-Economics/index.html': { src: 'LESSONS/art/crypto-economics.webp', fit: 'cover' },
   'LESSONS/Room-Escape-3/index.html':              { src: 'LESSONS/art/room-escape-3.webp', bg: '#fff', fit: 'cover' },
   'LESSONS/Room-Escape-4/index.html':              { src: 'LESSONS/art/room-escape-4.webp', bg: '#fff', fit: 'cover' },
   'LESSONS/Room-Escape-5/index.html':              { src: 'LESSONS/art/room-escape-5.webp', bg: '#fff', fit: 'cover' },
@@ -288,7 +291,7 @@ const ART = {
   'LESSONS/Resource-Gathering/index.html':         { src: 'LESSONS/art/resource-gathering.webp', bg: '#6a8f3a', fit: 'cover' },
   'LESSONS/Hardest-Path-1/index.html':             { src: 'LESSONS/art/hardest-path-1.webp', bg: '#b5b5ff', fit: 'cover' },
   'LESSONS/Hardest-Path-2/index.html':             { src: 'LESSONS/art/hardest-path-2.webp', bg: '#b5b5ff', fit: 'cover' },
-  'LESSONS/Space-Tunnel-3/index.html':             { src: 'LESSONS/art/space-tunnel-3.webp', bg: '#0b2e0b', fit: 'cover' },
+  'LESSONS/Space-Tunnel-3/index.html': { src: 'LESSONS/art/space-tunnel-3.webp', fit: 'cover' },
   'LESSONS/Ragdoll-Physics/index.html':            { src: 'LESSONS/art/ragdoll-physics.webp', bg: '#3a3a3a', fit: 'cover' },
   'LESSONS/Duel-Arena/index.html':               { src: 'LESSONS/art/duel-arena.webp', fit: 'cover' },
   'LESSONS/Balloon-Math-1/index.html':             { src: 'LESSONS/art/balloon-math-1.webp', bg: '#7cc4f2', fit: 'cover' },
