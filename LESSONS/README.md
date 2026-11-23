@@ -1,7 +1,7 @@
 # What the lessons really are
 
 Every game has a school-sounding code name so the filter doesn't block the notebook.
-This table lists them in card order (149 games).
+This table lists them in card order (162 games).
 
 The game files are not in this repo. They live in
 [Guernica4u/chalkbored-lessons](https://github.com/Guernica4u/chalkbored-lessons) and load from
@@ -155,6 +155,19 @@ The game files are not in this repo. They live in
 | 144 | Papa's Sushiria | `Kitchen-Math-Sushi/index.html` |
 | 145 | Papa's Taco Mia | `Kitchen-Math-Tacos/index.html` |
 | 146 | Papa's Wingeria | `Kitchen-Math-Wings/index.html` |
-| 147 | World's Hardest Game | `Hardest-Path-1/index.html` |
-| 148 | World's Hardest Game 2 | `Hardest-Path-2/index.html` |
-| 149 | Line Rider | `Line-Drawing-Physics/index.html` |
+| 147 | Trollface Quest | `Prank-Quest-1/index.html` |
+| 148 | Trollface Quest 2 | `Prank-Quest-2/index.html` |
+| 149 | Trollface Quest 3 | `Prank-Quest-3/index.html` |
+| 150 | Trollface Quest 4 | `Prank-Quest-4/index.html` |
+| 151 | Trollface Quest 5 | `Prank-Quest-5/index.html` |
+| 152 | Trollface Quest 6 | `Prank-Quest-6/index.html` |
+| 153 | Trollface Quest 7 | `Prank-Quest-7/index.html` |
+| 154 | Trollface Quest 8 | `Prank-Quest-8/index.html` |
+| 155 | Trollface Quest 9 | `Prank-Quest-9/index.html` |
+| 156 | Trollface Quest 10 | `Prank-Quest-10/index.html` |
+| 157 | Trollface Quest 11 | `Prank-Quest-11/index.html` |
+| 158 | Trollface Quest 12 | `Prank-Quest-12/index.html` |
+| 159 | Trollface Quest 13 | `Prank-Quest-13/index.html` |
+| 160 | World's Hardest Game | `Hardest-Path-1/index.html` |
+| 161 | World's Hardest Game 2 | `Hardest-Path-2/index.html` |
+| 162 | Line Rider | `Line-Drawing-Physics/index.html` |
