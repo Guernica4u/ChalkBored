@@ -133,6 +133,7 @@ const LIST = {
     { name: '.B35tblock?',                    path: 'LESSONS/Rhythm-Block/index.html' },
     { name: '.G5ng;B35sts?',                  path: 'LESSONS/Jelly-Brawl/index.html' },
     { name: '.B5sk3t;R5ndom?',                path: 'LESSONS/Court-Random/index.html' },
+    { name: '.Doki;Doki;Lit3r5tur3;Club?',    path: 'LESSONS/Literature-Club/index.html' },
     { name: '.Ag3;of;W5r?'                    , path: 'LESSONS/Ancient-Evolution/index.html' },
     { name: '.V3x;~3?'                        , path: 'LESSONS/Room-Escape-3/index.html' },
     { name: '.V3x;4?'                         , path: 'LESSONS/Room-Escape-4/index.html' },
@@ -163,6 +164,7 @@ const LIST = {
 // Art from each lesson's folder, or from LESSONS/art/ for ones that came without any.
 // A lesson missing from here keeps its initials.
 const ART = {
+  'LESSONS/Literature-Club/index.html': { src: 'LESSONS/art/literature-club.webp', fit: 'cover' },
   'LESSONS/Rhythm-Block/index.html': { src: 'LESSONS/art/rhythm-block.webp', fit: 'cover' },
   'LESSONS/Jelly-Brawl/index.html': { src: 'LESSONS/art/jelly-brawl.webp', fit: 'cover' },
   'LESSONS/Gravity-Lab/index.html': { src: 'LESSONS/art/gravity-lab.webp', fit: 'cover' },
