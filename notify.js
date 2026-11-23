@@ -62,7 +62,9 @@
   .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .35rem; }
   .ver-row .ver-corner { position: static; }
   .ver-row .icon-btn { width: 28px; height: 28px; padding: 0; }
-  .ver-row .icon-btn svg { width: 16px; height: 16px; }
+  .ver-row .icon-btn svg { width: 16px !important; height: 16px !important; }
+  .ver-row .bell-btn { width: 30px; height: 30px; }
+  .ver-row .bell-btn svg { width: 19px !important; height: 19px !important; }
   @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
   .bell-btn svg, .me-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -79,13 +81,27 @@
   .bell-empty { margin: 4px 6px 6px; font-size: .78rem; color: var(--pencil, #9a9a9a); }`;
   document.head.appendChild(bellCss);
 
-  async function bell(db) {
-    const { data: { user } } = await db.auth.getUser();
-    const ver = document.getElementById('hello-updated');
-    if (!ver) return;
-    const row = document.createElement('div');
+  // the row by the version number. Settings joins it on wide screens (on phones this row only shows
+  // on Home, so Settings stays at the top there); the profile button and bell join once online
+  const ver = document.getElementById('hello-updated');
+  const row = ver && document.createElement('div');
+  if (row) {
     row.className = 'ver-row';
     ver.parentNode.insertBefore(row, ver);
+    row.append(ver);
+    const gear = document.getElementById('gear');
+    if (gear) {
+      const home = gear.parentNode, after = gear.nextSibling;
+      const wide = matchMedia('(min-width: 761px)');
+      const place = () => { if (wide.matches) row.append(gear); else home.insertBefore(gear, after); };
+      wide.addEventListener('change', place);
+      place();
+    }
+  }
+
+  async function bell(db) {
+    const { data: { user } } = await db.auth.getUser();
+    if (!row) return;
     const me = document.createElement('button');
     me.type = 'button';
     me.className = 'icon-btn me-btn';
@@ -108,7 +124,7 @@
       };
       go();
     });
-    row.append(ver, me);
+    row.insertBefore(me, row.querySelector('#gear'));
     window.dispatchEvent(new Event('chalk-me-btn'));   // home.js puts your picture on it
     if (!user) return;
     const btn = document.createElement('button');
