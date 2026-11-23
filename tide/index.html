@@ -64,7 +64,7 @@ html.framed #tabbar { background: transparent; }
 
 #view { flex: 1; position: relative; min-height: 0; }
 #view > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; display: none; }
-#view > iframe.shown { display: block; }
+#view > iframe.shown { display: block; animation: fade-in .14s ease-out; }   /* a page or tab fades in instead of popping */
 #bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--ac); z-index: 3; opacity: 0; transition: width .5s ease, opacity .3s; }
 #bar.on { opacity: 1; width: 70%; transition: width 6s cubic-bezier(.1,.6,.3,1), opacity .2s; }
 
@@ -73,6 +73,8 @@ html.framed #tabbar { background: transparent; }
   padding: 24px 16px 14vh; text-align: center; overflow: auto; background: #000 url("background.webp") center / cover no-repeat; }
 html.framed #home { background: transparent; }
 #home[hidden] { display: none; }
+#home { animation: fade-in .14s ease-out; }
+#loader:not([hidden]) { animation: fade-in .2s ease-out; }
 .logo { width: 56px; height: 56px; color: var(--tx); }
 .logo .orb { fill: var(--ac); }
 #home h1 { margin: 10px 0 4px; font-size: 28px; font-weight: 600; letter-spacing: .3px; }
@@ -161,6 +163,8 @@ select { padding: 7px 10px; border-radius: 8px; background: var(--bg2); color: v
 html.tv #tabbar, html.tv #navbar, html.tv #home { display: none !important; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #view > iframe.shown, #home, #loader { animation: none !important; } }
 @media (max-width: 520px) { #forward { display: none; } .tab { min-width: 56px; } }
 </style>
 </head>
