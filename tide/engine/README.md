@@ -17,3 +17,7 @@ page and the site that asked) are scrambled like the addresses themselves
 (reversed, base64, marked with `~`), so a school filter can't read site names
 from them. Search it for `"~"+btoa` to find the three places and the one that
 reads them back.
+
+One change in `net.js`: while requests are open, libcurl.js runs its loop every 10 ms
+instead of `setInterval(..., 0)` (every 4 ms), which kept slow laptops busy while a video
+streamed. Search it for `}, 10);`.
