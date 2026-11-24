@@ -60,13 +60,14 @@
   const bellCss = document.createElement('style');
   bellCss.textContent = `
   .bell-btn { position: relative; }
-  .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .35rem; }
+  .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .8rem; }
   .ver-row .ver-corner { position: static; }
   .ver-row .icon-btn { width: 28px; height: 28px; padding: 0; }
   .ver-row .icon-btn svg { width: 16px !important; height: 16px !important; }
-  .ver-row .bell-btn { width: 30px; height: 30px; }
-  .ver-row .bell-btn svg { width: 19px !important; height: 19px !important; }
-  @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .1rem; } }
+  .ver-row .bell-btn { width: 32px; height: 32px; }
+  .ver-row .bell-btn svg { width: 22px !important; height: 22px !important; }
+  .ver-row .me-btn .hn-av.me-pic { width: 20px; height: 20px; }
+  @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .5rem; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
   .bell-btn svg, .me-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .bell-count { position: absolute; top: -4px; right: -6px; min-width: 15px; height: 15px; padding: 0 3px; box-shadow: 0 0 0 2px var(--rail, #080808); background: var(--accent, #f2f2f2); color: var(--card, #111);
