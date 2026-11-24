@@ -4,7 +4,7 @@
 // `ours: true` marks a game ChalkBored made or modified; its card gets the small C mark ----
 // Lesson files live in the separate chalkbored-lessons repo and load from here. Card covers
 // (LESSONS/art) stay in this repo. A card's `path` keeps its old form, so favorites and history keep working.
-const LESSON_HOST = 'https://games.chalkbored.win/';
+const LESSON_HOST = 'https://lessons.chalkbored.win/';
 
 const LIST = {
   lessons: [

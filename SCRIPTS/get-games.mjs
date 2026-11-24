@@ -1,4 +1,4 @@
-// Downloads every ChalkBored game from games.chalkbored.win into this folder, then serves the
+// Downloads every ChalkBored game from lessons.chalkbored.win into this folder, then serves the
 // folder so chalkbored-offline.html and the games work with no internet.
 // Needs Node 18 or newer (nodejs.org). Put this file next to chalkbored-offline.html, then:
 //   node get-games.mjs              download all games (run again to resume or update)
@@ -12,7 +12,7 @@ import { pipeline } from 'node:stream/promises';
 import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const HOST = 'https://games.chalkbored.win/';
+const HOST = 'https://lessons.chalkbored.win/';
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const PORT = 8130;
 
