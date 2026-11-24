@@ -5,7 +5,7 @@ This table lists them in card order (162 games).
 
 The game files are not in this repo. They live in
 [Guernica4u/chalkbored-lessons](https://github.com/Guernica4u/chalkbored-lessons) and load from
-`https://lessons.chalkbored.win/` + the path below. This folder only keeps the card covers (`art/`).
+`https://games.chalkbored.win/` + the path below. This folder only keeps the card covers (`art/`).
 
 | # | Game | Path (inside `LESSONS/`) |
 |---|------|------|
