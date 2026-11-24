@@ -23,5 +23,5 @@ The [Releases](https://github.com/Guernica4u/ChalkBored/releases) page has `chal
 - `node get-games.mjs` downloads every game (about 8 GB) next to them. Run it again to resume.
 - `node get-games.mjs serve` opens the offline copy at http://localhost:8130/ with the downloaded games.
 
-Opened on its own, the HTML file loads games from games.chalkbored.win. Music, TV, Browser and Chat need the website.
+Opened on its own, the HTML file loads games from lessons.chalkbored.win. Music, TV, Browser and Chat need the website.
 Rebuild the HTML with `node SCRIPTS/build-offline.mjs`.

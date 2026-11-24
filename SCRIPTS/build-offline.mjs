@@ -1,7 +1,7 @@
 // Builds chalkbored-offline.html: the Study Hall page as one file, with its scripts, icon and
 // card covers inlined, so it opens from a USB stick or Downloads.
 //   node SCRIPTS/build-offline.mjs            (run from the repo folder; writes chalkbored-offline.html)
-// Games load from games.chalkbored.win, or from the same folder when get-games.mjs serves it.
+// Games load from lessons.chalkbored.win, or from the same folder when get-games.mjs serves it.
 // Music, TV, Browser and Chat are separate pages that need the website.
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -20,9 +20,9 @@ const once = (text, from, to) => {
 const inline = (code) => `<script>\n${code.replace(/<\/script/gi, '<\\/script')}\n</script>`;
 
 let subjects = read('subjects.js');
-subjects = once(subjects, "const LESSON_HOST = 'https://games.chalkbored.win/';",
+subjects = once(subjects, "const LESSON_HOST = 'https://lessons.chalkbored.win/';",
   "// offline copy: games come from this folder when get-games.mjs serves it, else from the games host\n" +
-  "const LESSON_HOST = location.protocol === 'file:' ? 'https://games.chalkbored.win/' : './';");
+  "const LESSON_HOST = location.protocol === 'file:' ? 'https://lessons.chalkbored.win/' : './';");
 subjects = subjects.replace(/src: '(LESSONS\/art\/[^']+)'/g, (_, p) => `src: '${dataUri(p)}'`);
 
 let html = read('study-hall/algebra.html');
