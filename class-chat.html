@@ -4547,10 +4547,16 @@ $('dm-form').addEventListener('submit', async (e) => {
 const voice = { key: null, v: null, label: '', beat: null, alone: null, poll: null, people: null, relay: false, held: false, hush: new Set() };
 const dmKey = (id) => 'd:' + [state.me.id, id].sort().join(':');
 
+// a 2-hour login for the voice relay, from chalkbored.win (the relay key never reaches this page);
+// without one, calls still connect wherever the network allows direct connections
 async function iceServers() {
   try {
-    const { data } = await db.functions.invoke('voice-ice');
-    if (data && Array.isArray(data.iceServers)) return data.iceServers;
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      const r = await fetch('https://chalkbored.win/voice-ice', { method: 'POST', headers: { Authorization: 'Bearer ' + session.access_token } });
+      const d = await r.json();
+      if (Array.isArray(d.iceServers)) return d.iceServers;
+    }
   } catch (e) {}
   return [{ urls: 'stun:stun.cloudflare.com:3478' }];
 }
@@ -4716,7 +4722,7 @@ function paintVoice() {
   if (on) {
     const n = voice.v.connected().length;
     const stuck = voice.v.failed().length;
-    const status = stuck ? (voice.relay ? 'Can’t reach ' + stuck + ' of the people here.' : 'This network is blocking the call. The voice relay isn’t set up yet.')
+    const status = stuck ? (voice.relay ? 'Can’t reach ' + stuck + ' of the people here.' : 'This network is blocking the call, and the voice relay isn’t available right now.')
       : n ? (n + 1) + ' in the call' : voice.ringing ? 'Ringing…' : 'waiting for others…';
     $('voice-label').textContent = voice.label + ' · ' + status;
     $('voice-mute').textContent = voice.held ? 'Muted by a mod' : voice.v.muted ? 'Unmute' : 'Mute';
