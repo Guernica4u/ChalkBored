@@ -276,24 +276,30 @@ const imageUrl = (path, size = "w780") => path ? artUrl(path, size) : "";
 const blobs = new Map();
 const imageQueue = [];
 let imageBusy = 0;
+function queueImage(el) {
+  if (!el || !el.dataset.src || el.dataset.queued) return;
+  el.dataset.queued = "1";
+  imageQueue.push(el);
+  pumpImages();
+}
 const seen = new IntersectionObserver(list => list.forEach(e => {
   if (!e.isIntersecting) return;
   seen.unobserve(e.target);
-  imageQueue.push(e.target);
-  pumpImages();
-}), { root: null, rootMargin: "500px" });
+  queueImage(e.target);
+}), { root: null, rootMargin: "320px" });
 function paintImage(el, url) {
   if (el.tagName === "IMG") el.src = url; else el.style.backgroundImage = 'url("' + url + '")';
   delete el.dataset.src;
+  delete el.dataset.queued;
 }
-function setImage(el, url) {
+function setImage(el, url, eager = false) {
   if (!url) return;
   if (blobs.has(url)) paintImage(el, blobs.get(url));
   else {
+    delete el.dataset.queued;
     el.dataset.src = encode(url);
     seen.observe(el);
-    // the first screenful loads straight away; the observer handles the rest on scroll
-    if (imageQueue.length < 30) { imageQueue.push(el); pumpImages(); }
+    if (eager) queueImage(el);
   }
 }
 function pumpImages() {
@@ -347,16 +353,26 @@ function fetchRow([name, path, type, ranked]) {
 }
 
 const ANIME_ROWS = [
-  { name: "Popular anime", path: "/trending/all/week", ranked: true },
-  { name: "Highly rated anime", path: "/tv/top_rated", ranked: false },
-  { name: "New anime", path: "/tv/airing_today", ranked: false },
-  { name: "Anime films", path: "/tv/popular", ranked: false }
+  { name: "Featured anime", type: "tv", paths: ["/tv/top_rated"], ranked: false },
+  { name: "Anime series", type: "tv", paths: ["/trending/tv/week", "/tv/popular?page=2", "/tv/popular?page=3", "/tv/popular?page=4", "/tv/popular?page=6", "/tv/popular?page=7", "/tv/popular?page=8"], ranked: false },
+  { name: "Anime films", type: "movie", paths: ["/movie/top_rated?page=1"], ranked: false }
 ];
-function fetchAnimeRow(row) {
-  return getJson(LIBRARY + row.path).then(j => ({
-    name: row.name, ranked: row.ranked,
-    items: (j.results || []).filter(r => (r.genre_ids || []).includes(16)).map(r => clean(r, "tv")).filter(Boolean).slice(0, 20)
-  }));
+let animeSeen = new Set();
+function isAnime(r) {
+  return r && r.original_language === "ja" && (r.genre_ids || []).includes(16);
+}
+async function fetchAnimeRow(row) {
+  const lists = await Promise.all(row.paths.map(p => getJson(LIBRARY + p).then(j => j.results || []).catch(() => [])));
+  const items = [];
+  for (const r of [].concat(...lists)) {
+    if (!isAnime(r)) continue;
+    const k = String(r.id);
+    if (animeSeen.has(k)) continue;
+    animeSeen.add(k);
+    const it = clean(r, row.type);
+    if (it) items.push(it);
+  }
+  return { name: row.name, ranked: row.ranked, items: items.slice(0, 20) };
 }
 
 function metaHTML(item) {
@@ -420,7 +436,7 @@ function hero(item) {
     '<div class="eyebrow">Educational films &amp; series</div><h1></h1><div class="meta"></div><p></p>' +
     '<div class="actions"><button class="btn main" type="button">&#9654; Play</button><button class="btn more" type="button">More info</button></div></div>' +
     '<div class="dots"></div>';
-  setImage(h.querySelector(".art"), item.art || item.poster);
+  setImage(h.querySelector(".art"), item.art || item.poster, true);
   h.querySelector("h1").textContent = item.title;
   h.querySelector(".meta").innerHTML = metaHTML(item);
   h.querySelector("p").textContent = item.text || "A classroom-friendly pick. Open it to watch.";
@@ -478,31 +494,58 @@ function home() {
   $("browse").appendChild(hold);
   showContinue(hold);
   const anime = section === "anime";
+  if (anime) animeSeen = new Set();
   const status = document.createElement("p");
   status.className = "msg";
   status.textContent = anime ? "Loading anime…" : "Loading films…";
   $("browse").appendChild(status);
   const wanted = anime ? ANIME_ROWS : ROWS;
   const load = anime ? fetchAnimeRow : fetchRow;
-  Promise.all(wanted.map(load)).then(rows => {
+  const slots = wanted.map(() => {
+    const s = document.createElement("div");
+    s.className = "row-slot";
+    $("browse").appendChild(s);
+    return s;
+  });
+  let shown = 0, first = true;
+  const finish = () => {
     if (run !== viewRun) return;
-    rows = rows.filter(r => r.items.length);
-    if (!rows.length) { status.textContent = "Couldn't load the films. Check the connection and try again."; return; }
-    status.remove();
-    heroItems = rows[0].items.slice(0, 5);
-    heroAt = 0;
-    rotateHero();
-    rows.forEach((r, i) => {
-      const sec = row(r.name, r.items, { ranked: r.ranked, hint: r.ranked ? "Top 10" : "" });
-      if (!sec) return;
-      sec.style.setProperty("--r", i);
-      $("browse").appendChild(sec);
-    });
+    if (!shown) {
+      status.textContent = anime
+        ? "Couldn't load the anime. Check the connection and try again."
+        : "Couldn't load the films. Check the connection and try again.";
+      return;
+    }
     const foot = document.createElement("div");
     foot.className = "foot";
     foot.textContent = "A hand-picked film library for learning and enrichment. Everything stays here to watch.";
     $("browse").appendChild(foot);
-  }).catch(() => { if (run === viewRun) status.textContent = "Couldn't load the films. Check the connection and try again."; });
+  };
+  const draw = (i, r) => {
+    if (run !== viewRun) return;
+    if (r && r.items && r.items.length) {
+      status.remove();
+      if (first) {
+        heroItems = r.items.slice(0, 5);
+        heroAt = 0;
+        rotateHero();
+        first = false;
+      }
+      const sec = row(r.name, r.items, { ranked: r.ranked, hint: r.ranked ? "Top 10" : "" });
+      if (sec) {
+        sec.style.setProperty("--r", shown++);
+        slots[i].replaceWith(sec);
+        return;
+      }
+    }
+    slots[i].remove();
+  };
+  const startRest = () => {
+    if (run !== viewRun) return;
+    const rest = wanted.slice(1).map((def, j) => load(def).then(r => draw(j + 1, r)).catch(() => draw(j + 1, { items: [] })));
+    Promise.all(rest).then(finish);
+  };
+  load(wanted[0]).then(r => { draw(0, r); startRest(); }).catch(() => { draw(0, { items: [] }); startRest(); });
 }
 $("nav").onclick = e => {
   const b = e.target.closest("button[data-section]");
@@ -691,8 +734,8 @@ function showPicker(item) {
 }
 function details(item) {
   current = item;
-  setImage($("d-cover"), item.art || item.poster);
-  setImage($("d-poster"), item.poster || item.art);
+  setImage($("d-cover"), item.art || item.poster, true);
+  setImage($("d-poster"), item.poster || item.art, true);
   $("d-title").textContent = item.title;
   $("d-meta").innerHTML = metaHTML(item);
   $("d-text").textContent = item.text || "Open this title to watch it.";
