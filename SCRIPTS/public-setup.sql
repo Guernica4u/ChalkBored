@@ -1128,7 +1128,7 @@ create table if not exists public.voice_signals (
 );
 alter table public.voice_signals drop constraint if exists voice_signals_kind_check;
 alter table public.voice_signals add constraint voice_signals_kind_check
-  check (kind in ('ring', 'offer', 'answer', 'ice', 'bye', 'end', 'sync'));
+  check (kind in ('ring', 'decline', 'offer', 'answer', 'ice', 'bye', 'end', 'sync'));
 -- What a mod did to someone in one call. It outlives their place in the call,
 -- so leaving and coming back doesn't undo it.
 create table if not exists public.voice_holds (
@@ -1270,9 +1270,13 @@ create or replace function public.voice_signal(p_key text, p_to uuid, p_kind tex
 returns text language plpgsql security definer set search_path = public, extensions as $$
 begin
   if auth.uid() is null then return 'Sign in first.'; end if;
-  if p_kind not in ('ring', 'offer', 'answer', 'ice', 'bye') then return 'Unknown message.'; end if;
-  if not exists (select 1 from voice_members where room_key = p_key and user_id = auth.uid()) then return 'You aren''t in this call.'; end if;
-  if p_kind = 'ring' then
+  if p_kind not in ('ring', 'decline', 'offer', 'answer', 'ice', 'bye') then return 'Unknown message.'; end if;
+  -- 'decline' comes from the person who was rung (not in the call yet), back to whoever rang them
+  if p_kind = 'decline' then
+    if p_key not like 'd:%' or not exists (select 1 from voice_signals where room_key = p_key and from_id = p_to and to_id = auth.uid()
+                and kind = 'ring' and created_at > now() - interval '60 seconds') then return 'Nothing to decline.'; end if;
+  elsif not exists (select 1 from voice_members where room_key = p_key and user_id = auth.uid()) then return 'You aren''t in this call.';
+  elsif p_kind = 'ring' then
     if p_key not like 'd:%' or p_to = auth.uid() or not voice_allowed(p_key, p_to) then return 'You can''t call them.'; end if;
     if exists (select 1 from voice_signals where from_id = auth.uid() and to_id = p_to and kind = 'ring'
                 and created_at > now() - interval '20 seconds') then return 'Already ringing.'; end if;

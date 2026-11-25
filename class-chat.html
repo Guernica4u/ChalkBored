@@ -4874,7 +4874,7 @@ function watchVoice() {
           const t = showToast(who + ' is calling you.', async () => {
             if (await callerThere()) joinVoice(s.room_key, 'Call with ' + who);
             else showToast('The call ended.');
-          }, 'Answer', 30000, () => {}, 'Decline');
+          }, 'Answer', 30000, () => db.rpc('voice_signal', { p_key: s.room_key, p_to: s.from_id, p_kind: 'decline', p_body: null }).then(() => {}), 'Decline');
           ringing.add(s.room_key);
           // shortcut: checks every 3 s whether the caller hung up; a 'cancel' message would need a database change
           const check = setInterval(async () => {
@@ -4887,6 +4887,13 @@ function watchVoice() {
           return;
         }
         if (!voice.v || s.room_key !== voice.key) return;
+        if (s.kind === 'decline') {
+          if (!voice.ringing) return;
+          const { data: from } = await db.from('profiles').select('username').eq('id', s.from_id).maybeSingle();
+          leaveVoice();
+          showToast(((from && from.username) || 'They') + ' declined.');
+          return;
+        }
         if (s.kind === 'end') {
           leaveVoice(true);
           showToast(s.body && s.body.removed ? 'A mod removed you from the call.' : 'A mod ended the call.');
