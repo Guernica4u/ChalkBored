@@ -1060,6 +1060,8 @@ function nextSource(s) {
 }
 function songRow(s, opts) {
   const r = el("div", "row" + (opts.on ? " on" : ""));
+  r.dataset.id = s.id;
+  if (opts.num != null) r.dataset.num = opts.num;
   const pick = el("button", "pick");
   pick.type = "button";
   pick.title = "Play";
@@ -1166,7 +1168,21 @@ function drawSongs() {
     }));
   });
 }
+/* the song playing now, marked in the list without drawing it again */
+function markNow() {
+  const now = at >= 0 ? tracks[at] : null, p = engine.paused();
+  $("songs").querySelectorAll(".row.on, .row[data-id=\"" + CSS.escape(String(now)) + "\"]").forEach(r => {
+    const on = r.dataset.id === now;
+    r.classList.toggle("on", on);
+    const g = r.querySelector(".g");
+    if (g) g.textContent = on && !p ? "▶" : r.dataset.num;
+  });
+}
+/* Up next is only drawn while it's open */
+let queueStale = true;
 function drawQueue() {
+  if (!document.body.classList.contains("queued")) { queueStale = true; return; }
+  queueStale = false;
   const q = $("qlist");
   q.innerHTML = "";
   $("queue-t").textContent = "Up next · " + listName(playingList);
@@ -1311,7 +1327,7 @@ async function play(i, dir) {
     setSrc(s.url);
     audio.play().catch(() => {});
   }
-  drawSongs();
+  markNow();
   drawQueue();
 }
 /* a song moved to another source: the same song there, found once and kept */
@@ -1413,7 +1429,7 @@ function playingChanged() {
   $("play").innerHTML = p ? '<svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>'
                           : '<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>';
   if ("mediaSession" in navigator) try { navigator.mediaSession.playbackState = p ? "paused" : "playing"; } catch (e) {}
-  if (p !== wasPaused) { wasPaused = p; drawSongs(); drawQueue(); }
+  if (p !== wasPaused) { wasPaused = p; markNow(); drawQueue(); }
 }
 const coverLook = () => S.cover || (S.spin === false ? "still" : "spin");
 function paintToggles() {
@@ -1911,6 +1927,7 @@ $("lyr-btn").onclick = () => {
 function openQueue(on) {
   const want = on == null ? !document.body.classList.contains("queued") : !!on;
   document.body.classList.toggle("queued", want);
+  if (want && queueStale) drawQueue();
 }
 function closeSide() { document.body.classList.remove("siding"); }
 
