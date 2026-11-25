@@ -1186,6 +1186,7 @@
       <div class="voice-bar" id="voice-bar" role="status" hidden>
         <button class="voice-label" id="voice-label" type="button" title="Open the call"></button>
         <button class="mini" id="voice-mute" type="button">Mute</button>
+        <button class="mini" id="voice-deaf" type="button">Deafen</button>
         <button class="mini" id="voice-leave" type="button">Leave</button>
         <button class="mini danger" id="voice-end" type="button" hidden>End for everyone</button>
       </div>
@@ -1255,6 +1256,7 @@
       <div class="vc-grid" id="vc-grid"></div>
       <div class="vc-actions">
         <button class="mini" id="vc-mute" type="button">Mute</button>
+        <button class="mini" id="vc-deaf" type="button">Deafen</button>
         <button class="mini" id="vc-back" type="button">Back to chat</button>
         <button class="mini danger" id="vc-leave" type="button">Leave</button>
       </div>
@@ -3762,7 +3764,7 @@ async function onMention(row) {
   showToast(text, async () => { await jumpTo(row.room_id, row.channel_id, row.message_id); markSeen([row.id]); });
 }
 
-function showToast(text, onOpen, openLabel, ms) {
+function showToast(text, onOpen, openLabel, ms, onSecond, secondLabel) {
   const t = document.createElement('div');
   t.className = 'toast';
   t.setAttribute('role', 'status');
@@ -3778,8 +3780,17 @@ function showToast(text, onOpen, openLabel, ms) {
     open.onclick = () => { t.remove(); onOpen(); };
     t.appendChild(open);
   }
+  if (typeof onSecond === 'function') {
+    const second = document.createElement('button');
+    second.className = 'mini';
+    second.type = 'button';
+    second.textContent = secondLabel;
+    second.onclick = () => { t.remove(); onSecond(); };
+    t.appendChild(second);
+  }
   $('toasts').appendChild(t);
   setTimeout(() => t.remove(), ms || 8000);
+  return t;
 }
 
 // ------------------------------------------------------------------ your profile
@@ -4606,7 +4617,8 @@ async function loadCallPeople() {
     else if (voice.people.some((p) => !has.has(p.user_id))) chime(false);
   }
   voice.people = now;
-  v.silence(now.filter((p) => p.muted).map((p) => p.user_id).concat([...voice.hush]));
+  v.silence(voice.deaf ? now.map((p) => p.user_id) : now.filter((p) => p.muted).map((p) => p.user_id).concat([...voice.hush]));
+  if (voice.ringing && now.some((p) => p.user_id !== state.me.id)) voice.ringing = false;   // they answered
   const mine = now.find((p) => p.user_id === state.me.id);
   const held = !!(mine && mine.muted);
   if (held !== voice.held) showToast(held ? 'A mod muted you in this call.' : 'A mod unmuted you.');
@@ -4618,6 +4630,7 @@ async function loadCallPeople() {
 async function joinVoice(key, label, ringTo) {
   if (voice.key === key) { openStage(); return; }
   if (voice.key) await leaveVoice();
+  const back = state.homeOn && state.dmTo ? state.dmTo : null;   // a call started from a DM goes back to it
   const servers = await iceServers();
   const v = createVoice({
     me: state.me.id, iceServers: servers, onChange: paintVoice,
@@ -4626,7 +4639,7 @@ async function joinVoice(key, label, ringTo) {
   try { await v.start(); } catch (e) { showToast('Allow the microphone to use voice.'); return; }
   const { data: why, error } = await db.rpc('voice_join', { p_key: key });
   if (error || why) { v.stop(); showToast(error ? error.message : why); return; }
-  Object.assign(voice, { key, v, label, people: null, held: false, hush: new Set(),
+  Object.assign(voice, { key, v, label, people: null, held: false, hush: new Set(), deaf: false, mutedBefore: false, ringing: !!ringTo, back,
     relay: servers.some((s) => [].concat(s.urls).some((u) => /^turns?:/.test(u))) });
   chime(true);
   openStage();
@@ -4656,10 +4669,12 @@ async function leaveVoice(quiet) {
   clearInterval(voice.beat);
   clearInterval(voice.poll);
   clearTimeout(voice.alone);
-  Object.assign(voice, { key: null, v: null, label: '', people: null, held: false });
+  const back = voice.back;
+  Object.assign(voice, { key: null, v: null, label: '', people: null, held: false, deaf: false, ringing: false, back: null });
   v.stop();
   chime(false);
   closeStage();
+  if (back) openHome(back);
   paintVoice();
   paintChannels();
   if (!quiet) await db.rpc('voice_leave', { p_key: key });
@@ -4701,10 +4716,14 @@ function paintVoice() {
     const n = voice.v.connected().length;
     const stuck = voice.v.failed().length;
     const status = stuck ? (voice.relay ? 'Can’t reach ' + stuck + ' of the people here.' : 'This network is blocking the call. The voice relay isn’t set up yet.')
-      : n ? (n + 1) + ' in the call' : 'waiting for others…';
+      : n ? (n + 1) + ' in the call' : voice.ringing ? 'Ringing…' : 'waiting for others…';
     $('voice-label').textContent = voice.label + ' · ' + status;
     $('voice-mute').textContent = voice.held ? 'Muted by a mod' : voice.v.muted ? 'Unmute' : 'Mute';
     $('voice-mute').disabled = voice.held;
+    $('voice-deaf').textContent = $('vc-deaf').textContent = voice.deaf ? 'Undeafen' : 'Deafen';
+    $('voice-deaf').setAttribute('aria-pressed', String(voice.deaf));
+    $('vc-deaf').setAttribute('aria-pressed', String(voice.deaf));
+    $('voice-leave').textContent = $('vc-leave').textContent = voice.ringing ? 'Cancel' : 'Leave';
     $('voice-end').hidden = !canEndVoice(voice.key);
     $('vc-title').textContent = voice.label;
     $('vc-status').textContent = status;
@@ -4748,7 +4767,7 @@ function paintCallGrid() {
     const tile = make('button', 'vc-tile' + (mine ? ' me' : '') + (before.has(p.user_id) ? '' : ' enter'));
     tile.type = 'button';
     const note = p.muted ? 'Muted by a mod' : voice.hush.has(p.user_id) ? 'Muted for you'
-      : mine ? (voice.v.muted ? 'Muted' : 'You') : linked.includes(p.user_id) ? '' : stuck.includes(p.user_id) ? 'Can’t connect' : 'Connecting…';
+      : mine ? (voice.deaf ? 'Deafened' : voice.v.muted ? 'Muted' : 'You') : linked.includes(p.user_id) ? '' : stuck.includes(p.user_id) ? 'Can’t connect' : 'Connecting…';
     tile.append(makeAvatar(p.user_id, p.username, '', p.avatar), make('span', 'vc-name', p.username), make('span', 'vc-state', note));
     tile.setAttribute('aria-label', p.username + (note ? ', ' + note : ''));
     if (mine) tile.disabled = true;
@@ -4802,12 +4821,25 @@ function openCallMenu(p, x, y) {
   menu.querySelector('button').focus();
 }
 
-$('voice-mute').onclick = () => { if (voice.v && !voice.held) voice.v.setMuted(!voice.v.muted); };
+$('voice-mute').onclick = () => {
+  if (!voice.v || voice.held) return;
+  if (voice.deaf) { setDeaf(false); voice.v.setMuted(false); return; }   // talking again means hearing again
+  voice.v.setMuted(!voice.v.muted);
+};
+function setDeaf(on) {
+  if (!voice.v) return;
+  if (on) { voice.mutedBefore = voice.v.muted; voice.v.setMuted(true); }
+  else if (!voice.held) voice.v.setMuted(voice.mutedBefore);
+  voice.deaf = on;
+  loadCallPeople();
+}
+$('voice-deaf').onclick = () => setDeaf(!voice.deaf);
+$('vc-deaf').onclick = () => setDeaf(!voice.deaf);
 $('voice-leave').onclick = () => leaveVoice();
 $('voice-label').onclick = openStage;
 $('vc-mute').onclick = () => $('voice-mute').click();
 $('vc-leave').onclick = () => leaveVoice();
-$('vc-back').onclick = closeStage;
+$('vc-back').onclick = () => { closeStage(); if (voice.back) openHome(voice.back); };
 $('voice-end').onclick = () => endVoice(voice.key);
 $('dm-call').onclick = () => {
   const p = state.dmTo;
@@ -4827,6 +4859,7 @@ $('voice-calls').onclick = async () => {
 };
 window.addEventListener('pagehide', () => { if (voice.key) leaveVoice(); });
 
+const ringing = new Set();   // calls ringing for you right now
 function watchVoice() {
   setInterval(() => { if (!document.hidden) loadVoicePeople(); }, 15000);
   db.channel('voice:' + state.me.id)
@@ -4834,10 +4867,23 @@ function watchVoice() {
       { event: 'INSERT', schema: 'public', table: 'voice_signals', filter: 'to_id=eq.' + state.me.id },
       async ({ new: s }) => {
         if (s.kind === 'ring') {
-          if (voice.key === s.room_key) return;
+          if (voice.key === s.room_key || ringing.has(s.room_key)) return;
           const { data: from } = await db.from('profiles').select('username').eq('id', s.from_id).maybeSingle();
           const who = (from && from.username) || 'A friend';
-          showToast(who + ' is calling you.', () => joinVoice(s.room_key, 'Call with ' + who), 'Answer', 30000);
+          const callerThere = async () => { const { data } = await db.rpc('voice_who', { p_key: s.room_key }); return (data || []).includes(s.from_id); };
+          const t = showToast(who + ' is calling you.', async () => {
+            if (await callerThere()) joinVoice(s.room_key, 'Call with ' + who);
+            else showToast('The call ended.');
+          }, 'Answer', 30000, () => {}, 'Decline');
+          ringing.add(s.room_key);
+          // shortcut: checks every 3 s whether the caller hung up; a 'cancel' message would need a database change
+          const check = setInterval(async () => {
+            if (!t.isConnected) { clearInterval(check); ringing.delete(s.room_key); return; }
+            if (await callerThere()) return;
+            clearInterval(check);
+            ringing.delete(s.room_key);
+            if (t.isConnected) { t.remove(); showToast('Missed call from ' + who + '.'); }
+          }, 3000);
           return;
         }
         if (!voice.v || s.room_key !== voice.key) return;
