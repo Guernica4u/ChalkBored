@@ -3080,10 +3080,10 @@ function watchFeed() {
 }
 
 // how many of this class's members are online (the database keeps track)
-async function watchPresence() {
+// counted from the online list the page already has, instead of asking again (everyone is in Global)
+function watchPresence() {
   if (!state.room) return;
-  const { data } = await db.rpc('online_in_room', { p_room: state.room.id });
-  const count = data || 0;
+  const count = state.room.is_global ? state.online.size : state.members.filter((m) => state.online.has(m.id)).length;
   $('online').textContent = count + ' online';
 }
 
@@ -3303,6 +3303,7 @@ async function loadMembers() {
     avatar: m.profiles.avatar, bio: m.profiles.bio, banned: m.profiles.banned, role: m.role,
   }));
   paintPeople();
+  watchPresence();
 }
 
 let loadingEveryone = null;
@@ -4649,7 +4650,7 @@ async function joinVoice(key, label, ringTo) {
     const { data: stop } = await db.rpc('voice_join', { p_key: key });
     if (stop && voice.key === key) { leaveVoice(); showToast(stop); }
   }, 20000);
-  voice.poll = setInterval(loadCallPeople, 4000);
+  voice.poll = setInterval(loadCallPeople, 12000);   // joins, leaves and mod actions refresh it at once; this is the fallback
   loadCallPeople();
   if (ringTo) {
     const { data: rang } = await db.rpc('voice_signal', { p_key: key, p_to: ringTo, p_kind: 'ring', p_body: null });
