@@ -60,14 +60,15 @@
   const bellCss = document.createElement('style');
   bellCss.textContent = `
   .bell-btn { position: relative; }
-  .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .8rem; }
-  .ver-row .ver-corner { position: static; }
-  .ver-row .icon-btn { width: 28px; height: 28px; padding: 0; }
-  .ver-row .icon-btn svg { width: 16px !important; height: 16px !important; }
-  .ver-row .bell-btn { width: 32px; height: 32px; }
-  .ver-row .bell-btn svg { width: 22px !important; height: 22px !important; }
-  .ver-row .me-btn .hn-av.me-pic { width: 20px; height: 20px; }
-  @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .5rem; } }
+  .ver-row { position: fixed; left: 1.2rem; bottom: .35rem; z-index: 21; display: flex; align-items: center; gap: .55rem; }
+  .ver-row .ver-corner { position: static; margin-right: .3rem; }
+  /* one button size; each icon centred in it. The picture is scaled as a whole (its shape stays 60% of the circle) */
+  .ver-row .icon-btn { width: 32px; height: 32px; padding: 0; }
+  .ver-row .icon-btn > svg { width: 19px !important; height: 19px !important; }
+  .ver-row #gear > svg { width: 21px !important; height: 21px !important; }
+  .ver-row .me-btn .hn-av.me-pic { width: 22px; height: 22px; }
+  .ver-row .me-btn .hn-av.me-pic svg { width: 60% !important; height: 60% !important; }
+  @media (min-width: 761px) { body.os.rail-mini .ver-row { left: 0; width: 64px; flex-direction: column-reverse; gap: .45rem; } body.os.rail-mini .ver-row .ver-corner { margin: .2rem 0 0; } }
   @media (max-width: 760px) { body:not(.on-home) .ver-row { display: none; } }
   .bell-btn svg, .me-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .bell-count { position: absolute; top: -4px; right: -6px; min-width: 15px; height: 15px; padding: 0 3px; box-shadow: 0 0 0 2px var(--rail, #080808); background: var(--accent, #f2f2f2); color: var(--card, #111);
@@ -135,7 +136,7 @@
     btn.className = 'icon-btn bell-btn';
     btn.setAttribute('aria-haspopup', 'true');
     btn.setAttribute('aria-expanded', 'false');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14.5V9.5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>';
     const count = document.createElement('span');
     count.className = 'bell-count';
     count.hidden = true;
