@@ -274,7 +274,7 @@ function showTab(t) {
   if (t.frame && t.url) t.frame.element.classList.add('shown');
   $('home').hidden = !!t.url;
   showBar(t.loading);
-  if (document.activeElement !== $('url')) $('url').value = t.url;
+  if (document.activeElement !== $('url')) $('url').value = shown(t.url);
   renderTabs();
   renderStar();
   saveTabs();
@@ -335,7 +335,7 @@ async function open(t, input) {
   t.title = hostOf(url);
   t.icon = '';
   t.loading = true;
-  if (t === active) { $('url').value = url; $('home').hidden = true; showBar(true); }
+  if (t === active) { $('url').value = shown(url); $('home').hidden = true; showBar(true); }
   renderTabs();
   saveTabs();
   try { await engine; } catch (e) { return; }
@@ -415,7 +415,7 @@ function follow(t) {
   let real;
   try { real = $scramjet.unrewriteUrl(href, t.frame.context); } catch (e) { return; }
   let changed = false;
-  if (real && /^https?:/i.test(real) && real !== t.url) { t.url = real; changed = true; if (t === active && document.activeElement !== $('url')) $('url').value = real; saveTabs(); }
+  if (real && /^https?:/i.test(real) && real !== t.url) { t.url = real; changed = true; if (t === active && document.activeElement !== $('url')) $('url').value = shown(real); saveTabs(); }
   const title = (doc && doc.title || '').trim() || hostOf(t.url);
   if (title !== t.title) { t.title = title; changed = true; }
   if (changed) { remember(t.url, t.title); if (t === active) renderStar(); }
@@ -480,8 +480,10 @@ function notice(title, text) {
 }
 $('notice-btn').onclick = () => location.reload();
 $('addr').onsubmit = e => { e.preventDefault(); const q = $('url').value; open(active, q); $('url').blur(); };
-$('url').addEventListener('focus', () => $('url').select());
-$('url').addEventListener('blur', () => { $('url').value = active ? active.url : ''; });
+// the bar shows addresses without "https://", and the whole address while you edit it
+const shown = u => String(u || '').replace(/^https:\/\//i, '');
+$('url').addEventListener('focus', () => { if (active && active.url) $('url').value = active.url; $('url').select(); });
+$('url').addEventListener('blur', () => { $('url').value = active ? shown(active.url) : ''; });
 $('home-search').onsubmit = e => { e.preventDefault(); const q = $('home-input').value; $('home-input').value = ''; open(active, q); };
 $('new-tab').onclick = () => newTab();
 $('back').onclick = () => { if (active && active.frame) active.frame.back(); };
@@ -580,9 +582,8 @@ function renderMarks() {
   $('marks').replaceChildren(...marks.slice(0, 12).map(m => {
     const b = document.createElement('button'), host = hostOf(m.url);
     b.innerHTML = '<span class="tile"></span><span class="name"></span>';
-    b.querySelector('.tile').textContent = (host[0] || '?').toUpperCase();
-    b.querySelector('.tile').style.background = 'hsl(' + hue(host) + ' 45% 30%)';
-    b.querySelector('.name').textContent = host;
+    b.querySelector('.tile').textContent = ((m.title || host)[0] || '?').toUpperCase();
+    b.querySelector('.name').textContent = m.title || host;
     b.title = m.title || host;
     b.onclick = () => open(active, m.url);
     return b;
