@@ -651,6 +651,7 @@
   /* the sidebar folds down to its icons: the width eases, the words fade, the icons stay put */
   body.os .rail { transition: width 0.22s ease; }
   body.os .main { transition: margin-left 0.22s ease; }
+  html.lowend body.os .main { transition: none; }   /* slower computers: the page moves once instead of re-laying out every card on each frame */
   body.os .brand, body.os .nav-btn span, body.os .rail-search, body.os .rail-foot { transition: opacity 0.15s ease; white-space: nowrap; }
   body.os.rail-mini .rail { width: 64px; overflow: hidden; }
   body.os.rail-mini .main { margin-left: 64px; }
