@@ -8,7 +8,7 @@ instead of fetching every script before showing anything.
 |------|------------|---------|
 | `core.js`, `core.wasm` (Scramjet's `scramjet.js`, `scramjet.wasm`) | [Scramjet](https://github.com/MercuryWorkshop/scramjet) 2 by Mercury Workshop: rewrites pages so they work through the tide | MIT |
 | `ctl.js`, `ctl-page.js`, `ctl-worker.js` (the controller's `controller.api.js`, `controller.inject.js`, `controller.sw.js`) | Scramjet's controller (`@mercuryworkshop/scramjet-controller` 0.0.14) by Mercury Workshop | AGPL-3.0 |
-| `net.js` (`libcurl-client.js`) | [libcurl-transport](https://github.com/MercuryWorkshop/libcurl-transport) by Mercury Workshop, bundling [libcurl.js](https://github.com/ading2210/libcurl.js) 0.7.4 by ading2210 | AGPL-3.0 (libcurl.js: LGPL-3.0) |
+| `net.js` (`libcurl-client.js`), `net.wasm` | [libcurl-transport](https://github.com/MercuryWorkshop/libcurl-transport) by Mercury Workshop, bundling [libcurl.js](https://github.com/ading2210/libcurl.js) 0.7.4 by ading2210 | AGPL-3.0 (libcurl.js: LGPL-3.0) |
 | `sw.js` | Tide's service worker (hands each request to the Tide page) | AGPL-3.0, like Tide |
 
 They are the builds of those projects as published, with one change in
@@ -21,3 +21,7 @@ reads them back.
 One change in `net.js`: while requests are open, libcurl.js runs its loop every 10 ms
 instead of `setInterval(..., 0)` (every 4 ms), which kept slow laptops busy while a video
 streamed. Search it for `}, 10);`.
+
+And in `net.js`, libcurl.js's wasm is no longer inside the file as base64: it is `net.wasm`
+next to it, loaded by a `load_wasm(scriptDirectory + "net.wasm")` call before `return api;`.
+The browser compiles it while it downloads and keeps the compiled copy.
