@@ -2181,6 +2181,36 @@ grant execute on function public.is_activity_path(text) to authenticated;
 revoke execute on function public.leave_now(uuid) from public;
 grant execute on function public.leave_now(uuid) to anon, authenticated;
 
+-- ================================================================ Voice relay logins, with a hard monthly limit (2026-11-24)
+-- The chalkbored worker hands out 2-hour logins for the Cloudflare voice relay (TURN).
+-- Before each one it asks here. At most 2,000 a month (worst case about 600 GB,
+-- under the free 1,000 GB) and 10 per person a day; past that, calls connect
+-- directly only, so the relay can never cost money.
+
+create table if not exists public.relay_logins (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references public.profiles on delete cascade,
+  created_at timestamptz not null default now()
+);
+create index if not exists relay_logins_at_idx on public.relay_logins (created_at);
+alter table public.relay_logins enable row level security;   -- no policies: only the function below touches it
+
+create or replace function public.take_relay_login()
+returns boolean language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is null or is_banned() then return false; end if;
+  perform pg_advisory_xact_lock(hashtext('relay_logins'));   -- two at once can't both take the last one
+  if (select count(*) from relay_logins where created_at >= date_trunc('month', now())) >= 2000 then return false; end if;
+  if (select count(*) from relay_logins where user_id = auth.uid() and created_at > now() - interval '1 day') >= 10 then return false; end if;
+  delete from relay_logins where created_at < now() - interval '40 days';
+  insert into relay_logins (user_id) values (auth.uid());
+  return true;
+end; $$;
+
+revoke all on public.relay_logins from anon, authenticated;
+revoke execute on function public.take_relay_login() from public, anon;
+grant execute on function public.take_relay_login() to authenticated;
+
 -- ================================================================ Last step
 -- Keep this at the very end. Signed-out visitors can only reach the vote on
 -- Home (latest_poll), the old Requests poll, the online count and Home's
