@@ -352,5 +352,10 @@ Object.assign(ART, {
   'LESSONS/Polygon-Platformer/index.html':           { src: 'LESSONS/art/sm64.webp', bg: '#2b6ecb', fit: 'cover' },
   'LESSONS/Fossil-Lab/index.html':                   { src: 'LESSONS/art/chrome-dino.webp', bg: '#f7f7f7', fit: 'cover' },
   'LESSONS/Board-Games-Club/index.html':             { src: 'LESSONS/art/chess-logo.webp', bg: '#2b2b26', fit: 'cover' },
+  'LESSONS/Cartoon-Blast/index.html':                       { src: 'LESSONS/art/cartoon-blast.webp', fit: 'cover' },
+  'LESSONS/Arena-3D/index.html':                            { src: 'LESSONS/art/arena-3d.webp', fit: 'cover' },
+  'LESSONS/Water-Flow/index.html':                          { src: 'LESSONS/art/water-flow.webp', fit: 'cover' },
+  'LESSONS/Launch-Physics/index.html':                      { src: 'LESSONS/art/launch-physics.webp', fit: 'cover' },
+  'LESSONS/Cattle-Physics/index.html':                      { src: 'LESSONS/art/cattle-physics.webp', fit: 'cover' },
 });
 
